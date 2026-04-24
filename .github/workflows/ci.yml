@@ -114,7 +114,7 @@ jobs:
     - name: Restore
       run: dotnet restore QuerySpec.sln
     - name: Verify formatting
-      run: dotnet format QuerySpec.sln --verify-no-changes --severity warning
+      run: dotnet format QuerySpec.sln --verify-no-changes --severity warn
 
   codeql:
     name: CodeQL analysis
