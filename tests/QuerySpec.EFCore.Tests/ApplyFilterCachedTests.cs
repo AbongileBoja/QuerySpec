@@ -49,11 +49,15 @@ public class ApplyFilterCachedTests
         QuerySpecExpressionTranslator.ClearPredicateCache();
         var a = new AdvancedFilterExpression
         {
-            Field = "Category", Operator = FilterOperator.Equal, Value = "A",
+            Field = "Category",
+            Operator = FilterOperator.Equal,
+            Value = "A",
         };
         var b = new AdvancedFilterExpression
         {
-            Field = "Category", Operator = FilterOperator.Equal, Value = "A",
+            Field = "Category",
+            Operator = FilterOperator.Equal,
+            Value = "A",
         };
 
         var exprA = QuerySpecExpressionTranslator.GetOrBuildCachedPredicate<Widget>(a);
@@ -68,11 +72,15 @@ public class ApplyFilterCachedTests
         QuerySpecExpressionTranslator.ClearPredicateCache();
         var a = new AdvancedFilterExpression
         {
-            Field = "Category", Operator = FilterOperator.Equal, Value = "A",
+            Field = "Category",
+            Operator = FilterOperator.Equal,
+            Value = "A",
         };
         var b = new AdvancedFilterExpression
         {
-            Field = "Category", Operator = FilterOperator.Equal, Value = "B",
+            Field = "Category",
+            Operator = FilterOperator.Equal,
+            Value = "B",
         };
 
         var exprA = QuerySpecExpressionTranslator.GetOrBuildCachedPredicate<Widget>(a);

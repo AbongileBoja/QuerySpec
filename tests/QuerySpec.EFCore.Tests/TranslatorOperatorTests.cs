@@ -166,7 +166,9 @@ public class TranslatorOperatorTests
     {
         var result = Run(new AdvancedFilterExpression
         {
-            Field = "Id", Operator = FilterOperator.In, Value = new[] { 1, 3 }
+            Field = "Id",
+            Operator = FilterOperator.In,
+            Value = new[] { 1, 3 }
         });
         Assert.Equal(new[] { 1, 3 }, result.Select(r => r.Id).OrderBy(x => x));
     }
@@ -176,7 +178,9 @@ public class TranslatorOperatorTests
     {
         var result = Run(new AdvancedFilterExpression
         {
-            Field = "Id", Operator = FilterOperator.NotIn, Value = new[] { 1, 3 }
+            Field = "Id",
+            Operator = FilterOperator.NotIn,
+            Value = new[] { 1, 3 }
         });
         Assert.Equal(new[] { 2, 4 }, result.Select(r => r.Id).OrderBy(x => x));
     }
@@ -186,7 +190,9 @@ public class TranslatorOperatorTests
     {
         var result = Run(new AdvancedFilterExpression
         {
-            Field = "Id", Operator = FilterOperator.In, Value = Array.Empty<int>()
+            Field = "Id",
+            Operator = FilterOperator.In,
+            Value = Array.Empty<int>()
         });
         Assert.Empty(result);
     }
@@ -207,7 +213,10 @@ public class TranslatorOperatorTests
     {
         var result = Run(new AdvancedFilterExpression
         {
-            Field = "Age", Operator = FilterOperator.Between, Value = 25, ValueTo = 35
+            Field = "Age",
+            Operator = FilterOperator.Between,
+            Value = 25,
+            ValueTo = 35
         });
         Assert.Equal(3, result.Count);
         Assert.All(result, e => Assert.InRange(e.Age, 25, 35));
@@ -218,7 +227,10 @@ public class TranslatorOperatorTests
     {
         var result = Run(new AdvancedFilterExpression
         {
-            Field = "Age", Operator = FilterOperator.NotBetween, Value = 25, ValueTo = 35
+            Field = "Age",
+            Operator = FilterOperator.NotBetween,
+            Value = 25,
+            ValueTo = 35
         });
         Assert.Single(result);
         Assert.Equal(42, result[0].Age);

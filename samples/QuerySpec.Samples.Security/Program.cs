@@ -19,17 +19,17 @@ Seed(db, crypto);
 
 // ---------- 2. Data masking ----------
 var masker = new DataMaskingEngine();
-masker.RegisterFieldMask("Email",       DataMaskingEngine.MaskingStrategy.EmailMask);
-masker.RegisterFieldMask("CreditCard",  DataMaskingEngine.MaskingStrategy.LastFourOnly);
+masker.RegisterFieldMask("Email", DataMaskingEngine.MaskingStrategy.EmailMask);
+masker.RegisterFieldMask("CreditCard", DataMaskingEngine.MaskingStrategy.LastFourOnly);
 masker.RegisterFieldMask("PhoneNumber", DataMaskingEngine.MaskingStrategy.PartialMask);
-masker.RegisterFieldMask("Ssn",         DataMaskingEngine.MaskingStrategy.HashMask);
+masker.RegisterFieldMask("Ssn", DataMaskingEngine.MaskingStrategy.HashMask);
 
 var sample = db.Customers.First();
 Console.WriteLine("[masking] unprivileged view of a customer:");
-Console.WriteLine($"  Email       : {masker.Mask("Email",       sample.Email)}");
-Console.WriteLine($"  CreditCard  : {masker.Mask("CreditCard",  sample.CreditCard)}");
+Console.WriteLine($"  Email       : {masker.Mask("Email", sample.Email)}");
+Console.WriteLine($"  CreditCard  : {masker.Mask("CreditCard", sample.CreditCard)}");
 Console.WriteLine($"  PhoneNumber : {masker.Mask("PhoneNumber", sample.PhoneNumber)}");
-Console.WriteLine($"  Ssn (hash)  : {masker.Mask("Ssn",         crypto.Decrypt(sample.SsnEncrypted))}\n");
+Console.WriteLine($"  Ssn (hash)  : {masker.Mask("Ssn", crypto.Decrypt(sample.SsnEncrypted))}\n");
 
 // ---------- 3. Row-level security ----------
 var rls = new RowLevelSecurityEngine();
@@ -75,28 +75,28 @@ perms.RegisterPermission("analyst", DynamicPermissionEvaluator.PermissionType.Vi
 perms.RegisterPermission("admin", DynamicPermissionEvaluator.PermissionType.ViewSensitive, _ => true);
 
 foreach (var role in new[] { "analyst", "admin" })
-foreach (var field in new[] { "Email", "Ssn" })
-{
-    var ctx = new DynamicPermissionEvaluator.DynamicContext
+    foreach (var field in new[] { "Email", "Ssn" })
     {
-        UserId = $"{role}-1",
-        Roles = new List<string> { role },
-        ResourceType = nameof(Customer),
-        FieldName = field,
-        AccessTime = DateTime.UtcNow
-    };
-    var allowed = perms.HasPermission(ctx, DynamicPermissionEvaluator.PermissionType.ViewSensitive);
-    Console.WriteLine($"[permissions] role={role,-7} field={field,-5} → {(allowed ? "allow" : "deny")}");
-}
+        var ctx = new DynamicPermissionEvaluator.DynamicContext
+        {
+            UserId = $"{role}-1",
+            Roles = new List<string> { role },
+            ResourceType = nameof(Customer),
+            FieldName = field,
+            AccessTime = DateTime.UtcNow
+        };
+        var allowed = perms.HasPermission(ctx, DynamicPermissionEvaluator.PermissionType.ViewSensitive);
+        Console.WriteLine($"[permissions] role={role,-7} field={field,-5} → {(allowed ? "allow" : "deny")}");
+    }
 
 static void Seed(CustomerDb db, IEncryptionProvider crypto)
 {
     if (db.Customers.Any()) return;
     db.Customers.AddRange(
-        new Customer { Name = "Alice Ndlovu", Email = "alice@acme.io",  CreditCard = "4111111111111234", PhoneNumber = "+27821234567", SsnEncrypted = crypto.Encrypt("123-45-6789"), TenantId = "tenant-a", Country = "ZA" },
-        new Customer { Name = "Bongani K.",   Email = "bongani@acme.io",CreditCard = "4111222233334567", PhoneNumber = "+27829876543", SsnEncrypted = crypto.Encrypt("987-65-4321"), TenantId = "tenant-a", Country = "ZA" },
-        new Customer { Name = "Carla Rossi",  Email = "carla@acme.io",  CreditCard = "5500000000005555", PhoneNumber = "+39055123456", SsnEncrypted = crypto.Encrypt("555-12-3456"), TenantId = "tenant-b", Country = "IT" },
-        new Customer { Name = "Dinesh Patel", Email = "dinesh@acme.io", CreditCard = "340000000000009",  PhoneNumber = "+911122334455",SsnEncrypted = crypto.Encrypt("111-22-3333"), TenantId = "tenant-b", Country = "IN" }
+        new Customer { Name = "Alice Ndlovu", Email = "alice@acme.io", CreditCard = "4111111111111234", PhoneNumber = "+27821234567", SsnEncrypted = crypto.Encrypt("123-45-6789"), TenantId = "tenant-a", Country = "ZA" },
+        new Customer { Name = "Bongani K.", Email = "bongani@acme.io", CreditCard = "4111222233334567", PhoneNumber = "+27829876543", SsnEncrypted = crypto.Encrypt("987-65-4321"), TenantId = "tenant-a", Country = "ZA" },
+        new Customer { Name = "Carla Rossi", Email = "carla@acme.io", CreditCard = "5500000000005555", PhoneNumber = "+39055123456", SsnEncrypted = crypto.Encrypt("555-12-3456"), TenantId = "tenant-b", Country = "IT" },
+        new Customer { Name = "Dinesh Patel", Email = "dinesh@acme.io", CreditCard = "340000000000009", PhoneNumber = "+911122334455", SsnEncrypted = crypto.Encrypt("111-22-3333"), TenantId = "tenant-b", Country = "IN" }
     );
     db.SaveChanges();
 }
