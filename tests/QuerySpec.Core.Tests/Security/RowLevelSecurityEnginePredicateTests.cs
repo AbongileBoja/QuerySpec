@@ -1,0 +1,143 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using QuerySpec.Core.Security;
+using Xunit;
+
+namespace QuerySpec.Core.Tests.Security;
+
+/// <summary>
+/// Tests for the strongly-typed predicate pathway on <see cref="RowLevelSecurityEngine"/>
+/// as well as identifier validation and registration edge cases introduced by the
+/// parameterized-SQL rewrite.
+/// </summary>
+public class RowLevelSecurityEnginePredicateTests
+{
+    private sealed class Doc { public string Owner { get; set; } = string.Empty; public int Value { get; set; } }
+
+    [Fact]
+    public void GetPredicate_ReturnsNullWhenNoPolicyRegistered()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var ctx = new RowLevelSecurityEngine.RLSContext();
+        Assert.Null(engine.GetPredicate<Doc>("Doc", ctx));
+    }
+
+    [Fact]
+    public void GetPredicate_ReturnsConfiguredPredicate_AndFiltersCorrectly()
+    {
+        var engine = new RowLevelSecurityEngine();
+        Func<RowLevelSecurityEngine.RLSContext, Expression<Func<Doc, bool>>> factory =
+            ctx => d => d.Owner == ctx.UserId;
+
+        engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+        {
+            ResourceType = "Doc",
+            PredicateFactory = factory
+        });
+
+        var predicate = engine.GetPredicate<Doc>("Doc", new RowLevelSecurityEngine.RLSContext { UserId = "alice" });
+        Assert.NotNull(predicate);
+
+        var docs = new[]
+        {
+            new Doc { Owner = "alice", Value = 1 },
+            new Doc { Owner = "bob", Value = 2 },
+        }.AsQueryable();
+
+        var filtered = docs.Where(predicate!).ToList();
+        Assert.Single(filtered);
+        Assert.Equal("alice", filtered[0].Owner);
+    }
+
+    [Fact]
+    public void GetPredicate_IncompatibleType_Throws()
+    {
+        var engine = new RowLevelSecurityEngine();
+        Func<RowLevelSecurityEngine.RLSContext, Expression<Func<Doc, bool>>> factory =
+            _ => d => true;
+
+        engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+        {
+            ResourceType = "Doc",
+            PredicateFactory = factory
+        });
+
+        Assert.Throws<InvalidOperationException>(
+            () => engine.GetPredicate<string>("Doc", new RowLevelSecurityEngine.RLSContext()));
+    }
+
+    [Fact]
+    public void GenerateFilter_NullPolicyResult_FallsBackToDenyAll()
+    {
+        var engine = new RowLevelSecurityEngine();
+        engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+        {
+            ResourceType = "Doc",
+            FilterGenerator = _ => null!
+        });
+
+        var filter = engine.GenerateFilter("Doc", new RowLevelSecurityEngine.RLSContext());
+        Assert.Same(RowLevelSecurityEngine.RLSFilter.DenyAll, filter);
+    }
+
+    [Fact]
+    public void RegisterPolicy_NullOrMissingResourceType_Throws()
+    {
+        var engine = new RowLevelSecurityEngine();
+        Assert.Throws<ArgumentNullException>(() => engine.RegisterPolicy(null!));
+        Assert.Throws<ArgumentException>(() => engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy()));
+    }
+
+    [Fact]
+    public void GenerateFilter_InvalidInput_Throws()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var ctx = new RowLevelSecurityEngine.RLSContext();
+        Assert.Throws<ArgumentException>(() => engine.GenerateFilter("", ctx));
+        Assert.Throws<ArgumentNullException>(() => engine.GenerateFilter("Doc", null!));
+    }
+
+    [Theory]
+    [InlineData("Department")]
+    [InlineData("dept_name")]
+    [InlineData("Schema.Column")]
+    public void ValidateIdentifier_Accepts_WellFormedIdentifiers(string id)
+    {
+        Assert.Equal(id, RowLevelSecurityEngine.ValidateIdentifier(id));
+    }
+
+    [Theory]
+    [InlineData("1column")]
+    [InlineData("col-name")]
+    [InlineData("col name")]
+    [InlineData("drop table users")]
+    [InlineData("a.b.c")]
+    [InlineData("")]
+    public void ValidateIdentifier_Rejects_MalformedIdentifiers(string id)
+    {
+        Assert.Throws<ArgumentException>(() => RowLevelSecurityEngine.ValidateIdentifier(id));
+    }
+
+    [Fact]
+    public void EscapeSqlLiteral_EscapesAllSingleQuotes()
+    {
+        var escaped = RowLevelSecurityEngine.EscapeSqlLiteral("It's O'Brien");
+        Assert.Equal("'It''s O''Brien'", escaped);
+    }
+
+    [Fact]
+    public void OwnerPolicy_ParameterizesUserId()
+    {
+        var policy = RowLevelSecurityEngine.CreateOwnerBased("Owner");
+        policy.ResourceType = "Doc";
+        var engine = new RowLevelSecurityEngine();
+        engine.RegisterPolicy(policy);
+
+        var filter = engine.GenerateFilter("Doc", new RowLevelSecurityEngine.RLSContext { UserId = "u1" });
+
+        Assert.Equal("Owner = @rls_owner", filter.Sql);
+        Assert.Equal("u1", filter.Parameters["rls_owner"]);
+    }
+}

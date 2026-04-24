@@ -1,0 +1,122 @@
+using System;
+using System.Collections.Generic;
+using Xunit;
+using QuerySpec.Core.Security;
+
+namespace QuerySpec.Core.Tests.Security;
+
+/// <summary>
+/// Unit tests for RowLevelSecurityEngine.
+/// </summary>
+public class RowLevelSecurityEngineTests
+{
+    /// <summary>Tests that GenerateFilter returns allow-all when no policy is registered.</summary>
+    [Fact]
+    public void GenerateFilter_Should_Return_AllowAll_When_No_Policy()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
+
+        var filter = engine.GenerateFilter("User", context);
+
+        Assert.Same(RowLevelSecurityEngine.RLSFilter.AllowAll, filter);
+        Assert.Equal("1=1", filter.Sql);
+    }
+
+    /// <summary>Tests that department-based policy parameterizes the value.</summary>
+    [Fact]
+    public void Department_Policy_Parameterizes_Value()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var policy = RowLevelSecurityEngine.CreateDepartmentBased("Department");
+        policy.ResourceType = "User";
+        engine.RegisterPolicy(policy);
+        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1", Department = "Sales" };
+
+        var filter = engine.GenerateFilter("User", context);
+
+        Assert.Equal("Department = @rls_dept", filter.Sql);
+        Assert.Equal("Sales", filter.Parameters["rls_dept"]);
+    }
+
+    /// <summary>Tests that tenant policy parameterizes each allowed tenant.</summary>
+    [Fact]
+    public void Tenant_Policy_Parameterizes_Each_Value()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var policy = RowLevelSecurityEngine.CreateTenantBased("TenantId");
+        policy.ResourceType = "User";
+        engine.RegisterPolicy(policy);
+        var context = new RowLevelSecurityEngine.RLSContext
+        {
+            UserId = "user1",
+            AllowedTenants = new List<string> { "tenant1", "tenant2" }
+        };
+
+        var filter = engine.GenerateFilter("User", context);
+
+        Assert.Equal("TenantId IN (@rls_tenant_0,@rls_tenant_1)", filter.Sql);
+        Assert.Equal("tenant1", filter.Parameters["rls_tenant_0"]);
+        Assert.Equal("tenant2", filter.Parameters["rls_tenant_1"]);
+    }
+
+    /// <summary>Empty tenant allow-list fails closed.</summary>
+    [Fact]
+    public void Tenant_Policy_Empty_Allowlist_Denies_All()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var policy = RowLevelSecurityEngine.CreateTenantBased("TenantId");
+        policy.ResourceType = "User";
+        engine.RegisterPolicy(policy);
+        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
+
+        var filter = engine.GenerateFilter("User", context);
+
+        Assert.Same(RowLevelSecurityEngine.RLSFilter.DenyAll, filter);
+    }
+
+    /// <summary>Injection attempt via tenant value does not break the SQL.</summary>
+    [Fact]
+    public void Tenant_Policy_Injection_Attempt_Is_Parameterized()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var policy = RowLevelSecurityEngine.CreateTenantBased("TenantId");
+        policy.ResourceType = "User";
+        engine.RegisterPolicy(policy);
+        var malicious = "x') OR 1=1 --";
+        var context = new RowLevelSecurityEngine.RLSContext
+        {
+            AllowedTenants = new List<string> { malicious }
+        };
+
+        var filter = engine.GenerateFilter("User", context);
+
+        Assert.Equal("TenantId IN (@rls_tenant_0)", filter.Sql);
+        Assert.Equal(malicious, filter.Parameters["rls_tenant_0"]);
+        Assert.DoesNotContain("OR 1=1", filter.Sql, StringComparison.Ordinal);
+    }
+
+    /// <summary>Invalid column names are rejected at factory time.</summary>
+    [Fact]
+    public void Factories_Reject_Invalid_Identifiers()
+    {
+        Assert.Throws<ArgumentException>(() => RowLevelSecurityEngine.CreateDepartmentBased("dept; DROP TABLE x"));
+        Assert.Throws<ArgumentException>(() => RowLevelSecurityEngine.CreateTenantBased("1invalid"));
+        Assert.Throws<ArgumentException>(() => RowLevelSecurityEngine.CreateOwnerBased(""));
+    }
+
+    /// <summary>EscapeSqlLiteral doubles embedded quotes.</summary>
+    [Fact]
+    public void EscapeSqlLiteral_Doubles_Quotes()
+    {
+        Assert.Equal("'O''Brien'", RowLevelSecurityEngine.EscapeSqlLiteral("O'Brien"));
+        Assert.Equal("NULL", RowLevelSecurityEngine.EscapeSqlLiteral(null));
+    }
+
+    /// <summary>Null characters are rejected in literals.</summary>
+    [Fact]
+    public void EscapeSqlLiteral_Rejects_Null_Characters()
+    {
+        Assert.Throws<ArgumentException>(() => RowLevelSecurityEngine.EscapeSqlLiteral("a\0b"));
+    }
+}

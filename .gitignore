@@ -382,11 +382,6 @@ FodyWeavers.xsd
 *.sln.iml
 .idea/
 
-# Claude Code local settings and runtime state
-.claude/settings.local.json
-.claude/scheduled_tasks.lock
-.claude/projects/
-
 # Commitlint / husky dev-tooling artefacts
 npm-debug.log*
 .husky/_

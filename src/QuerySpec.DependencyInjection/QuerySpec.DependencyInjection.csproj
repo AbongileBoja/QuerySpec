@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Package-specific metadata -->
+    <PackageId>QuerySpec.DependencyInjection</PackageId>
+    <Title>QuerySpec Dependency Injection</Title>
+    <Description>Wires QuerySpec into Microsoft.Extensions.DependencyInjection with a fluent AddQuerySpec(...) builder for auditing, security, caching (in-memory or Redis via StackExchange.Redis), resilience, monitoring, performance, and plugins. Start here if you use ASP.NET Core or any Generic Host app — it saves you from registering each concern by hand.</Description>
+    <PackageTags>query;specification;dependency-injection;aspnetcore;generic-host;redis;caching;dotnet</PackageTags>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\QuerySpec.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuerySpec.Core\QuerySpec.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
+  </ItemGroup>
+
+</Project>
