@@ -2,7 +2,7 @@
   "name": "queryspec-tooling",
   "version": "0.0.0",
   "private": true,
-  "description": "Dev-only tooling (commitlint + husky) for the QuerySpec .NET package. Not published.",
+  "description": "Dev-only tooling (commitlint + husky + standard-version) for the QuerySpec .NET package. Not published.",
   "author": "Abongile Boja",
   "repository": {
     "type": "git",
@@ -14,15 +14,15 @@
   "homepage": "https://github.com/AbongileBoja/QuerySpec#readme",
   "license": "MIT",
   "scripts": {
-    "prepare": "husky",
-    "commitlint": "commitlint --edit $1",
-    "commitlint:last": "commitlint --from=HEAD~1 --to=HEAD --verbose",
-    "commitlint:ci": "commitlint --from=${GITHUB_BASE_REF:-origin/main} --to=HEAD --verbose"
+    "release": "standard-version",
+    "release:push": "npm run release && git push --follow-tags origin develop",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.6.0",
-    "@commitlint/config-conventional": "^19.6.0",
-    "husky": "^9.1.7"
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "husky": "^9.1.7",
+    "standard-version": "^9.5.0"
   },
   "engines": {
     "node": ">=18"

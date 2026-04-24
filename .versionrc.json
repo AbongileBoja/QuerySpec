@@ -1,0 +1,17 @@
+{
+  "header": "# Changelog\n\nAll notable changes to QuerySpec are documented here. Generated from Conventional Commits by `standard-version`.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).\n",
+  "tag-prefix": "v",
+  "types": [
+    { "type": "feat",     "section": "Features" },
+    { "type": "fix",      "section": "Bug Fixes" },
+    { "type": "perf",     "section": "Performance" },
+    { "type": "refactor", "section": "Refactoring" },
+    { "type": "docs",     "section": "Documentation" },
+    { "type": "test",     "section": "Tests" },
+    { "type": "build",    "section": "Build System" },
+    { "type": "ci",       "section": "CI" },
+    { "type": "chore",    "hidden": true },
+    { "type": "style",    "hidden": true },
+    { "type": "revert",   "section": "Reverts" }
+  ]
+}
