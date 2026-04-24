@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>QuerySpec.Samples.Security</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\QuerySpec.Core\QuerySpec.Core.csproj" />
+    <ProjectReference Include="..\..\src\QuerySpec.EFCore\QuerySpec.EFCore.csproj" />
+    <ProjectReference Include="..\..\src\QuerySpec.DependencyInjection\QuerySpec.DependencyInjection.csproj" />
+  </ItemGroup>
+
+</Project>

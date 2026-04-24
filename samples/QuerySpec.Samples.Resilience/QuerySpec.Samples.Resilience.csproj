@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>QuerySpec.Samples.Resilience</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\QuerySpec.Core\QuerySpec.Core.csproj" />
+  </ItemGroup>
+
+</Project>

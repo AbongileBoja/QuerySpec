@@ -1,0 +1,57 @@
+@host = http://localhost:5000
+
+### Simple equality: everyone in Engineering
+POST {{host}}/search
+Content-Type: application/json
+X-Tenant: acme
+X-User: alice
+
+{
+  "field": "Department",
+  "operator": 0,
+  "value": "Engineering"
+}
+
+### Nested AND: Engineering AND salary > 100k
+POST {{host}}/search
+Content-Type: application/json
+X-Tenant: acme
+X-User: alice
+
+{
+  "logic": 0,
+  "filters": [
+    { "field": "Department", "operator": 0, "value": "Engineering" },
+    { "field": "Salary", "operator": 2, "value": 100000 }
+  ]
+}
+
+### OR: anyone in Sales OR Finance
+POST {{host}}/search
+Content-Type: application/json
+X-Tenant: acme
+X-User: alice
+
+{
+  "logic": 1,
+  "filters": [
+    { "field": "Department", "operator": 0, "value": "Sales" },
+    { "field": "Department", "operator": 0, "value": "Finance" }
+  ]
+}
+
+### String contains on email domain
+POST {{host}}/search
+Content-Type: application/json
+
+{
+  "field": "Email",
+  "operator": 10,
+  "value": "@acme.io"
+}
+
+### Audit trail for today
+GET {{host}}/audit
+
+### Cache stats (run /search twice first, then check hits vs misses)
+GET {{host}}/cache/stats

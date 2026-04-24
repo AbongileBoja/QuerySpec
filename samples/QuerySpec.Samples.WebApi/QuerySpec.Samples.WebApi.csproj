@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>QuerySpec.Samples.WebApi</RootNamespace>
+    <UserSecretsId>querspec-webapi-sample</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\QuerySpec.Core\QuerySpec.Core.csproj" />
+    <ProjectReference Include="..\..\src\QuerySpec.EFCore\QuerySpec.EFCore.csproj" />
+    <ProjectReference Include="..\..\src\QuerySpec.DependencyInjection\QuerySpec.DependencyInjection.csproj" />
+  </ItemGroup>
+
+</Project>
