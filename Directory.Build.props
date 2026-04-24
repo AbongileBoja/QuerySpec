@@ -1,0 +1,46 @@
+<Project>
+  <!-- Shared build settings for all projects in the repository -->
+
+  <PropertyGroup>
+    <!-- Target frameworks for all projects -->
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+
+    <!-- Single version for all packages -->
+    <Version>1.0.0</Version>
+
+    <!-- Deterministic builds for reproducibility -->
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- SourceLink: enables source debugging for NuGet consumers -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Strong naming - disabled until QuerySpec.snk is generated -->
+    <SignAssembly>false</SignAssembly>
+    <!--<AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)QuerySpec.snk</AssemblyOriginatorKeyFile>-->
+
+    <!-- Common compile settings -->
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- NuGet package metadata -->
+    <Authors>Abongile Boja</Authors>
+    <PackageProjectUrl>https://github.com/AbongileBoja/QuerySpec</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/AbongileBoja/QuerySpec.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright © Abongile Boja</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
