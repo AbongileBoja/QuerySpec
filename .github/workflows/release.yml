@@ -1,0 +1,178 @@
+name: Release
+
+# Triggered when a version tag is pushed (e.g. v1.0.5). The tag is the single source of
+# truth for the published version — MSBuild's Directory.Build.props <Version> is just a
+# fallback for local dev builds.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'   # pre-releases: v1.0.0-rc.1, etc.
+
+# Disallow concurrent publishes for the same tag.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ── 1. Validate: build, test, pack, then upload artefacts for the publish job ────
+  pack:
+    name: Build, test, pack
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0   # full history so SourceLink embeds correct commit info
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          9.0.x
+          10.0.x
+
+    - name: Extract version from tag
+      id: version
+      run: |
+        set -euo pipefail
+        tag="${GITHUB_REF_NAME}"     # e.g. v1.0.5 or v1.0.0-rc.1
+        version="${tag#v}"
+        # Sanity-check that it matches SemVer.
+        if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+          echo "::error::Tag '$tag' is not a valid SemVer version." >&2
+          exit 1
+        fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "Releasing version $version from tag $tag"
+
+    - name: Restore
+      run: dotnet restore QuerySpec.sln
+
+    - name: Build (Release, warnings as errors, version from tag)
+      run: >
+        dotnet build QuerySpec.sln
+        --no-restore --configuration Release
+        -p:Version=${{ steps.version.outputs.version }}
+        -p:ContinuousIntegrationBuild=true
+        -p:TreatWarningsAsErrors=true
+
+    - name: Test (release is gated on green tests across all TFMs)
+      run: >
+        dotnet test QuerySpec.sln
+        --no-build --configuration Release
+        --logger "trx;LogFileName=test-results.trx"
+        --results-directory ./TestResults
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-test-results
+        path: ./TestResults
+        retention-days: 14
+
+    - name: Pack shipping projects only
+      # Explicit list beats solution-wide pack: samples/tests/benchmarks have
+      # IsPackable=false / IsTestProject=true but pinning here is belt-and-braces.
+      run: |
+        set -euo pipefail
+        mkdir -p ./artifacts
+        for proj in \
+          src/QuerySpec.Core/QuerySpec.Core.csproj \
+          src/QuerySpec.EFCore/QuerySpec.EFCore.csproj \
+          src/QuerySpec.DependencyInjection/QuerySpec.DependencyInjection.csproj
+        do
+          dotnet pack "$proj" \
+            --no-build --configuration Release \
+            -p:Version=${{ steps.version.outputs.version }} \
+            -p:ContinuousIntegrationBuild=true \
+            --output ./artifacts
+        done
+
+    - name: List produced packages
+      run: ls -la ./artifacts
+
+    - name: Verify packages contain expected metadata
+      # Catches packaging regressions before we push anything to NuGet.
+      run: |
+        set -euo pipefail
+        count=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l)
+        if [[ "$count" != "3" ]]; then
+          echo "::error::Expected 3 nupkg files, found $count." >&2
+          ls -la ./artifacts
+          exit 1
+        fi
+        snupkg_count=$(ls ./artifacts/*.snupkg 2>/dev/null | wc -l)
+        if [[ "$snupkg_count" != "3" ]]; then
+          echo "::error::Expected 3 snupkg symbol files, found $snupkg_count." >&2
+          exit 1
+        fi
+        # Check each package's filename embeds the expected version.
+        for f in ./artifacts/*.nupkg; do
+          name=$(basename "$f")
+          if [[ "$name" != *"${{ steps.version.outputs.version }}.nupkg" ]]; then
+            echo "::error::Package $name does not contain version ${{ steps.version.outputs.version }}." >&2
+            exit 1
+          fi
+        done
+        echo "Package metadata OK: 3 nupkg + 3 snupkg at version ${{ steps.version.outputs.version }}."
+
+    - name: Upload packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./artifacts
+        retention-days: 30
+
+  # ── 2. Publish: separated so an approval gate can sit between pack and push ─────
+  publish:
+    name: Publish to NuGet
+    needs: pack
+    runs-on: ubuntu-latest
+    # Protect with a GitHub Environment. Configure required reviewers / wait timer
+    # under Settings → Environments → nuget-release.
+    environment:
+      name: nuget-release
+      url: https://www.nuget.org/packages/QuerySpec.Core/${{ needs.pack.outputs.version }}
+    permissions:
+      contents: write   # needed by softprops/action-gh-release
+    steps:
+    - name: Download packages
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./artifacts
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Push to NuGet.org
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run: |
+        set -euo pipefail
+        if [[ -z "${NUGET_API_KEY:-}" ]]; then
+          echo "::error::NUGET_API_KEY secret is not set. Configure it under Settings → Secrets → Actions." >&2
+          exit 1
+        fi
+        # Pushing the .nupkg auto-pushes the adjacent .snupkg to the symbol server.
+        for pkg in ./artifacts/*.nupkg; do
+          echo "Publishing $pkg"
+          dotnet nuget push "$pkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+        done
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: ${{ github.ref_name }}
+        generate_release_notes: true
+        files: |
+          ./artifacts/*.nupkg
+          ./artifacts/*.snupkg
