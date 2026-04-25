@@ -58,6 +58,15 @@ public class ResiliencePolicy
 /// </summary>
 public class RateLimitedException : Exception
 {
-    /// <summary>Initializes a new rate limited exception.</summary>
+    /// <summary>Initializes a new rate-limited exception with no message.</summary>
+    public RateLimitedException() { }
+
+    /// <summary>Initializes a new rate-limited exception with the specified message.</summary>
+    /// <param name="message">Description of the rate-limit condition.</param>
     public RateLimitedException(string message) : base(message) { }
+
+    /// <summary>Initializes a new rate-limited exception that wraps an inner exception.</summary>
+    /// <param name="message">Description of the rate-limit condition.</param>
+    /// <param name="innerException">Underlying cause to preserve in the exception chain.</param>
+    public RateLimitedException(string message, Exception innerException) : base(message, innerException) { }
 }

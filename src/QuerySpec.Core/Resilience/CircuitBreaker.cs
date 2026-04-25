@@ -139,10 +139,24 @@ public class CircuitBreakerOpenException : Exception
     /// <summary>Estimated time until the circuit transitions to half-open.</summary>
     public TimeSpan RetryAfter { get; }
 
-    /// <summary>Initializes a new circuit breaker open exception.</summary>
+    /// <summary>Initializes a new circuit-breaker-open exception with no message.</summary>
+    public CircuitBreakerOpenException() { }
+
+    /// <summary>Initializes a new circuit-breaker-open exception with the specified message.</summary>
+    /// <param name="message">Description of the circuit-open condition.</param>
     public CircuitBreakerOpenException(string message) : base(message) { }
 
-    /// <summary>Initializes a new circuit breaker open exception with state context.</summary>
+    /// <summary>Initializes a new circuit-breaker-open exception that wraps an inner exception.</summary>
+    /// <param name="message">Description of the circuit-open condition.</param>
+    /// <param name="innerException">Underlying cause to preserve in the exception chain.</param>
+    public CircuitBreakerOpenException(string message, Exception innerException) : base(message, innerException) { }
+
+    /// <summary>Initializes a new circuit-breaker-open exception with state context.</summary>
+    /// <param name="message">Description of the circuit-open condition.</param>
+    /// <param name="failureCount">Failure count at the moment the circuit opened.</param>
+    /// <param name="failureThreshold">Configured failure threshold.</param>
+    /// <param name="lastFailureTime">Timestamp of the last observed failure.</param>
+    /// <param name="retryAfter">Estimated time until the circuit transitions to half-open.</param>
     public CircuitBreakerOpenException(
         string message,
         int failureCount,
