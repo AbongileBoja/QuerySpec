@@ -11,7 +11,7 @@ public class MigratingEncryptionProviderTests
 {
     private static string NewKeyB64() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 
-#pragma warning disable CS0618 // intentional: the legacy AesEncryptionProvider remains a valid reader after migration
+#pragma warning disable CS0618 // Legacy AesEncryptionProvider remains a valid reader after migration; obsolete is appropriate but not error.
     private static IEncryptionProvider NewLegacy() => new AesEncryptionProvider(NewKeyB64());
 #pragma warning restore CS0618
 
@@ -38,7 +38,7 @@ public class MigratingEncryptionProviderTests
         var migrating = new MigratingEncryptionProvider(
             writeTag: "v2",
             writer: modern,
-            readers: new Dictionary<string, IEncryptionProvider> { ["v1"] = legacy });
+            legacyReaders: new Dictionary<string, IEncryptionProvider> { ["v1"] = legacy });
 
         Assert.Equal("legacy-payload", migrating.Decrypt(legacyEnvelope));
         var rewritten = migrating.Encrypt("legacy-payload");
@@ -54,12 +54,41 @@ public class MigratingEncryptionProviderTests
         Assert.Contains("v9", ex.Message);
     }
 
-    [Fact]
-    public void Decrypt_MalformedCiphertext_Throws()
+    [Theory]
+    [InlineData("no-separator-here")]
+    [InlineData(":empty-tag")]
+    [InlineData(":")]
+    public void Decrypt_MalformedCiphertext_Throws(string ciphertext)
     {
         var migrating = new MigratingEncryptionProvider("v2", new AesGcmEncryptionProvider(NewKeyB64()));
-        Assert.Throws<FormatException>(() => migrating.Decrypt("no-separator-here"));
-        Assert.Throws<FormatException>(() => migrating.Decrypt(":empty-tag"));
+        Assert.Throws<FormatException>(() => migrating.Decrypt(ciphertext));
+    }
+
+    [Fact]
+    public void Decrypt_TagOnlyEnvelope_ThrowsFormatException()
+    {
+        var migrating = new MigratingEncryptionProvider("v2", new AesGcmEncryptionProvider(NewKeyB64()));
+        var ex = Assert.Throws<FormatException>(() => migrating.Decrypt("v2:"));
+        Assert.Contains("body", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Decrypt_BodyContainingColons_RoundTripsCorrectly()
+    {
+        var inner = new AesGcmEncryptionProvider(NewKeyB64());
+        var migrating = new MigratingEncryptionProvider("v2", inner);
+
+        var legitimate = migrating.Encrypt("payload");
+
+        Assert.Equal("payload", migrating.Decrypt(legitimate));
+        Assert.Contains(":", legitimate, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Decrypt_MalformedInnerPayload_PropagatesInnerException()
+    {
+        var migrating = new MigratingEncryptionProvider("v2", new AesGcmEncryptionProvider(NewKeyB64()));
+        Assert.ThrowsAny<Exception>(() => migrating.Decrypt("v2:!!not-base64!!"));
     }
 
     [Fact]
@@ -68,10 +97,22 @@ public class MigratingEncryptionProviderTests
         var modern = new AesGcmEncryptionProvider(NewKeyB64());
         var legacy = NewLegacy();
 
-        Assert.Throws<ArgumentException>(() => new MigratingEncryptionProvider(
+        var ex = Assert.Throws<ArgumentException>(() => new MigratingEncryptionProvider(
             writeTag: "v2",
             writer: modern,
-            readers: new Dictionary<string, IEncryptionProvider> { ["v2"] = legacy }));
+            legacyReaders: new Dictionary<string, IEncryptionProvider> { ["v2"] = legacy }));
+        Assert.Contains("v2", ex.Message);
+    }
+
+    [Fact]
+    public void Constructor_NullReaderProvider_Throws()
+    {
+        var modern = new AesGcmEncryptionProvider(NewKeyB64());
+        var ex = Assert.Throws<ArgumentException>(() => new MigratingEncryptionProvider(
+            writeTag: "v2",
+            writer: modern,
+            legacyReaders: new Dictionary<string, IEncryptionProvider> { ["v1"] = null! }));
+        Assert.Contains("v1", ex.Message);
     }
 
     [Theory]
@@ -80,6 +121,8 @@ public class MigratingEncryptionProviderTests
     [InlineData("has space")]
     [InlineData("has:colon")]
     [InlineData("toooooooolong-tag-1234")]
+    [InlineData(".leadingDot")]
+    [InlineData("-leadingDash")]
     public void Constructor_InvalidTag_Throws(string tag)
     {
         var modern = new AesGcmEncryptionProvider(NewKeyB64());
@@ -90,6 +133,13 @@ public class MigratingEncryptionProviderTests
     public void Constructor_NullWriter_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => new MigratingEncryptionProvider("v2", writer: null!));
+    }
+
+    [Fact]
+    public void Aead_Constructor_NullWriter_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new MigratingAuthenticatedEncryptionProvider("v2", writer: null!));
     }
 
     [Fact]
@@ -107,7 +157,7 @@ public class MigratingEncryptionProviderTests
         var migrating = new MigratingEncryptionProvider(
             writeTag: "v2",
             writer: modern,
-            readers: new Dictionary<string, IEncryptionProvider> { ["v1"] = legacy });
+            legacyReaders: new Dictionary<string, IEncryptionProvider> { ["v1"] = legacy });
 
         Assert.Contains("v1", migrating.RegisteredTags);
         Assert.Contains("v2", migrating.RegisteredTags);
@@ -139,18 +189,39 @@ public class MigratingEncryptionProviderTests
     }
 
     [Fact]
-    public void Aead_DispatchesByTagWithAad()
+    public void Aead_TagSwap_FailsAuthentication()
     {
-        var legacy = new AesGcmEncryptionProvider(NewKeyB64());
-        var modern = new AesGcmEncryptionProvider(NewKeyB64());
-        ReadOnlySpan<byte> aad = "ctx"u8;
+        var sharedKey = NewKeyB64();
+        var v1 = new AesGcmEncryptionProvider(sharedKey);
+        var v2 = new AesGcmEncryptionProvider(sharedKey);
 
-        var legacyCt = "v1:" + legacy.Encrypt("legacy", aad);
+        var v1Wrapper = new MigratingAuthenticatedEncryptionProvider("v1", v1);
+        var v2Wrapper = new MigratingAuthenticatedEncryptionProvider(
+            writeTag: "v2",
+            writer: v2,
+            legacyReaders: new Dictionary<string, IAuthenticatedEncryptionProvider> { ["v1"] = v1 });
+
+        var v1Envelope = v1Wrapper.Encrypt("payload", associatedData: default);
+
+        var swapped = "v2:" + v1Envelope[(v1Envelope.IndexOf(':', StringComparison.Ordinal) + 1)..];
+
+        Assert.ThrowsAny<CryptographicException>(() => v2Wrapper.Decrypt(swapped, associatedData: default));
+    }
+
+    [Fact]
+    public void Aead_DispatchesByTag_WhenLegacyCiphertextWasWrittenThroughWrapper()
+    {
+        var legacyInner = new AesGcmEncryptionProvider(NewKeyB64());
+        var modernInner = new AesGcmEncryptionProvider(NewKeyB64());
+        var legacyWrapper = new MigratingAuthenticatedEncryptionProvider("v1", legacyInner);
+
+        var legacyCt = legacyWrapper.Encrypt("legacy", "ctx"u8);
+
         var migrating = new MigratingAuthenticatedEncryptionProvider(
             writeTag: "v2",
-            writer: modern,
-            readers: new Dictionary<string, IAuthenticatedEncryptionProvider> { ["v1"] = legacy });
+            writer: modernInner,
+            legacyReaders: new Dictionary<string, IAuthenticatedEncryptionProvider> { ["v1"] = legacyInner });
 
-        Assert.Equal("legacy", migrating.Decrypt(legacyCt, aad));
+        Assert.Equal("legacy", migrating.Decrypt(legacyCt, "ctx"u8));
     }
 }
