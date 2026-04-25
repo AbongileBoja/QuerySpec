@@ -19,7 +19,7 @@
 
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)QuerySpec.public.snk</AssemblyOriginatorKeyFile>
-    <DelaySign Condition="'$(GITHUB_ACTIONS)' != 'true'">true</DelaySign>
+    <DelaySign>true</DelaySign>
 
     <!-- Common compile settings -->
     <Nullable>enable</Nullable>
