@@ -18,11 +18,14 @@ public class SecurityBuilder
     }
 
     /// <summary>
-    /// Enables field-level encryption.
+    /// Enables field-level encryption with an authenticated AES-256-GCM provider.
     /// </summary>
+    /// <param name="encryptionKey">Base64-encoded 256-bit key.</param>
     public SecurityBuilder EnableFieldEncryption(string encryptionKey)
     {
-        _services.AddSingleton<IEncryptionProvider>(new AesEncryptionProvider(encryptionKey));
+        var provider = new AesGcmEncryptionProvider(encryptionKey);
+        _services.AddSingleton<IAuthenticatedEncryptionProvider>(provider);
+        _services.AddSingleton<IEncryptionProvider>(provider);
         return this;
     }
 

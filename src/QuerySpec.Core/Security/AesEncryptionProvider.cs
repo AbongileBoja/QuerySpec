@@ -8,15 +8,20 @@ using System.Threading.Tasks;
 namespace QuerySpec.Core.Security;
 
 /// <summary>
-/// AES-256 CBC encryption provider with key rotation support. <see cref="Aes"/> instances
-/// are pooled per thread because creating one is expensive (~1 KB allocation + cryptographic
-/// service provider init). Each thread gets a single reusable <see cref="Aes"/>; IVs are
-/// still regenerated per call via <see cref="RandomNumberGenerator"/>.
+/// AES-256 CBC encryption provider. Preserved for source compatibility with consumers
+/// holding ciphertexts produced before <see cref="AesGcmEncryptionProvider"/> shipped.
 /// </summary>
+/// <remarks>
+/// CBC ciphertexts produced by this provider are <strong>malleable</strong> — flipping bits
+/// in the ciphertext predictably flips bits in adjacent plaintext blocks — and are exposed to
+/// padding-oracle decryption when any caller surfaces "padding/format invalid" vs
+/// "decryption succeeded" via timing or distinct exceptions. Use
+/// <see cref="AesGcmEncryptionProvider"/> for any new ciphertext.
+/// </remarks>
+[Obsolete("CBC without authentication is malleable. Use AesGcmEncryptionProvider for new ciphertexts; this class remains only to decrypt legacy data.")]
 public class AesEncryptionProvider : IEncryptionProvider
 {
-    private byte[] _key;
-    private readonly object _lockObj = new();
+    private readonly byte[] _key;
 
     /// <summary>
     /// Per-thread reusable <see cref="Aes"/>. The provider owns the instance lifecycle for
@@ -94,20 +99,16 @@ public class AesEncryptionProvider : IEncryptionProvider
     }
 
     /// <summary>
-    /// Rotates encryption key (stub for production implementation).
+    /// Key rotation requires re-encrypting every ciphertext under the new key. This provider
+    /// does not own the persisted ciphertexts. The method previously returned silently which
+    /// gave callers a false belief that rotation had happened.
     /// </summary>
-    public Task RotateKeyAsync()
-    {
-        lock (_lockObj)
-        {
-            // Production implementation would:
-            // 1. Generate new key
-            // 2. Re-encrypt all data with new key
-            // 3. Store old key for decryption of old data
-            // 4. Transition to new key
-        }
-        return Task.CompletedTask;
-    }
+    /// <exception cref="NotSupportedException">Always thrown.</exception>
+    public Task RotateKeyAsync() =>
+        throw new NotSupportedException(
+            "AesEncryptionProvider does not own the persisted ciphertexts and cannot rotate. " +
+            "Construct a new provider with the new key, decrypt with the old, re-encrypt with the new at the storage layer. " +
+            "Prefer AesGcmEncryptionProvider for new ciphertexts.");
 
     /// <summary>Generates a new 256-bit encryption key.</summary>
     public static string GenerateKey()

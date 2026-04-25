@@ -163,7 +163,8 @@ public class IndividualBuildersTests
         Assert.Same(builder, builder.EnableFieldEncryption(key));
 
         using var sp = services.BuildServiceProvider();
-        Assert.IsType<AesEncryptionProvider>(sp.GetRequiredService<IEncryptionProvider>());
+        Assert.IsType<AesGcmEncryptionProvider>(sp.GetRequiredService<IEncryptionProvider>());
+        Assert.IsType<AesGcmEncryptionProvider>(sp.GetRequiredService<IAuthenticatedEncryptionProvider>());
     }
 
     [Fact]
