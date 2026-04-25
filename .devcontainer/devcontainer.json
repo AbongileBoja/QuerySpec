@@ -1,0 +1,137 @@
+{
+  "name": "QuerySpec",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "10.0",
+      "additionalVersions": "8.0,9.0",
+      "installUsingApt": false
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "nodeGypDependencies": false
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": false,
+      "installOhMyZsh": false,
+      "upgradePackages": true
+    }
+  },
+
+  "remoteEnv": {
+    "DOTNET_NOLOGO": "1",
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "NUGET_XMLDOC_MODE": "skip",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1"
+  },
+
+  "containerEnv": {
+    "DOTNET_ROOT": "/usr/share/dotnet"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "EditorConfig.EditorConfig",
+        "GitHub.vscode-github-actions",
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "vivaxy.vscode-conventional-commits",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "DavidAnson.vscode-markdownlint",
+        "streetsidesoftware.code-spell-checker",
+        "kreativ-software.csharpextensions",
+        "Fudge.auto-using"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit"
+        },
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
+        "files.eol": "\n",
+        "[csharp]": {
+          "editor.defaultFormatter": "ms-dotnettools.csharp",
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            "source.fixAll": "explicit"
+          }
+        },
+        "[yaml]": {
+          "editor.defaultFormatter": "redhat.vscode-yaml",
+          "editor.tabSize": 2
+        },
+        "[json]": {
+          "editor.defaultFormatter": "vscode.json-language-features",
+          "editor.tabSize": 2
+        },
+        "[markdown]": {
+          "files.trimTrailingWhitespace": false
+        },
+        "dotnet.defaultSolution": "QuerySpec.sln",
+        "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+        "dotnet.inlayHints.enableInlayHintsForParameters": true,
+        "dotnet.inlayHints.enableInlayHintsForLiteralParameters": true,
+        "dotnet.inlayHints.enableInlayHintsForObjectCreationParameters": true,
+        "dotnet.inlayHints.enableInlayHintsForOtherParameters": true,
+        "dotnet.testWindow.disableAutoDiscovery": false,
+        "csharp.inlayHints.parameters.enabled": true,
+        "csharp.inlayHints.types.enabled": true,
+        "omnisharp.useModernNet": true,
+        "omnisharp.enableRoslynAnalyzers": true,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "git.autofetch": true,
+        "git.confirmSync": false,
+        "git.enableCommitSigning": false,
+        "conventionalCommits.scopes": [
+          "core",
+          "efcore",
+          "di",
+          "caching",
+          "resilience",
+          "security",
+          "auditing",
+          "monitoring",
+          "advanced",
+          "benchmarks",
+          "tests",
+          "ci",
+          "deps",
+          "docs",
+          "release"
+        ]
+      }
+    }
+  },
+
+  "mounts": [
+    "source=queryspec-nuget-cache,target=/home/vscode/.nuget/packages,type=volume",
+    "source=queryspec-dotnet-tools,target=/home/vscode/.dotnet/tools,type=volume"
+  ],
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "forwardPorts": [5000, 5001, 7000, 7001],
+  "portsAttributes": {
+    "5000": { "label": "Sample WebApi (HTTP)",  "onAutoForward": "ignore" },
+    "5001": { "label": "Sample WebApi (HTTPS)", "onAutoForward": "ignore" },
+    "7000": { "label": "Kestrel (HTTP)",        "onAutoForward": "ignore" },
+    "7001": { "label": "Kestrel (HTTPS)",       "onAutoForward": "ignore" }
+  },
+
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "16gb"
+  }
+}
