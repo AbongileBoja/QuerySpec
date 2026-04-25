@@ -115,9 +115,9 @@ public class PiiClassifierTests
     }
 
     [Fact]
-    public void ConfiguredClassifier_TypeAgnosticDictionary_MatchesAcrossTypes()
+    public void NameOnlyClassifier_MatchesAcrossTypes()
     {
-        var c = new ConfiguredPiiClassifier(new Dictionary<string, PiiCategory>
+        var c = new NameOnlyPiiClassifier(new Dictionary<string, PiiCategory>
         {
             ["Email"] = PiiCategory.Contact,
         });
@@ -125,6 +125,33 @@ public class PiiClassifierTests
         Assert.Equal(PiiCategory.Contact, c.Classify(typeof(Order), "Email"));
         Assert.Equal(PiiCategory.Contact, c.Classify(typeof(Customer), "Email"));
         Assert.Equal(PiiCategory.None, c.Classify(typeof(Order), "Phone"));
+    }
+
+    [Fact]
+    public void NameOnlyClassifier_NullDictionary_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new NameOnlyPiiClassifier((IReadOnlyDictionary<string, PiiCategory>)null!));
+    }
+
+    [Fact]
+    public void NameOnlyClassifier_WhitespaceKey_Throws()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new NameOnlyPiiClassifier(new Dictionary<string, PiiCategory> { ["  "] = PiiCategory.Contact }));
+    }
+
+    [Fact]
+    public void Composite_TypedAttribute_OverridesNameOnlyBackstop()
+    {
+        var nameOnly = new NameOnlyPiiClassifier(new Dictionary<string, PiiCategory>
+        {
+            ["Email"] = PiiCategory.Sensitive,
+        });
+        var composite = new CompositePiiClassifier(new AttributePiiClassifier(), nameOnly);
+
+        Assert.Equal(PiiCategory.Contact, composite.Classify(typeof(Customer), nameof(Customer.Email)));
+        Assert.Equal(PiiCategory.Sensitive, composite.Classify(typeof(Order), "Email"));
     }
 
     [Fact]
@@ -156,5 +183,17 @@ public class PiiClassifierTests
     {
         Assert.Throws<ArgumentNullException>(() =>
             new CompositePiiClassifier(new IPiiClassifier[] { null! }));
+    }
+
+    [Fact]
+    public void PiiAttribute_WithNoneCategory_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new PiiAttribute(PiiCategory.None));
+    }
+
+    [Fact]
+    public void PiiAttribute_WithUndefinedCategory_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new PiiAttribute((PiiCategory)999));
     }
 }

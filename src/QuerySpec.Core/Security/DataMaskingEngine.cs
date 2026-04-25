@@ -19,7 +19,7 @@ namespace QuerySpec.Core.Security;
 /// cross-tenant correlation oracles.
 /// </para>
 /// <para>
-/// To separate masks across tenants, pass a non-empty <c>tenantId</c> to <see cref="Mask"/>.
+/// To separate masks across tenants, pass a non-empty <c>tenantId</c> to <see cref="Mask(string, object?, string?)"/>.
 /// The engine derives a tenant-scoped key via HMAC-SHA256 over the configured hash secret and
 /// the tenantId, then uses that derived key to HMAC the value. Two tenants masking the same
 /// value get different outputs.
@@ -115,6 +115,10 @@ public class DataMaskingEngine
 
     /// <summary>
     /// Masks a field value using the strategy registered for <paramref name="fieldName"/>.
+    /// Returns the original string when no strategy is registered — this overload has no type
+    /// context and so cannot consult the configured classifier. Prefer
+    /// <see cref="Mask(System.Type?, string, object?, string?)"/> when calling from a code path
+    /// that knows the entity type.
     /// </summary>
     /// <param name="fieldName">Field name registered via <see cref="RegisterFieldMask"/>.</param>
     /// <param name="value">Value to mask. Null produces the literal string <c>"null"</c>.</param>
@@ -124,24 +128,63 @@ public class DataMaskingEngine
     /// </param>
     /// <returns>The masked value, or the original string representation if no strategy is registered.</returns>
     public string Mask(string fieldName, object? value, string? tenantId = null)
+        => MaskCore(fieldName, value, tenantId, classifierCategory: PiiCategory.None);
+
+    /// <summary>
+    /// Masks a field value with full classifier consultation. When no explicit field mask is
+    /// registered, the configured <see cref="IPiiClassifier"/> is consulted via
+    /// <paramref name="declaringType"/> and a category-default strategy is applied for any
+    /// non-<see cref="PiiCategory.None"/> result. This closes the path where a caller annotates
+    /// a property with <c>[Pii]</c> but forgets to <see cref="RegisterFieldMask"/> — the engine
+    /// would otherwise return plaintext.
+    /// </summary>
+    /// <param name="declaringType">The type that owns <paramref name="fieldName"/>. Used to consult the classifier.</param>
+    /// <param name="fieldName">Field name. Explicit registrations take precedence over classifier defaults.</param>
+    /// <param name="value">Value to mask. Null produces the literal string <c>"null"</c>.</param>
+    /// <param name="tenantId">Optional tenant scope for <see cref="MaskingStrategy.HashMask"/>.</param>
+    /// <returns>
+    /// The masked value. When no field mask is registered and the classifier returns
+    /// <see cref="PiiCategory.None"/>, the original string representation is returned.
+    /// </returns>
+    public string Mask(Type? declaringType, string fieldName, object? value, string? tenantId = null)
+        => MaskCore(fieldName, value, tenantId, Classify(declaringType, fieldName));
+
+    private string MaskCore(string fieldName, object? value, string? tenantId, PiiCategory classifierCategory)
     {
         if (value is null) return "null";
 
         var strValue = value.ToString() ?? string.Empty;
 
-        if (!_fieldMasks.TryGetValue(fieldName, out var strategy))
+        if (_fieldMasks.TryGetValue(fieldName, out var strategy))
+            return ApplyStrategy(strategy, strValue, tenantId);
+
+        if (classifierCategory == PiiCategory.None)
             return strValue;
 
-        return strategy switch
-        {
-            MaskingStrategy.FullMask => MaskFull(strValue),
-            MaskingStrategy.PartialMask => MaskPartial(strValue),
-            MaskingStrategy.LastFourOnly => MaskLastFour(strValue),
-            MaskingStrategy.EmailMask => MaskEmail(strValue),
-            MaskingStrategy.HashMask => MaskHash(strValue, tenantId),
-            _ => strValue
-        };
+        return ApplyStrategy(DefaultStrategyFor(classifierCategory), strValue, tenantId);
     }
+
+    private string ApplyStrategy(MaskingStrategy strategy, string value, string? tenantId) => strategy switch
+    {
+        MaskingStrategy.FullMask => MaskFull(value),
+        MaskingStrategy.PartialMask => MaskPartial(value),
+        MaskingStrategy.LastFourOnly => MaskLastFour(value),
+        MaskingStrategy.EmailMask => MaskEmail(value),
+        MaskingStrategy.HashMask => MaskHash(value, tenantId),
+        _ => value
+    };
+
+    /// <summary>
+    /// Default mask strategy for each <see cref="PiiCategory"/>. Used when the classifier
+    /// reports a field as PII and no explicit <see cref="RegisterFieldMask"/> is in place.
+    /// Errs on the side of <see cref="MaskingStrategy.FullMask"/> for unknown categories.
+    /// </summary>
+    private static MaskingStrategy DefaultStrategyFor(PiiCategory category) => category switch
+    {
+        PiiCategory.Contact => MaskingStrategy.EmailMask,
+        PiiCategory.Financial => MaskingStrategy.LastFourOnly,
+        _ => MaskingStrategy.FullMask
+    };
 
     private static string MaskFull(string value) => new('*', value.Length);
     private static string MaskPartial(string value) => value.Length <= 2 ? MaskFull(value) : value[..2] + new string('*', value.Length - 2);
@@ -188,6 +231,7 @@ public class DataMaskingEngine
     /// type-scoped classifiers will return <see cref="PiiCategory.None"/> in that case.
     /// </param>
     /// <param name="fieldName">The field or property name to classify.</param>
+    /// <returns>The category, or <see cref="PiiCategory.None"/> when no classifier is configured.</returns>
     public PiiCategory Classify(Type? declaringType, string fieldName)
         => _classifier?.Classify(declaringType, fieldName) ?? PiiCategory.None;
 
@@ -197,6 +241,7 @@ public class DataMaskingEngine
     /// </summary>
     /// <param name="declaringType">The type that owns the field.</param>
     /// <param name="fieldName">The field or property name to classify.</param>
+    /// <returns><c>true</c> when classified as PII; otherwise <c>false</c>.</returns>
     public bool IsPii(Type? declaringType, string fieldName)
         => Classify(declaringType, fieldName) != PiiCategory.None;
 
@@ -204,14 +249,20 @@ public class DataMaskingEngine
     /// Detects if a field name and value match a registered PII pattern.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// This heuristic combines a field-name substring match with a regex on the value.
     /// It produces false positives (a column named <c>EmailRegistrationToken</c> classified
     /// as Email) and — more dangerously — false negatives (a column named <c>Notes</c>
     /// carrying an SSN-shaped value, which the heuristic misses). Use
     /// <see cref="IsPii(System.Type?, string)"/> with an explicit <see cref="IPiiClassifier"/>.
+    /// </para>
+    /// <para>
+    /// Scheduled to become a build error in <c>2.0.0</c> and to be removed in <c>3.0.0</c>.
+    /// </para>
     /// </remarks>
     [Obsolete("Field-name + value-regex heuristics produce false negatives that leak PII. " +
-              "Annotate fields with [Pii(...)] and use IsPii(Type, string) backed by IPiiClassifier instead.",
+              "Annotate fields with [Pii(...)] and use IsPii(Type, string) backed by IPiiClassifier instead. " +
+              "Scheduled to become an error in 2.0.0 and to be removed in 3.0.0.",
               error: false)]
     public bool IsPii(string fieldName, object? value)
     {
