@@ -44,6 +44,15 @@ public class BulkheadPolicy
 /// </summary>
 public class BulkheadException : Exception
 {
-    /// <summary>Initializes a new bulkhead exception.</summary>
+    /// <summary>Initializes a new bulkhead exception with no message.</summary>
+    public BulkheadException() { }
+
+    /// <summary>Initializes a new bulkhead exception with the specified message.</summary>
+    /// <param name="message">Description of the bulkhead condition.</param>
     public BulkheadException(string message) : base(message) { }
+
+    /// <summary>Initializes a new bulkhead exception that wraps an inner exception.</summary>
+    /// <param name="message">Description of the bulkhead condition.</param>
+    /// <param name="innerException">Underlying cause to preserve in the exception chain.</param>
+    public BulkheadException(string message, Exception innerException) : base(message, innerException) { }
 }
