@@ -6,8 +6,7 @@
     <Title>QuerySpec Core</Title>
     <Description>Core abstractions for QuerySpec: build serializable query specifications (filters, sorts, projections) and apply cross-cutting concerns — auditing, data masking and row-level security, caching, resilience (retry, circuit breaker, rate limiting), and monitoring — without hand-rolling them per query. Pair with QuerySpec.EFCore to translate specifications to LINQ against EF Core.</Description>
     <PackageTags>query;specification;filter;sort;linq;auditing;security;caching;resilience;monitoring;dotnet</PackageTags>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\QuerySpec.snk</AssemblyOriginatorKeyFile>
+    <!-- Signing is governed by Directory.Build.props. Do not override here. -->
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,6 +4,23 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Security
+
+- Strong-name keypair rotation in progress (issues #8, #9, #18). The original `QuerySpec.snk` was committed to a public repository and is treated as burned. The repository now delay-signs locally with a public-only `QuerySpec.public.snk` and full-signs in CI from the `STRONG_NAME_KEY_BASE64` GitHub Actions secret bound to the `release-signing` environment.
+- Row-Level Security engine now fails closed by default (issue #10). `RowLevelSecurityEngine` throws `InvalidOperationException` when a resource has no registered policy. New `RLSDefaultBehavior` enum and `RegisterUnrestricted<T>(...)` provide explicit opt-ins.
+
+### Breaking (planned for the rotation release)
+
+- Strong-name **public key token will change** after rotation. Consumers that pinned `[InternalsVisibleTo]` on the old token, used binding redirects, or resolved QuerySpec assemblies via the GAC must update.
+- RLS engine fail-open default removed. Code that previously relied on missing-policy returning `AllowAll` must either pass `RLSDefaultBehavior.AllowAll` to the constructor or call `RegisterUnrestricted<T>(resourceType)` per resource.
+
+### Changed
+
+- `Directory.Build.props` is the single source of truth for assembly signing; per-project `<SignAssembly>` overrides removed.
+- `.github/workflows/release.yml` rewritten: minimum permissions, environment-gated signing, decode-on-demand → use → scrub flow, signed-assembly verification before pack.
+
 ### [1.0.8](https://github.com/AbongileBoja/QuerySpec/compare/v1.0.7...v1.0.8) (2026-04-25)
 
 

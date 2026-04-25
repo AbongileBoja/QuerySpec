@@ -6,8 +6,7 @@
     <Title>QuerySpec Dependency Injection</Title>
     <Description>Wires QuerySpec into Microsoft.Extensions.DependencyInjection with a fluent AddQuerySpec(...) builder for auditing, security, caching (in-memory or Redis via StackExchange.Redis), resilience, monitoring, performance, and plugins. Start here if you use ASP.NET Core or any Generic Host app — it saves you from registering each concern by hand.</Description>
     <PackageTags>query;specification;dependency-injection;aspnetcore;generic-host;redis;caching;dotnet</PackageTags>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\QuerySpec.snk</AssemblyOriginatorKeyFile>
+    <!-- Signing is governed by Directory.Build.props. Do not override here. -->
   </PropertyGroup>
 
   <ItemGroup>
