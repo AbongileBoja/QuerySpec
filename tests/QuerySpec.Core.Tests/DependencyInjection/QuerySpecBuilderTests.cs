@@ -117,10 +117,7 @@ public class QuerySpecBuilderTests
     public void WithAuditing_RegistersInMemoryAuditLogger()
     {
         var services = new ServiceCollection();
-        services.AddQuerySpec(q => q.WithAuditing(a => a
-            .LogAllQueries()
-            .TrackChanges()
-            .RetentionDays(90)));
+        services.AddQuerySpec(q => q.WithAuditing(_ => { }));
 
         using var sp = services.BuildServiceProvider();
         var logger = sp.GetRequiredService<IAuditLogger>();
@@ -129,31 +126,13 @@ public class QuerySpecBuilderTests
     }
 
     [Fact]
-    public void WithMonitoring_IsNoOpFluent()
+    public void WithMonitoring_StubsThrowAtConfigTime()
     {
         var services = new ServiceCollection();
-        // Monitoring builder methods are placeholders; fluent chaining must still work.
-        services.AddQuerySpec(q => q.WithMonitoring(m => m
-            .EnableOpenTelemetry()
-            .EnableHealthChecks()
-            .EnableDashboard()
-            .EnablePrometheus()));
-
-        using var sp = services.BuildServiceProvider();
-        Assert.NotNull(sp); // smoke: container builds
-    }
-
-    [Fact]
-    public void WithPlugins_IsNoOpFluent()
-    {
-        var services = new ServiceCollection();
-        services.AddQuerySpec(q => q.WithPlugins(p => p
-            .LoadFromDirectory("./plugins")
-            .EnableHotReload()
-            .RegisterPlugin(typeof(object))));
-
-        using var sp = services.BuildServiceProvider();
-        Assert.NotNull(sp);
+#pragma warning disable CS0618
+        Assert.Throws<NotImplementedException>(() =>
+            services.AddQuerySpec(q => q.WithMonitoring(m => m.EnableOpenTelemetry())));
+#pragma warning restore CS0618
     }
 
     [Fact]
@@ -164,7 +143,7 @@ public class QuerySpecBuilderTests
             .WithCaching(c => c.UseMemoryCache())
             .WithResilience(r => r.UseCircuitBreaker(5, TimeSpan.FromSeconds(10)))
             .WithPerformance(p => p.EnableN1Detection())
-            .WithAuditing(a => a.LogAllQueries())
+            .WithAuditing(_ => { })
             .WithSecurity(s => s.EnableRowLevelSecurity()));
 
         using var sp = services.BuildServiceProvider();

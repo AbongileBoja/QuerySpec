@@ -49,11 +49,29 @@ public class ResilienceBuilder
     }
 
     /// <summary>
-    /// Configures rate limiting.
+    /// Configures rate limiting using a token bucket. <paramref name="tokensPerSecond"/> is the
+    /// long-run refill rate. <paramref name="window"/>, when supplied, sets burst capacity to
+    /// <c>tokensPerSecond * window.TotalSeconds</c>, allowing short bursts up to that many
+    /// requests before the bucket empties. When <paramref name="window"/> is null the limiter
+    /// uses the <see cref="RateLimiter"/> default burst size.
     /// </summary>
+    /// <param name="tokensPerSecond">Steady-state refill rate. Must be positive.</param>
+    /// <param name="window">Optional burst window; the bucket holds at most one window of tokens.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tokensPerSecond"/> is not positive or <paramref name="window"/> is not positive.</exception>
     public ResilienceBuilder UseRateLimiting(int tokensPerSecond, TimeSpan? window = null)
     {
-        _policy.RateLimiter = new RateLimiter { TokensPerSecond = tokensPerSecond };
+        if (tokensPerSecond <= 0)
+            throw new ArgumentOutOfRangeException(nameof(tokensPerSecond), "tokensPerSecond must be positive.");
+        if (window is { } w && w <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(window), "window must be positive when supplied.");
+
+        var limiter = new RateLimiter { TokensPerSecond = tokensPerSecond };
+        if (window is { } burstWindow)
+        {
+            var burst = (int)Math.Max(1, Math.Round(tokensPerSecond * burstWindow.TotalSeconds));
+            limiter.BurstSize = burst;
+        }
+        _policy.RateLimiter = limiter;
         return this;
     }
 

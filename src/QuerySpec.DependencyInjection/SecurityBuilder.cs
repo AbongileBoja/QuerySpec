@@ -59,11 +59,10 @@ public class SecurityBuilder
         return this;
     }
 
-    /// <summary>
-    /// Configures key rotation interval.
-    /// </summary>
-    public SecurityBuilder RotateKeysEvery(int days)
-    {
-        return this;
-    }
+    /// <summary>Configures key rotation interval.</summary>
+    /// <param name="days">Rotation interval in days.</param>
+    /// <exception cref="NotImplementedException">Always thrown. Automatic key rotation is not implemented.</exception>
+    [Obsolete("Not implemented; throws NotImplementedException at configuration time.", error: false)]
+    public SecurityBuilder RotateKeysEvery(int days) =>
+        throw new NotImplementedException("SecurityBuilder.RotateKeysEvery is not implemented.");
 }
