@@ -29,28 +29,22 @@ public class PerformanceBuilder
         return this;
     }
 
-    /// <summary>
-    /// Enables query result caching.
-    /// </summary>
-    public PerformanceBuilder EnableQueryCaching()
-    {
-        return this;
-    }
+    /// <summary>Enables query result caching.</summary>
+    /// <exception cref="NotImplementedException">Always thrown.</exception>
+    [Obsolete("Not implemented; throws NotImplementedException at configuration time.", error: false)]
+    public PerformanceBuilder EnableQueryCaching() =>
+        throw new NotImplementedException("PerformanceBuilder.EnableQueryCaching is not implemented.");
 
-    /// <summary>
-    /// Enables metrics collection.
-    /// </summary>
+    /// <summary>Enables metrics collection.</summary>
     public PerformanceBuilder EnableMetrics()
     {
         _services.AddSingleton<MetricsCollector>();
         return this;
     }
 
-    /// <summary>
-    /// Enables expression tree caching and optimization.
-    /// </summary>
-    public PerformanceBuilder OptimizeExpressions()
-    {
-        return this;
-    }
+    /// <summary>Enables expression tree caching and optimization.</summary>
+    /// <exception cref="NotImplementedException">Always thrown.</exception>
+    [Obsolete("Not implemented; throws NotImplementedException at configuration time.", error: false)]
+    public PerformanceBuilder OptimizeExpressions() =>
+        throw new NotImplementedException("PerformanceBuilder.OptimizeExpressions is not implemented.");
 }

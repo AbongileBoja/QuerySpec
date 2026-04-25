@@ -63,10 +63,12 @@ public class IndividualBuildersTests
     }
 
     [Fact]
-    public void CachingBuilder_EnableCompressionForLarge_IsFluent()
+    public void CachingBuilder_EnableCompressionForLarge_Throws_NotImplemented()
     {
         var builder = new CachingBuilder(new ServiceCollection());
-        Assert.Same(builder, builder.EnableCompressionForLarge(4096));
+#pragma warning disable CS0618
+        Assert.Throws<NotImplementedException>(() => builder.EnableCompressionForLarge(4096));
+#pragma warning restore CS0618
     }
 
     // ---------- ResilienceBuilder ----------
@@ -138,17 +140,21 @@ public class IndividualBuildersTests
     }
 
     [Fact]
-    public void PerformanceBuilder_EnableQueryCaching_IsFluent()
+    public void PerformanceBuilder_EnableQueryCaching_Throws_NotImplemented()
     {
         var builder = new PerformanceBuilder(new ServiceCollection());
-        Assert.Same(builder, builder.EnableQueryCaching());
+#pragma warning disable CS0618
+        Assert.Throws<NotImplementedException>(() => builder.EnableQueryCaching());
+#pragma warning restore CS0618
     }
 
     [Fact]
-    public void PerformanceBuilder_OptimizeExpressions_IsFluent()
+    public void PerformanceBuilder_OptimizeExpressions_Throws_NotImplemented()
     {
         var builder = new PerformanceBuilder(new ServiceCollection());
-        Assert.Same(builder, builder.OptimizeExpressions());
+#pragma warning disable CS0618
+        Assert.Throws<NotImplementedException>(() => builder.OptimizeExpressions());
+#pragma warning restore CS0618
     }
 
     // ---------- SecurityBuilder ----------
@@ -195,33 +201,34 @@ public class IndividualBuildersTests
     }
 
     [Fact]
-    public void SecurityBuilder_RotateKeysEvery_IsFluent()
+    public void SecurityBuilder_RotateKeysEvery_Throws_NotImplemented()
     {
         var builder = new SecurityBuilder(new ServiceCollection());
-        Assert.Same(builder, builder.RotateKeysEvery(30));
+#pragma warning disable CS0618
+        Assert.Throws<NotImplementedException>(() => builder.RotateKeysEvery(30));
+#pragma warning restore CS0618
     }
 
     // ---------- AuditingBuilder ----------
 
     [Fact]
-    public void AuditingBuilder_AllMethods_ReturnSameInstance()
+    public void AuditingBuilder_AllStubs_Throw_NotImplemented()
     {
         var builder = new AuditingBuilder(new ServiceCollection());
-
-        Assert.Same(builder, builder.LogAllQueries());
-        Assert.Same(builder, builder.TrackChanges());
-        Assert.Same(builder, builder.EnableEncryption());
-        Assert.Same(builder, builder.UseDatabase("Server=."));
-        Assert.Same(builder, builder.RetentionDays(60));
+#pragma warning disable CS0618
+        Assert.Throws<NotImplementedException>(() => builder.LogAllQueries());
+        Assert.Throws<NotImplementedException>(() => builder.TrackChanges());
+        Assert.Throws<NotImplementedException>(() => builder.EnableEncryption());
+        Assert.Throws<NotImplementedException>(() => builder.UseDatabase("Server=."));
+        Assert.Throws<NotImplementedException>(() => builder.RetentionDays(60));
+#pragma warning restore CS0618
     }
 
     [Fact]
     public void AuditingBuilder_AloneDoesNotRegisterLogger()
     {
-        // The IAuditLogger registration is performed by QuerySpecBuilder.WithAuditing,
-        // not the AuditingBuilder itself. Guard against accidental coupling.
         var services = new ServiceCollection();
-        new AuditingBuilder(services).LogAllQueries().TrackChanges();
+        _ = new AuditingBuilder(services);
 
         Assert.DoesNotContain(services, d => d.ServiceType == typeof(IAuditLogger));
     }
@@ -229,30 +236,15 @@ public class IndividualBuildersTests
     // ---------- MonitoringBuilder ----------
 
     [Fact]
-    public void MonitoringBuilder_AllMethods_ReturnSameInstance_AndRegisterNothing()
+    public void MonitoringBuilder_AllStubs_Throw_NotImplemented()
     {
         var services = new ServiceCollection();
         var builder = new MonitoringBuilder(services);
 
-        Assert.Same(builder, builder.EnableOpenTelemetry());
-        Assert.Same(builder, builder.EnableHealthChecks());
-        Assert.Same(builder, builder.EnableDashboard());
-        Assert.Same(builder, builder.EnablePrometheus());
-
-        Assert.Empty(services);
-    }
-
-    // ---------- PluginBuilder ----------
-
-    [Fact]
-    public void PluginBuilder_AllMethods_ReturnSameInstance_AndRegisterNothing()
-    {
-        var services = new ServiceCollection();
-        var builder = new PluginBuilder(services);
-
-        Assert.Same(builder, builder.LoadFromDirectory("/tmp/plugins"));
-        Assert.Same(builder, builder.EnableHotReload());
-        Assert.Same(builder, builder.RegisterPlugin(typeof(string)));
+#pragma warning disable CS0618
+        Assert.Throws<NotImplementedException>(() => builder.EnableOpenTelemetry());
+        Assert.Throws<NotImplementedException>(() => builder.EnableHealthChecks());
+#pragma warning restore CS0618
 
         Assert.Empty(services);
     }

@@ -85,15 +85,6 @@ public class QuerySpecBuilder
         return this;
     }
 
-    /// <summary>Configure plugin system.</summary>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
-    public QuerySpecBuilder WithPlugins(Action<PluginBuilder> configure)
-    {
-        ArgumentNullException.ThrowIfNull(configure);
-        var builder = new PluginBuilder(_services);
-        configure(builder);
-        return this;
-    }
 }
 
 /// <summary>

@@ -120,16 +120,24 @@ public class QuerySpecExpressionTranslator
     public static void ClearPredicateCache() => PredicateCache.Clear();
 
     /// <summary>
-    /// Applies aggregation to a queryable.
+    /// Applies aggregation to a queryable. Currently unimplemented; throws when an aggregation
+    /// is supplied so callers cannot silently rely on a no-op. Returns the queryable unchanged
+    /// when <paramref name="aggregation"/> is null.
     /// </summary>
+    /// <param name="query">The source queryable.</param>
+    /// <param name="aggregation">Aggregation request, or <c>null</c> for a passthrough.</param>
+    /// <exception cref="NotImplementedException">Thrown when <paramref name="aggregation"/> is non-null.</exception>
+    [Obsolete("Aggregation translation is not implemented. The method now throws when an aggregation is supplied; previously it silently returned the unmodified query.", error: false)]
     public static IQueryable<T> ApplyAggregation<T>(
         IQueryable<T> query,
         AggregationRequest? aggregation) where T : class
     {
-        if (aggregation == null)
+        if (aggregation is null)
             return query;
 
-        return query;
+        throw new NotImplementedException(
+            "QuerySpecExpressionTranslator.ApplyAggregation is not implemented. " +
+            "The previous behaviour was to silently return the unaggregated query, which masked logic errors in callers.");
     }
 
     private static Expression<Func<T, bool>> BuildPredicate<T>(AdvancedFilterExpression filter, int depth)

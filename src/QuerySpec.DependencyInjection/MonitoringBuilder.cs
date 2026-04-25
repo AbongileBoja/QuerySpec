@@ -19,37 +19,15 @@ public class MonitoringBuilder
         _services = services;
     }
 
-    /// <summary>
-    /// Enables OpenTelemetry integration.
-    /// </summary>
-    public MonitoringBuilder EnableOpenTelemetry()
-    {
-        return this;
-    }
+    /// <summary>Enables OpenTelemetry integration.</summary>
+    /// <exception cref="NotImplementedException">Always thrown. OpenTelemetry integration is not implemented.</exception>
+    [Obsolete("Not implemented; throws NotImplementedException at configuration time.", error: false)]
+    public MonitoringBuilder EnableOpenTelemetry() =>
+        throw new NotImplementedException("MonitoringBuilder.EnableOpenTelemetry is not implemented.");
 
-    /// <summary>
-    /// Enables health checks.
-    /// </summary>
-    public MonitoringBuilder EnableHealthChecks()
-    {
-        // Health checks would require: using Microsoft.Extensions.Diagnostics.HealthChecks;
-        // _services.AddHealthChecks();
-        return this;
-    }
-
-    /// <summary>
-    /// Enables dashboard/visualization.
-    /// </summary>
-    public MonitoringBuilder EnableDashboard()
-    {
-        return this;
-    }
-
-    /// <summary>
-    /// Enables Prometheus metrics export.
-    /// </summary>
-    public MonitoringBuilder EnablePrometheus()
-    {
-        return this;
-    }
+    /// <summary>Enables health checks.</summary>
+    /// <exception cref="NotImplementedException">Always thrown. Health-checks integration is not implemented.</exception>
+    [Obsolete("Not implemented; throws NotImplementedException at configuration time.", error: false)]
+    public MonitoringBuilder EnableHealthChecks() =>
+        throw new NotImplementedException("MonitoringBuilder.EnableHealthChecks is not implemented.");
 }

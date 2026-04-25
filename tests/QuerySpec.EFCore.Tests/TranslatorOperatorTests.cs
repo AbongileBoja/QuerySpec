@@ -433,8 +433,21 @@ public class TranslatorOperatorTests
     public void ApplyAggregation_NullRequest_IsPassThrough()
     {
         var source = Seed();
+#pragma warning disable CS0618
         var result = QuerySpecExpressionTranslator.ApplyAggregation(source, null);
+#pragma warning restore CS0618
         Assert.Same(source, result);
+    }
+
+    [Fact]
+    public void ApplyAggregation_NonNullRequest_Throws_NotImplemented()
+    {
+        var source = Seed();
+        var request = new AggregationRequest();
+#pragma warning disable CS0618
+        Assert.Throws<NotImplementedException>(() =>
+            QuerySpecExpressionTranslator.ApplyAggregation(source, request));
+#pragma warning restore CS0618
     }
 
     // ── EF Core in-memory provider ────────────────────────────────────────────

@@ -57,12 +57,10 @@ public class CachingBuilder
         return this;
     }
 
-    /// <summary>
-    /// Enables compression for cache entries larger than threshold.
-    /// </summary>
-    public CachingBuilder EnableCompressionForLarge(int thresholdBytes)
-    {
-        // Implementation for compression
-        return this;
-    }
+    /// <summary>Enables compression for cache entries larger than the given threshold.</summary>
+    /// <param name="thresholdBytes">Compress entries whose serialized size exceeds this many bytes.</param>
+    /// <exception cref="NotImplementedException">Always thrown. Compression is not implemented.</exception>
+    [Obsolete("Not implemented; throws NotImplementedException at configuration time.", error: false)]
+    public CachingBuilder EnableCompressionForLarge(int thresholdBytes) =>
+        throw new NotImplementedException("CachingBuilder.EnableCompressionForLarge is not implemented.");
 }

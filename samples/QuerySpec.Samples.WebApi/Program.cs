@@ -14,8 +14,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddQuerySpec(qs => qs
     .WithCaching(c => c.UseMemoryCache())
-    .WithAuditing(a => a.LogAllQueries().TrackChanges())
-    .WithPerformance(p => p.EnableQueryCaching().EnableMetrics())
+    .WithAuditing(_ => { })
+    .WithPerformance(p => p.EnableMetrics())
     .WithResilience(r => r
         .UseRetryPolicy(maxRetries: 3, exponentialBackoff: true)
         .UseCircuitBreaker(failureThreshold: 5, openTimeout: TimeSpan.FromSeconds(30))));
