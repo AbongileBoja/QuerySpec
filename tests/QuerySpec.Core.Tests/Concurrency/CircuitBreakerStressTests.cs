@@ -35,7 +35,7 @@ public class CircuitBreakerStressTests
             {
                 try { await breaker.ExecuteAsync(Fail); }
                 catch { /* expected */ }
-            });
+            }, TestContext.Current.CancellationToken);
         }
         await Task.WhenAll(failureTasks);
 

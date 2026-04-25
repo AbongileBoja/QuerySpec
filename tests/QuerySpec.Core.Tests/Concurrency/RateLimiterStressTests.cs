@@ -38,7 +38,7 @@ public class RateLimiterStressTests
                 {
                     if (limiter.TryAcquire("k")) Interlocked.Increment(ref acquired);
                 }
-            });
+            }, TestContext.Current.CancellationToken);
         }
 
         start.Set();
@@ -71,7 +71,7 @@ public class RateLimiterStressTests
                 {
                     if (limiter.TryAcquire(key)) Interlocked.Increment(ref acquired);
                 }
-            });
+            }, TestContext.Current.CancellationToken);
         }
 
         await Task.WhenAll(tasks);

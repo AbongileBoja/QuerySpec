@@ -30,7 +30,7 @@ public class N1DetectionStressTests
                 {
                     RecordSite(engine, id, i);
                 }
-            });
+            }, TestContext.Current.CancellationToken);
         }
         await Task.WhenAll(tasks);
 

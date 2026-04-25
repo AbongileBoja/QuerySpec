@@ -47,7 +47,7 @@ public class MemoryCacheProviderAdditionalTests
     {
         var cache = new MemoryCacheProvider();
         await cache.SetAsync("k", "v", TimeSpan.FromMilliseconds(50));
-        await Task.Delay(120);
+        await Task.Delay(120, TestContext.Current.CancellationToken);
         Assert.Null(await cache.GetAsync<string>("k"));
     }
 
