@@ -28,6 +28,10 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
+    <EnablePackageValidation Condition="'$(IsPackable)' != 'false'">true</EnablePackageValidation>
+    <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false'">true</EnableStrictModeForBaselineValidation>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0024;RS0025;RS0026;RS0027;RS0036;RS0037;RS0041</NoWarn>
+
     <!-- NuGet package metadata -->
     <Authors>Abongile Boja</Authors>
     <PackageProjectUrl>https://github.com/AbongileBoja/QuerySpec</PackageProjectUrl>
@@ -41,6 +45,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.11.0-beta1.24454.1" PrivateAssets="all" />
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
 </Project>
