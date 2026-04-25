@@ -28,7 +28,7 @@ jobs:
         fi
 
     - name: Checkout (full history for reachability check)
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       with:
         fetch-depth: 0
 
@@ -61,12 +61,12 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       with:
         fetch-depth: 0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: |
           8.0.x
@@ -141,7 +141,7 @@ jobs:
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: release-test-results
         path: ./TestResults
@@ -190,7 +190,7 @@ jobs:
         echo "Package metadata OK: 3 nupkg + 3 snupkg at version ${{ steps.version.outputs.version }}."
 
     - name: Upload packages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: nuget-packages
         path: ./artifacts
@@ -216,13 +216,13 @@ jobs:
       packages: write
     steps:
     - name: Download packages
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
       with:
         name: nuget-packages
         path: ./artifacts
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: '10.0.x'
 
@@ -257,7 +257,7 @@ jobs:
         done
 
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2
       with:
         tag_name: ${{ github.ref_name }}
         name: ${{ github.ref_name }}

@@ -6,10 +6,14 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions: read-all
+
 jobs:
   build:
     name: Build & test (.NET ${{ matrix.dotnet-version }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     strategy:
       fail-fast: false
@@ -17,10 +21,10 @@ jobs:
         dotnet-version: ['8.0.x', '9.0.x', '10.0.x']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
     - name: Setup .NET 8, 9, 10
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: |
           8.0.x
@@ -44,7 +48,7 @@ jobs:
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: test-results-${{ matrix.dotnet-version }}
         path: ./TestResults
@@ -88,7 +92,7 @@ jobs:
 
     - name: Upload coverage report
       if: matrix.dotnet-version == '10.0.x'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: coverage-report
         path: ./CoverageReport
@@ -100,7 +104,7 @@ jobs:
 
     - name: Upload NuGet artifacts
       if: matrix.dotnet-version == '10.0.x'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: nuget-packages
         path: ./artifacts
@@ -109,9 +113,11 @@ jobs:
   format:
     name: dotnet format
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: '10.0.x'
     - name: Restore
@@ -127,13 +133,13 @@ jobs:
       contents: read
       security-events: write
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: '10.0.x'
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a  # v3
       with:
         languages: csharp
         queries: security-and-quality
@@ -142,27 +148,32 @@ jobs:
       run: dotnet build QuerySpec.sln --configuration Release -p:TreatWarningsAsErrors=false
 
     - name: Run CodeQL analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a  # v3
       with:
         category: "/language:csharp"
 
   dependency-review:
     name: Dependency review
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     if: github.event_name == 'pull_request'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
     - name: Review dependencies
-      uses: actions/dependency-review-action@v4
+      uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48  # v4
       with:
         fail-on-severity: high
 
   vulnerability-scan:
     name: NuGet vulnerability scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: '10.0.x'
     - name: Restore
@@ -180,12 +191,14 @@ jobs:
   commitlint:
     name: Commit message lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       with:
         fetch-depth: 0
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
       with:
         node-version: '20'
         cache: 'npm'
