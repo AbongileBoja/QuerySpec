@@ -7,8 +7,8 @@ using var db = new CustomerDb();
 db.Database.EnsureCreated();
 
 // ---------- 1. Field encryption ----------
-var key = AesEncryptionProvider.GenerateKey();
-var crypto = new AesEncryptionProvider(key);
+var key = AesGcmEncryptionProvider.GenerateKey();
+var crypto = new AesGcmEncryptionProvider(key);
 
 var encryptedSsn = crypto.Encrypt("123-45-6789");
 Console.WriteLine($"[encryption] plaintext  = 123-45-6789");
