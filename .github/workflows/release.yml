@@ -1,21 +1,16 @@
 name: Release
 
-# Triggered when a version tag is pushed (e.g. v1.0.5). The tag is the single source of
-# truth for the published version — MSBuild's Directory.Build.props <Version> is just a
-# fallback for local dev builds.
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-*'   # pre-releases: v1.0.0-rc.1, etc.
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
 
-# Disallow concurrent publishes for the same tag.
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  # ── 1. Validate: build, test, pack, then upload artefacts for the publish job ────
   pack:
     name: Build, test, pack
     runs-on: ubuntu-latest
@@ -24,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0   # full history so SourceLink embeds correct commit info
+        fetch-depth: 0
 
     - uses: actions/setup-dotnet@v4
       with:
@@ -37,9 +32,8 @@ jobs:
       id: version
       run: |
         set -euo pipefail
-        tag="${GITHUB_REF_NAME}"     # e.g. v1.0.5 or v1.0.0-rc.1
+        tag="${GITHUB_REF_NAME}"
         version="${tag#v}"
-        # Sanity-check that it matches SemVer.
         if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
           echo "::error::Tag '$tag' is not a valid SemVer version." >&2
           exit 1
@@ -50,7 +44,7 @@ jobs:
     - name: Restore
       run: dotnet restore QuerySpec.sln
 
-    - name: Build (Release, warnings as errors, version from tag)
+    - name: Build
       run: >
         dotnet build QuerySpec.sln
         --no-restore --configuration Release
@@ -58,7 +52,7 @@ jobs:
         -p:ContinuousIntegrationBuild=true
         -p:TreatWarningsAsErrors=true
 
-    - name: Test (release is gated on green tests across all TFMs)
+    - name: Test
       run: >
         dotnet test QuerySpec.sln
         --no-build --configuration Release
@@ -73,9 +67,7 @@ jobs:
         path: ./TestResults
         retention-days: 14
 
-    - name: Pack shipping projects only
-      # Explicit list beats solution-wide pack: samples/tests/benchmarks have
-      # IsPackable=false / IsTestProject=true but pinning here is belt-and-braces.
+    - name: Pack
       run: |
         set -euo pipefail
         mkdir -p ./artifacts
@@ -94,8 +86,7 @@ jobs:
     - name: List produced packages
       run: ls -la ./artifacts
 
-    - name: Verify packages contain expected metadata
-      # Catches packaging regressions before we push anything to NuGet.
+    - name: Verify packages
       run: |
         set -euo pipefail
         count=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l)
@@ -109,7 +100,6 @@ jobs:
           echo "::error::Expected 3 snupkg symbol files, found $snupkg_count." >&2
           exit 1
         fi
-        # Check each package's filename embeds the expected version.
         for f in ./artifacts/*.nupkg; do
           name=$(basename "$f")
           if [[ "$name" != *"${{ steps.version.outputs.version }}.nupkg" ]]; then
@@ -126,18 +116,16 @@ jobs:
         path: ./artifacts
         retention-days: 30
 
-  # ── 2. Publish: separated so an approval gate can sit between pack and push ─────
   publish:
     name: Publish to NuGet
     needs: pack
     runs-on: ubuntu-latest
-    # Protect with a GitHub Environment. Configure required reviewers / wait timer
-    # under Settings → Environments → nuget-release.
     environment:
       name: nuget-release
       url: https://www.nuget.org/packages/QuerySpec.Core/${{ needs.pack.outputs.version }}
     permissions:
-      contents: write   # needed by softprops/action-gh-release
+      contents: write
+      packages: write
     steps:
     - name: Download packages
       uses: actions/download-artifact@v4
@@ -158,12 +146,24 @@ jobs:
           echo "::error::NUGET_API_KEY secret is not set. Configure it under Settings → Secrets → Actions." >&2
           exit 1
         fi
-        # Pushing the .nupkg auto-pushes the adjacent .snupkg to the symbol server.
         for pkg in ./artifacts/*.nupkg; do
           echo "Publishing $pkg"
           dotnet nuget push "$pkg" \
             --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+        done
+
+    - name: Mirror to GitHub Packages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        for pkg in ./artifacts/*.nupkg; do
+          echo "Mirroring $pkg"
+          dotnet nuget push "$pkg" \
+            --api-key "$GITHUB_TOKEN" \
+            --source https://nuget.pkg.github.com/AbongileBoja/index.json \
             --skip-duplicate
         done
 

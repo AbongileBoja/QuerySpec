@@ -74,8 +74,6 @@ jobs:
           echo "Coverage summary not found at $summary" >&2
           exit 1
         fi
-        # ReportGenerator's MarkdownSummary emits `| **Line coverage:** | 23.5% (297 of 1261) |`.
-        # Match the row, then pull the first number on the right-hand side.
         line_cov=$(grep -E 'Line coverage' "$summary" \
           | head -1 \
           | grep -oE '[0-9]+(\.[0-9]+)?' \
