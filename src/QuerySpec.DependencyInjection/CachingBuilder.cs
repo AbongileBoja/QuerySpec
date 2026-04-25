@@ -13,8 +13,11 @@ public class CachingBuilder
     private readonly IServiceCollection _services;
 
     /// <summary>Initializes a new caching builder.</summary>
+    /// <param name="services">The service collection to register against.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
     public CachingBuilder(IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
         _services = services;
     }
 

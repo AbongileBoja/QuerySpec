@@ -263,7 +263,44 @@ public class IndividualBuildersTests
     public void AddQuerySpec_Throws_WhenConfigureIsNull()
     {
         var services = new ServiceCollection();
-        Assert.Throws<NullReferenceException>(() => services.AddQuerySpec(null!));
+        Assert.Throws<ArgumentNullException>(() => services.AddQuerySpec(null!));
+    }
+
+    [Fact]
+    public void AddQuerySpec_Throws_WhenServicesIsNull()
+    {
+        IServiceCollection? services = null;
+        Assert.Throws<ArgumentNullException>(() => services!.AddQuerySpec(_ => { }));
+    }
+
+    [Theory]
+    [MemberData(nameof(BuilderNullCtorCases))]
+    public void Builder_Constructors_Throw_OnNullServices(Func<IServiceCollection, object> factory)
+    {
+        Assert.Throws<ArgumentNullException>(() => factory(null!));
+    }
+
+    public static System.Collections.Generic.IEnumerable<object[]> BuilderNullCtorCases() => new[]
+    {
+        new object[] { (Func<IServiceCollection, object>)(s => new QuerySpecBuilder(s)) },
+        new object[] { (Func<IServiceCollection, object>)(s => new CachingBuilder(s)) },
+        new object[] { (Func<IServiceCollection, object>)(s => new ResilienceBuilder(s)) },
+        new object[] { (Func<IServiceCollection, object>)(s => new SecurityBuilder(s)) },
+        new object[] { (Func<IServiceCollection, object>)(s => new PerformanceBuilder(s)) },
+        new object[] { (Func<IServiceCollection, object>)(s => new AuditingBuilder(s)) },
+        new object[] { (Func<IServiceCollection, object>)(s => new MonitoringBuilder(s)) },
+    };
+
+    [Fact]
+    public void QuerySpecBuilder_With_Methods_Throw_OnNullConfigure()
+    {
+        var b = new QuerySpecBuilder(new ServiceCollection());
+        Assert.Throws<ArgumentNullException>(() => b.WithCaching(null!));
+        Assert.Throws<ArgumentNullException>(() => b.WithAuditing(null!));
+        Assert.Throws<ArgumentNullException>(() => b.WithSecurity(null!));
+        Assert.Throws<ArgumentNullException>(() => b.WithPerformance(null!));
+        Assert.Throws<ArgumentNullException>(() => b.WithResilience(null!));
+        Assert.Throws<ArgumentNullException>(() => b.WithMonitoring(null!));
     }
 
     [Fact]

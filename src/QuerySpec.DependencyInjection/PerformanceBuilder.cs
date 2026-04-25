@@ -12,8 +12,11 @@ public class PerformanceBuilder
     private readonly IServiceCollection _services;
 
     /// <summary>Initializes a new performance builder.</summary>
+    /// <param name="services">The service collection to register against.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
     public PerformanceBuilder(IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
         _services = services;
     }
 
