@@ -19,16 +19,20 @@ public class InMemoryAuditLogger : IAuditLogger
     public InMemoryAuditLogger() { }
 
     /// <summary>
-    /// Logs a query audit entry.
+    /// Logs a query audit entry, sealing it into the integrity chain by setting its
+    /// <see cref="AuditLogEntry.PreviousHash"/> to the most recent entry's hash and
+    /// computing its <see cref="AuditLogEntry.Hash"/>. Sealing happens under the write
+    /// lock so concurrent appends cannot diverge.
     /// </summary>
     public Task LogQueryAsync(AuditLogEntry entry)
     {
-        entry.Validate();
-        entry.ComputeHash();
+        ArgumentNullException.ThrowIfNull(entry);
 
         _lockSlim.EnterWriteLock();
         try
         {
+            var previousHash = _logs.Count > 0 ? _logs[^1].Hash : null;
+            entry.Seal(previousHash);
             _logs.Add(entry);
         }
         finally

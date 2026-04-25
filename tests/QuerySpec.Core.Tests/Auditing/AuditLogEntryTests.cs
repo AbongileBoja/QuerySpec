@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Xunit;
 using QuerySpec.Core.Auditing;
 
@@ -9,42 +10,44 @@ namespace QuerySpec.Core.Tests.Auditing;
 /// </summary>
 public class AuditLogEntryTests
 {
-    /// <summary>Tests that AuditLogEntry generates a default Id.</summary>
+    private static AuditLogEntry NewValidEntry(string user = "user1", string op = "Query") => new()
+    {
+        TenantId = "tenant1",
+        UserId = user,
+        Operation = op
+    };
+
     [Fact]
     public void AuditLogEntry_Should_Generate_Default_Id()
     {
-        // Arrange & Act
         var entry = new AuditLogEntry();
 
-        // Assert
         Assert.False(string.IsNullOrEmpty(entry.Id));
-        Assert.NotNull(entry.Id);
     }
 
-    /// <summary>Tests that ComputeHash sets the hash property.</summary>
     [Fact]
-    public void ComputeHash_Should_Set_Hash()
+    public void Seal_Should_Set_Hash_And_PreviousHash()
     {
-        // Arrange
-        var entry = new AuditLogEntry
-        {
-            TenantId = "tenant1",
-            UserId = "user1",
-            Operation = "Query"
-        };
+        var entry = NewValidEntry();
 
-        // Act
-        entry.ComputeHash();
+        entry.Seal(previousHash: null);
 
-        // Assert
         Assert.False(string.IsNullOrEmpty(entry.Hash));
+        Assert.Null(entry.PreviousHash);
     }
 
-    /// <summary>Tests that Validate throws when TenantId is empty.</summary>
+    [Fact]
+    public void Seal_Twice_Throws()
+    {
+        var entry = NewValidEntry();
+        entry.Seal(null);
+
+        Assert.Throws<InvalidOperationException>(() => entry.Seal("any"));
+    }
+
     [Fact]
     public void Validate_Should_Throw_When_TenantId_Empty()
     {
-        // Arrange
         var entry = new AuditLogEntry
         {
             TenantId = "",
@@ -52,28 +55,96 @@ public class AuditLogEntryTests
             Operation = "Query"
         };
 
-        // Act & Assert
         Assert.Throws<ArgumentException>(() => entry.Validate());
     }
 
-    /// <summary>Tests that VerifyIntegrity returns true for matching hash.</summary>
     [Fact]
-    public void VerifyIntegrity_Should_Return_True_For_Same_Hash()
+    public void VerifyIntegrity_Should_Return_True_For_Same_PreviousHash()
     {
-        // Arrange
-        var entry = new AuditLogEntry
-        {
-            TenantId = "tenant1",
-            UserId = "user1",
-            Operation = "Query"
-        };
-        entry.ComputeHash();
-        var originalHash = entry.Hash;
+        var entry = NewValidEntry();
+        entry.Seal(previousHash: null);
 
-        // Act
         var result = entry.VerifyIntegrity((string?)null);
 
-        // Assert
         Assert.True(result);
+    }
+
+    [Fact]
+    public void VerifyIntegrity_Should_Return_False_For_Different_PreviousHash()
+    {
+        var entry = NewValidEntry();
+        entry.Seal(previousHash: null);
+
+        Assert.False(entry.VerifyIntegrity("forged"));
+    }
+
+    [Fact]
+    public void VerifyIntegrity_Returns_False_On_Unsealed_Entry()
+    {
+        var entry = NewValidEntry();
+
+        Assert.False(entry.VerifyIntegrity(null));
+    }
+
+    [Fact]
+    public void VerifyChain_Returns_Negative_One_For_Valid_Chain()
+    {
+        var entries = new List<AuditLogEntry>();
+        string? prev = null;
+        for (var i = 0; i < 100; i++)
+        {
+            var e = NewValidEntry(user: $"user{i}", op: "Query");
+            e.Seal(prev);
+            prev = e.Hash;
+            entries.Add(e);
+        }
+
+        Assert.Equal(-1, AuditLogEntry.VerifyChain(entries));
+    }
+
+    [Fact]
+    public void VerifyChain_Detects_Hash_Mutation()
+    {
+        var entries = new List<AuditLogEntry>();
+        string? prev = null;
+        for (var i = 0; i < 5; i++)
+        {
+            var e = NewValidEntry(user: $"user{i}");
+            e.Seal(prev);
+            prev = e.Hash;
+            entries.Add(e);
+        }
+
+        var brokenLink = entries[3];
+        var replacement = NewValidEntry(user: "userX");
+        replacement.Seal("forged-prev");
+        entries[3] = replacement;
+
+        Assert.Equal(3, AuditLogEntry.VerifyChain(entries));
+    }
+
+    [Fact]
+    public void VerifyChain_Detects_Reordering()
+    {
+        var entries = new List<AuditLogEntry>();
+        string? prev = null;
+        for (var i = 0; i < 4; i++)
+        {
+            var e = NewValidEntry(user: $"user{i}");
+            e.Seal(prev);
+            prev = e.Hash;
+            entries.Add(e);
+        }
+
+        (entries[1], entries[2]) = (entries[2], entries[1]);
+
+        var broken = AuditLogEntry.VerifyChain(entries);
+        Assert.True(broken >= 1, $"expected break at index >= 1, got {broken}");
+    }
+
+    [Fact]
+    public void VerifyChain_Throws_On_Null_Input()
+    {
+        Assert.Throws<ArgumentNullException>(() => AuditLogEntry.VerifyChain(null!));
     }
 }
