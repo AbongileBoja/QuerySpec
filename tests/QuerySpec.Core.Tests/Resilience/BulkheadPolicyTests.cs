@@ -43,7 +43,7 @@ public class BulkheadPolicyTests
         // Arrange
         var policy = new BulkheadPolicy(1);
         var t1 = policy.ExecuteAsync(async () => { await Task.Delay(200); return 1; });
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // Act & Assert
         await Assert.ThrowsAsync<BulkheadException>(() => policy.ExecuteAsync<int>(() => Task.FromResult(2)));

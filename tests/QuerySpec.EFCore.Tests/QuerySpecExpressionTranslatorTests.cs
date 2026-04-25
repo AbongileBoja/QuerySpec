@@ -39,7 +39,7 @@ public class QuerySpecExpressionTranslatorTests
             new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
             new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var filter = new AdvancedFilterExpression
         {
@@ -51,7 +51,7 @@ public class QuerySpecExpressionTranslatorTests
         // Act
         var query = context.TestEntities.AsQueryable();
         var filtered = QuerySpecExpressionTranslator.ApplyFilter(query, filter);
-        var result = await filtered.ToListAsync();
+        var result = await filtered.ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(result);
@@ -68,7 +68,7 @@ public class QuerySpecExpressionTranslatorTests
             new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
             new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var filter = new AdvancedFilterExpression
         {
@@ -80,7 +80,7 @@ public class QuerySpecExpressionTranslatorTests
         // Act
         var query = context.TestEntities.AsQueryable();
         var filtered = QuerySpecExpressionTranslator.ApplyFilter(query, filter);
-        var result = await filtered.ToListAsync();
+        var result = await filtered.ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(result);
@@ -97,7 +97,7 @@ public class QuerySpecExpressionTranslatorTests
             new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
             new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var filter = new AdvancedFilterExpression
         {
@@ -109,7 +109,7 @@ public class QuerySpecExpressionTranslatorTests
         // Act
         var query = context.TestEntities.AsQueryable();
         var filtered = QuerySpecExpressionTranslator.ApplyFilter(query, filter);
-        var result = await filtered.ToListAsync();
+        var result = await filtered.ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(result);
@@ -127,7 +127,7 @@ public class QuerySpecExpressionTranslatorTests
             new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow },
             new TestEntity { Id = 3, Name = "Bob", Age = 35, Email = "bob@test.com", CreatedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var filter = new AdvancedFilterExpression
         {
@@ -139,7 +139,7 @@ public class QuerySpecExpressionTranslatorTests
         // Act
         var query = context.TestEntities.AsQueryable();
         var filtered = QuerySpecExpressionTranslator.ApplyFilter(query, filter);
-        var result = await filtered.ToListAsync();
+        var result = await filtered.ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -158,7 +158,7 @@ public class QuerySpecExpressionTranslatorTests
             new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow },
             new TestEntity { Id = 3, Name = "Bob", Age = 35, Email = "bob@test.com", CreatedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var filter = new AdvancedFilterExpression
         {
@@ -171,7 +171,7 @@ public class QuerySpecExpressionTranslatorTests
         // Act
         var query = context.TestEntities.AsQueryable();
         var filtered = QuerySpecExpressionTranslator.ApplyFilter(query, filter);
-        var result = await filtered.ToListAsync();
+        var result = await filtered.ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -189,7 +189,7 @@ public class QuerySpecExpressionTranslatorTests
             new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow },
             new TestEntity { Id = 3, Name = "John", Age = 35, Email = "john2@test.com", CreatedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var filter = new AdvancedFilterExpression
         {
@@ -211,7 +211,7 @@ public class QuerySpecExpressionTranslatorTests
         // Act
         var query = context.TestEntities.AsQueryable();
         var filtered = QuerySpecExpressionTranslator.ApplyFilter(query, filter);
-        var result = await filtered.ToListAsync();
+        var result = await filtered.ToListAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(result);

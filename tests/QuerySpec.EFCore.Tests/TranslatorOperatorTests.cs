@@ -457,7 +457,7 @@ public class TranslatorOperatorTests
     {
         using var ctx = new TestDb();
         ctx.Items.AddRange(Seed());
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var filter = new AdvancedFilterExpression
         {
@@ -467,7 +467,7 @@ public class TranslatorOperatorTests
         };
 
         var filtered = QuerySpecExpressionTranslator.ApplyFilter(ctx.Items, filter);
-        var ids = await filtered.Select(e => e.Id).ToListAsync();
+        var ids = await filtered.Select(e => e.Id).ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal(new[] { 1, 3, 4 }, ids.OrderBy(x => x));
     }
 

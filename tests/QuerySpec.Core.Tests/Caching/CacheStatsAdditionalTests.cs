@@ -24,7 +24,7 @@ public class CacheStatsAdditionalTests
             tasks[t] = Task.Run(() =>
             {
                 for (var i = 0; i < perThread; i++) stats.IncrementHits();
-            });
+            }, TestContext.Current.CancellationToken);
         }
         await Task.WhenAll(tasks);
 
