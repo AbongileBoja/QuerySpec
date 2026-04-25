@@ -9,19 +9,6 @@ namespace QuerySpec.Core.Resilience;
 /// </summary>
 public class CircuitBreaker
 {
-    /// <summary>
-    /// Circuit breaker states.
-    /// </summary>
-    public enum CircuitState
-    {
-        /// <summary>Normal operation.</summary>
-        Closed,
-        /// <summary>Failing, reject calls.</summary>
-        Open,
-        /// <summary>Testing if recovered.</summary>
-        HalfOpen
-    }
-
     private CircuitState _state = CircuitState.Closed;
     private DateTime _lastFailureTime = DateTime.MinValue;
     private int _failureCount;

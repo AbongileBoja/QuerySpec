@@ -25,9 +25,9 @@ public class SecurityBenchmarks
         _ciphertext = _aes.Encrypt(_plaintext);
 
         _masking = new DataMaskingEngine();
-        _masking.RegisterFieldMask("Email", DataMaskingEngine.MaskingStrategy.EmailMask);
-        _masking.RegisterFieldMask("SSN", DataMaskingEngine.MaskingStrategy.LastFourOnly);
-        _masking.RegisterFieldMask("CreditCard", DataMaskingEngine.MaskingStrategy.LastFourOnly);
+        _masking.RegisterFieldMask("Email", MaskingStrategy.EmailMask);
+        _masking.RegisterFieldMask("SSN", MaskingStrategy.LastFourOnly);
+        _masking.RegisterFieldMask("CreditCard", MaskingStrategy.LastFourOnly);
     }
 
     /// <summary>AES-256-CBC encrypt of a short enterprise-typical payload.</summary>

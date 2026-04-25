@@ -23,13 +23,13 @@ public enum RLSDefaultBehavior
     Throw = 0,
 
     /// <summary>
-    /// Return a deny-all filter (<see cref="RowLevelSecurityEngine.RLSFilter.DenyAll"/>) or a
+    /// Return a deny-all filter (<see cref="RLSFilter.DenyAll"/>) or a
     /// constant-false predicate when no policy is registered. Fails closed without throwing.
     /// </summary>
     DenyAll = 1,
 
     /// <summary>
-    /// Return an allow-all filter (<see cref="RowLevelSecurityEngine.RLSFilter.AllowAll"/>) or a
+    /// Return an allow-all filter (<see cref="RLSFilter.AllowAll"/>) or a
     /// <c>null</c> predicate (signalling "no predicate to apply") when no policy is registered.
     /// This is an explicit opt-in for legitimate "this resource has no RLS" scenarios; it must be
     /// set deliberately on the constructor and is never the default.
@@ -62,99 +62,6 @@ public class RowLevelSecurityEngine
     private static readonly Regex IdentifierPattern = new(
         @"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    /// <summary>
-    /// Context information for RLS evaluation.
-    /// </summary>
-    public class RLSContext
-    {
-        /// <summary>User ID for RLS evaluation.</summary>
-        public string UserId { get; set; } = string.Empty;
-        /// <summary>Department for department-based filtering.</summary>
-        public string Department { get; set; } = string.Empty;
-        /// <summary>Region for region-based filtering.</summary>
-        public string Region { get; set; } = string.Empty;
-        /// <summary>List of allowed tenant IDs.</summary>
-        public List<string> AllowedTenants { get; set; } = new();
-        /// <summary>Custom attributes for custom filtering logic.</summary>
-        public Dictionary<string, object> CustomAttributes { get; set; } = new();
-    }
-
-    /// <summary>
-    /// Row-level security policy definition.
-    /// </summary>
-    public class RLSPolicy
-    {
-        /// <summary>Resource type this policy applies to.</summary>
-        public string ResourceType { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Generates a parameterized SQL fragment for the policy. Implementations MUST use
-        /// <see cref="RowLevelSecurityEngine.ValidateIdentifier"/> for any column name they emit
-        /// and <see cref="RowLevelSecurityEngine.EscapeSqlLiteral"/> for any inlined string literal,
-        /// or preferably emit placeholders and populate <see cref="RLSFilter.Parameters"/>.
-        /// </summary>
-        public Func<RLSContext, RLSFilter> FilterGenerator { get; set; } =
-            _ => RLSFilter.AllowAll;
-
-        /// <summary>
-        /// Strongly-typed predicate factory for use with IQueryable. Preferred over
-        /// <see cref="FilterGenerator"/> because the expression tree is translated safely by the
-        /// underlying provider (e.g. EF Core) and cannot be injected into.
-        /// </summary>
-        /// <remarks>
-        /// The expected runtime shape is <c>Func&lt;RLSContext, Expression&lt;Func&lt;T, bool&gt;&gt;&gt;</c>
-        /// for the entity type <c>T</c> the policy applies to. <see cref="GetPredicate{T}"/> casts to
-        /// this shape and throws <see cref="InvalidOperationException"/> if the registered delegate
-        /// does not match. Prefer <see cref="SetPredicate{T}"/> over assigning to this property
-        /// directly — the helper enforces the correct shape at compile time.
-        /// </remarks>
-        public Delegate? PredicateFactory { get; set; }
-
-        /// <summary>
-        /// Sets <see cref="PredicateFactory"/> to a strongly-typed factory bound to entity type <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The entity type the predicate applies to.</typeparam>
-        /// <param name="factory">Factory that produces a predicate expression from an <see cref="RLSContext"/>.</param>
-        /// <returns>The current policy, for fluent chaining.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="factory"/> is null.</exception>
-        public RLSPolicy SetPredicate<T>(Func<RLSContext, System.Linq.Expressions.Expression<Func<T, bool>>> factory)
-        {
-            ArgumentNullException.ThrowIfNull(factory);
-            PredicateFactory = factory;
-            return this;
-        }
-
-        /// <summary>Whether to apply this policy hierarchically to related entities.</summary>
-        public bool ApplyHierarchically { get; set; } = false;
-    }
-
-    /// <summary>
-    /// Parameterized SQL filter produced by a policy. Use named parameters
-    /// (e.g. <c>@p0</c>) in <see cref="Sql"/> and supply values in <see cref="Parameters"/>.
-    /// </summary>
-    public sealed class RLSFilter
-    {
-        /// <summary>Tautology filter that applies no restriction.</summary>
-        public static readonly RLSFilter AllowAll = new("1=1");
-        /// <summary>Contradiction filter that blocks all rows (fail-closed default).</summary>
-        public static readonly RLSFilter DenyAll = new("1=0");
-
-        /// <summary>The SQL fragment (must only reference parameter placeholders).</summary>
-        public string Sql { get; }
-
-        /// <summary>Named parameter values keyed by parameter name (without <c>@</c>).</summary>
-        public IReadOnlyDictionary<string, object?> Parameters { get; }
-
-        /// <summary>Initializes a new RLS filter.</summary>
-        public RLSFilter(string sql, IReadOnlyDictionary<string, object?>? parameters = null)
-        {
-            if (string.IsNullOrWhiteSpace(sql))
-                throw new ArgumentException("SQL fragment must not be empty.", nameof(sql));
-            Sql = sql;
-            Parameters = parameters ?? new Dictionary<string, object?>();
-        }
-    }
 
     private readonly ConcurrentDictionary<string, RLSPolicy> _policies = new(StringComparer.Ordinal);
     private readonly RLSDefaultBehavior _defaultBehavior;

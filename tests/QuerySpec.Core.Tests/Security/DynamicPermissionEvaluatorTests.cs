@@ -15,8 +15,8 @@ public class DynamicPermissionEvaluatorTests
     public void HasPermission_Should_Allow_When_Permission_Granted()
     {
         var evaluator = new DynamicPermissionEvaluator();
-        evaluator.RegisterPermission("Admin", DynamicPermissionEvaluator.PermissionType.Read, ctx => true);
-        var context = new DynamicPermissionEvaluator.DynamicContext
+        evaluator.RegisterPermission("Admin", PermissionType.Read, ctx => true);
+        var context = new DynamicContext
         {
             UserId = "user1",
             Roles = new List<string> { "Admin" },
@@ -24,7 +24,7 @@ public class DynamicPermissionEvaluatorTests
             FieldName = "Email"
         };
 
-        var result = evaluator.HasPermission(context, DynamicPermissionEvaluator.PermissionType.Read);
+        var result = evaluator.HasPermission(context, PermissionType.Read);
 
         Assert.True(result);
     }
@@ -34,7 +34,7 @@ public class DynamicPermissionEvaluatorTests
     public void HasPermission_Should_Deny_When_Role_Missing()
     {
         var evaluator = new DynamicPermissionEvaluator();
-        var context = new DynamicPermissionEvaluator.DynamicContext
+        var context = new DynamicContext
         {
             UserId = "user1",
             Roles = new List<string> { "User" },
@@ -42,7 +42,7 @@ public class DynamicPermissionEvaluatorTests
             FieldName = "Email"
         };
 
-        var result = evaluator.HasPermission(context, DynamicPermissionEvaluator.PermissionType.Write);
+        var result = evaluator.HasPermission(context, PermissionType.Write);
 
         Assert.False(result);
     }
@@ -53,7 +53,7 @@ public class DynamicPermissionEvaluatorTests
         var evaluator = new DynamicPermissionEvaluator();
 
         Assert.Throws<ArgumentNullException>(() =>
-            evaluator.HasPermission(null!, DynamicPermissionEvaluator.PermissionType.Read));
+            evaluator.HasPermission(null!, PermissionType.Read));
     }
 
     [Theory]
@@ -63,14 +63,14 @@ public class DynamicPermissionEvaluatorTests
     public void HasPermission_NullOrEmptyUserId_Denies(string? userId)
     {
         var evaluator = new DynamicPermissionEvaluator();
-        evaluator.RegisterPermission("Admin", DynamicPermissionEvaluator.PermissionType.Read, ctx => true);
-        var context = new DynamicPermissionEvaluator.DynamicContext
+        evaluator.RegisterPermission("Admin", PermissionType.Read, ctx => true);
+        var context = new DynamicContext
         {
             UserId = userId!,
             Roles = new List<string> { "Admin" }
         };
 
-        var result = evaluator.HasPermission(context, DynamicPermissionEvaluator.PermissionType.Read);
+        var result = evaluator.HasPermission(context, PermissionType.Read);
 
         Assert.False(result);
     }
@@ -79,14 +79,14 @@ public class DynamicPermissionEvaluatorTests
     public void HasPermission_NullRoles_Denies()
     {
         var evaluator = new DynamicPermissionEvaluator();
-        evaluator.RegisterPermission("Admin", DynamicPermissionEvaluator.PermissionType.Read, ctx => true);
-        var context = new DynamicPermissionEvaluator.DynamicContext
+        evaluator.RegisterPermission("Admin", PermissionType.Read, ctx => true);
+        var context = new DynamicContext
         {
             UserId = "user1",
             Roles = null!
         };
 
-        var result = evaluator.HasPermission(context, DynamicPermissionEvaluator.PermissionType.Read);
+        var result = evaluator.HasPermission(context, PermissionType.Read);
 
         Assert.False(result);
     }
@@ -95,14 +95,14 @@ public class DynamicPermissionEvaluatorTests
     public void HasPermission_EmptyRoles_Denies()
     {
         var evaluator = new DynamicPermissionEvaluator();
-        evaluator.RegisterPermission("Admin", DynamicPermissionEvaluator.PermissionType.Read, ctx => true);
-        var context = new DynamicPermissionEvaluator.DynamicContext
+        evaluator.RegisterPermission("Admin", PermissionType.Read, ctx => true);
+        var context = new DynamicContext
         {
             UserId = "user1",
             Roles = new List<string>()
         };
 
-        var result = evaluator.HasPermission(context, DynamicPermissionEvaluator.PermissionType.Read);
+        var result = evaluator.HasPermission(context, PermissionType.Read);
 
         Assert.False(result);
     }
@@ -111,14 +111,14 @@ public class DynamicPermissionEvaluatorTests
     public void HasPermission_NullOrEmptyRoleEntry_IsSkipped()
     {
         var evaluator = new DynamicPermissionEvaluator();
-        evaluator.RegisterPermission("Admin", DynamicPermissionEvaluator.PermissionType.Read, ctx => true);
-        var context = new DynamicPermissionEvaluator.DynamicContext
+        evaluator.RegisterPermission("Admin", PermissionType.Read, ctx => true);
+        var context = new DynamicContext
         {
             UserId = "user1",
             Roles = new List<string> { null!, "", "   ", "Admin" }
         };
 
-        var result = evaluator.HasPermission(context, DynamicPermissionEvaluator.PermissionType.Read);
+        var result = evaluator.HasPermission(context, PermissionType.Read);
 
         Assert.True(result);
     }
@@ -131,7 +131,7 @@ public class DynamicPermissionEvaluatorTests
         var evaluator = new DynamicPermissionEvaluator();
 
         Assert.Throws<ArgumentException>(() =>
-            evaluator.RegisterPermission(role, DynamicPermissionEvaluator.PermissionType.Read, ctx => true));
+            evaluator.RegisterPermission(role, PermissionType.Read, ctx => true));
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class DynamicPermissionEvaluatorTests
         var evaluator = new DynamicPermissionEvaluator();
 
         Assert.Throws<ArgumentNullException>(() =>
-            evaluator.RegisterPermission(null!, DynamicPermissionEvaluator.PermissionType.Read, ctx => true));
+            evaluator.RegisterPermission(null!, PermissionType.Read, ctx => true));
     }
 
     [Fact]
@@ -149,6 +149,6 @@ public class DynamicPermissionEvaluatorTests
         var evaluator = new DynamicPermissionEvaluator();
 
         Assert.Throws<ArgumentNullException>(() =>
-            evaluator.RegisterPermission("Admin", DynamicPermissionEvaluator.PermissionType.Read, null!));
+            evaluator.RegisterPermission("Admin", PermissionType.Read, null!));
     }
 }

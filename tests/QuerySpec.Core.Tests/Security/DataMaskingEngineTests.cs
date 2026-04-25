@@ -16,7 +16,7 @@ public class DataMaskingEngineTests
     public void Mask_Should_Apply_FullMask()
     {
         var engine = new DataMaskingEngine();
-        engine.RegisterFieldMask("sensitive", DataMaskingEngine.MaskingStrategy.FullMask);
+        engine.RegisterFieldMask("sensitive", MaskingStrategy.FullMask);
 
         var result = engine.Mask("sensitive", "sensitive");
 
@@ -27,7 +27,7 @@ public class DataMaskingEngineTests
     public void Mask_Should_Apply_PartialMask()
     {
         var engine = new DataMaskingEngine();
-        engine.RegisterFieldMask("name", DataMaskingEngine.MaskingStrategy.PartialMask);
+        engine.RegisterFieldMask("name", MaskingStrategy.PartialMask);
 
         var result = engine.Mask("name", "JohnDoe");
 
@@ -38,7 +38,7 @@ public class DataMaskingEngineTests
     public void Mask_Should_Apply_LastFourOnly()
     {
         var engine = new DataMaskingEngine();
-        engine.RegisterFieldMask("phone", DataMaskingEngine.MaskingStrategy.LastFourOnly);
+        engine.RegisterFieldMask("phone", MaskingStrategy.LastFourOnly);
 
         var result = engine.Mask("phone", "1234567890");
 
@@ -49,7 +49,7 @@ public class DataMaskingEngineTests
     public void Mask_Should_Apply_EmailMask()
     {
         var engine = new DataMaskingEngine();
-        engine.RegisterFieldMask("email", DataMaskingEngine.MaskingStrategy.EmailMask);
+        engine.RegisterFieldMask("email", MaskingStrategy.EmailMask);
 
         var result = engine.Mask("email", "john@example.com");
 
@@ -80,7 +80,7 @@ public class DataMaskingEngineTests
         var engine = new DataMaskingEngine();
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            engine.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask));
+            engine.RegisterFieldMask("ssn", MaskingStrategy.HashMask));
         Assert.Contains("HashMask", ex.Message);
         Assert.Contains("hash key", ex.Message);
     }
@@ -90,7 +90,7 @@ public class DataMaskingEngineTests
     {
         var engine = new DataMaskingEngine(NewKey());
 
-        engine.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
     }
 
     [Theory]
@@ -101,7 +101,7 @@ public class DataMaskingEngineTests
         var engine = new DataMaskingEngine(NewKey());
 
         Assert.Throws<ArgumentException>(() =>
-            engine.RegisterFieldMask(fieldName, DataMaskingEngine.MaskingStrategy.FullMask));
+            engine.RegisterFieldMask(fieldName, MaskingStrategy.FullMask));
     }
 
     [Fact]
@@ -110,14 +110,14 @@ public class DataMaskingEngineTests
         var engine = new DataMaskingEngine(NewKey());
 
         Assert.Throws<ArgumentNullException>(() =>
-            engine.RegisterFieldMask(null!, DataMaskingEngine.MaskingStrategy.FullMask));
+            engine.RegisterFieldMask(null!, MaskingStrategy.FullMask));
     }
 
     [Fact]
     public void HashMask_ProducesFullSha256OutputLength()
     {
         var engine = new DataMaskingEngine(NewKey());
-        engine.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
 
         var masked = engine.Mask("ssn", "123-45-6789");
 
@@ -131,8 +131,8 @@ public class DataMaskingEngineTests
         var key = NewKey();
         var engine1 = new DataMaskingEngine(key);
         var engine2 = new DataMaskingEngine(key);
-        engine1.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
-        engine2.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine1.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
+        engine2.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
 
         var a = engine1.Mask("ssn", "123-45-6789");
         var b = engine2.Mask("ssn", "123-45-6789");
@@ -145,8 +145,8 @@ public class DataMaskingEngineTests
     {
         var engine1 = new DataMaskingEngine(NewKey());
         var engine2 = new DataMaskingEngine(NewKey());
-        engine1.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
-        engine2.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine1.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
+        engine2.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
 
         var a = engine1.Mask("ssn", "123-45-6789");
         var b = engine2.Mask("ssn", "123-45-6789");
@@ -158,7 +158,7 @@ public class DataMaskingEngineTests
     public void HashMask_DifferentTenants_ProduceDifferentMasks()
     {
         var engine = new DataMaskingEngine(NewKey());
-        engine.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
 
         var maskA = engine.Mask("ssn", "123-45-6789", tenantId: "tenant-A");
         var maskB = engine.Mask("ssn", "123-45-6789", tenantId: "tenant-B");
@@ -170,7 +170,7 @@ public class DataMaskingEngineTests
     public void HashMask_SameTenant_SameValue_IsDeterministic()
     {
         var engine = new DataMaskingEngine(NewKey());
-        engine.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
 
         var a = engine.Mask("ssn", "123-45-6789", tenantId: "tenant-A");
         var b = engine.Mask("ssn", "123-45-6789", tenantId: "tenant-A");
@@ -182,7 +182,7 @@ public class DataMaskingEngineTests
     public void HashMask_NullTenantId_DoesNotThrow()
     {
         var engine = new DataMaskingEngine(NewKey());
-        engine.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
 
         var result = engine.Mask("ssn", "123-45-6789", tenantId: null);
 
@@ -193,7 +193,7 @@ public class DataMaskingEngineTests
     public void HashMask_EmptyTenantId_BehavesLikeNullTenantId()
     {
         var engine = new DataMaskingEngine(NewKey());
-        engine.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
 
         var nullTenant = engine.Mask("ssn", "123-45-6789", tenantId: null);
         var emptyTenant = engine.Mask("ssn", "123-45-6789", tenantId: "");
@@ -207,7 +207,7 @@ public class DataMaskingEngineTests
         var key = NewKey();
         var copy = (byte[])key.Clone();
         var engine = new DataMaskingEngine(key);
-        engine.RegisterFieldMask("ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+        engine.RegisterFieldMask("ssn", MaskingStrategy.HashMask);
         var before = engine.Mask("ssn", "123-45-6789");
 
         Array.Clear(key);

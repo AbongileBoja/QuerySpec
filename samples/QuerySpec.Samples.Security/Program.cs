@@ -19,10 +19,10 @@ Seed(db, crypto);
 
 // ---------- 2. Data masking ----------
 var masker = new DataMaskingEngine();
-masker.RegisterFieldMask("Email", DataMaskingEngine.MaskingStrategy.EmailMask);
-masker.RegisterFieldMask("CreditCard", DataMaskingEngine.MaskingStrategy.LastFourOnly);
-masker.RegisterFieldMask("PhoneNumber", DataMaskingEngine.MaskingStrategy.PartialMask);
-masker.RegisterFieldMask("Ssn", DataMaskingEngine.MaskingStrategy.HashMask);
+masker.RegisterFieldMask("Email", MaskingStrategy.EmailMask);
+masker.RegisterFieldMask("CreditCard", MaskingStrategy.LastFourOnly);
+masker.RegisterFieldMask("PhoneNumber", MaskingStrategy.PartialMask);
+masker.RegisterFieldMask("Ssn", MaskingStrategy.HashMask);
 
 var sample = db.Customers.First();
 Console.WriteLine("[masking] unprivileged view of a customer:");
@@ -34,16 +34,16 @@ Console.WriteLine($"  Ssn (hash)  : {masker.Mask("Ssn", crypto.Decrypt(sample.Ss
 // ---------- 3. Row-level security ----------
 var rls = new RowLevelSecurityEngine();
 
-Func<RowLevelSecurityEngine.RLSContext, System.Linq.Expressions.Expression<Func<Customer, bool>>>
+Func<RLSContext, System.Linq.Expressions.Expression<Func<Customer, bool>>>
     tenantPredicate = ctx => c => ctx.AllowedTenants.Contains(c.TenantId);
 
-rls.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+rls.RegisterPolicy(new RLSPolicy
 {
     ResourceType = nameof(Customer),
     PredicateFactory = tenantPredicate
 });
 
-var rlsContext = new RowLevelSecurityEngine.RLSContext
+var rlsContext = new RLSContext
 {
     UserId = "u-42",
     AllowedTenants = new List<string> { "tenant-a" }
@@ -69,15 +69,15 @@ Console.WriteLine();
 
 // ---------- 4. Dynamic permissions ----------
 var perms = new DynamicPermissionEvaluator();
-perms.RegisterPermission("analyst", DynamicPermissionEvaluator.PermissionType.Read, _ => true);
-perms.RegisterPermission("analyst", DynamicPermissionEvaluator.PermissionType.ViewSensitive,
+perms.RegisterPermission("analyst", PermissionType.Read, _ => true);
+perms.RegisterPermission("analyst", PermissionType.ViewSensitive,
     ctx => ctx.FieldName != "Ssn");
-perms.RegisterPermission("admin", DynamicPermissionEvaluator.PermissionType.ViewSensitive, _ => true);
+perms.RegisterPermission("admin", PermissionType.ViewSensitive, _ => true);
 
 foreach (var role in new[] { "analyst", "admin" })
     foreach (var field in new[] { "Email", "Ssn" })
     {
-        var ctx = new DynamicPermissionEvaluator.DynamicContext
+        var ctx = new DynamicContext
         {
             UserId = $"{role}-1",
             Roles = new List<string> { role },
@@ -85,7 +85,7 @@ foreach (var role in new[] { "analyst", "admin" })
             FieldName = field,
             AccessTime = DateTime.UtcNow
         };
-        var allowed = perms.HasPermission(ctx, DynamicPermissionEvaluator.PermissionType.ViewSensitive);
+        var allowed = perms.HasPermission(ctx, PermissionType.ViewSensitive);
         Console.WriteLine($"[permissions] role={role,-7} field={field,-5} → {(allowed ? "allow" : "deny")}");
     }
 
