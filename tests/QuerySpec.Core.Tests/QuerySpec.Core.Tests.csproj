@@ -4,7 +4,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <IsTestProject>true</IsTestProject>
-    <!-- Test methods don't need XML docs. -->
+    <OutputType>Exe</OutputType>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
