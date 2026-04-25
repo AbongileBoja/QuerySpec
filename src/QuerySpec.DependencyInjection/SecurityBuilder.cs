@@ -33,11 +33,42 @@ public class SecurityBuilder
     }
 
     /// <summary>
-    /// Enables PII data masking.
+    /// Enables PII data masking. The registered <see cref="DataMaskingEngine"/> resolves an
+    /// optional <see cref="IPiiClassifier"/> from the container — register one via
+    /// <see cref="UseAttributePiiClassifier"/> or <see cref="UsePiiClassifier(IPiiClassifier)"/>
+    /// before calling this method, otherwise the engine runs without classifier consultation
+    /// and explicit <c>RegisterFieldMask</c> calls are the only path to masking.
     /// </summary>
     public SecurityBuilder EnableDataMasking()
     {
-        _services.AddSingleton<DataMaskingEngine>();
+        _services.AddSingleton(sp => new DataMaskingEngine(
+            hashKey: null,
+            classifier: sp.GetService<IPiiClassifier>()));
+        return this;
+    }
+
+    /// <summary>
+    /// Registers an attribute-driven <see cref="IPiiClassifier"/> in the container. Must be
+    /// called before <see cref="EnableDataMasking"/> to be picked up by the engine.
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "AttributePiiClassifier reflects over caller-supplied entity types. Under trimming, [Pii]-annotated members may be removed and the classifier will silently return None. Use UsePiiClassifier with a ConfiguredPiiClassifier in trimmed/AOT scenarios.")]
+    public SecurityBuilder UseAttributePiiClassifier()
+    {
+        _services.AddSingleton<IPiiClassifier, AttributePiiClassifier>();
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a custom <see cref="IPiiClassifier"/> instance in the container as the
+    /// <see cref="IPiiClassifier"/> service. Must be called before <see cref="EnableDataMasking"/>.
+    /// </summary>
+    /// <param name="classifier">The classifier instance to register as a singleton.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="classifier"/> is null.</exception>
+    public SecurityBuilder UsePiiClassifier(IPiiClassifier classifier)
+    {
+        ArgumentNullException.ThrowIfNull(classifier);
+        _services.AddSingleton<IPiiClassifier>(classifier);
         return this;
     }
 
