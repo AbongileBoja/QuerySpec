@@ -58,13 +58,56 @@ public class DataMaskingEngineTests
     }
 
     [Fact]
-    public void IsPii_Should_Detect_Email()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CS0618:Type or member is obsolete", Justification = "Pinning legacy heuristic until removal in next major.")]
+    public void IsPii_Heuristic_StillDetectsEmailUntilRemoval()
+    {
+#pragma warning disable CS0618
+        var engine = new DataMaskingEngine();
+        var result = engine.IsPii("Email", "john@example.com");
+#pragma warning restore CS0618
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void IsPii_WithoutClassifier_ReturnsFalse()
     {
         var engine = new DataMaskingEngine();
 
-        var result = engine.IsPii("Email", "john@example.com");
+        Assert.False(engine.IsPii(typeof(SampleEntity), nameof(SampleEntity.Email)));
+    }
 
-        Assert.True(result);
+    [Fact]
+    public void IsPii_WithAttributeClassifier_HonoursAnnotation()
+    {
+        var engine = new DataMaskingEngine(hashKey: null, classifier: new AttributePiiClassifier());
+
+        Assert.True(engine.IsPii(typeof(SampleEntity), nameof(SampleEntity.Email)));
+        Assert.Equal(PiiCategory.Contact, engine.Classify(typeof(SampleEntity), nameof(SampleEntity.Email)));
+        Assert.False(engine.IsPii(typeof(SampleEntity), nameof(SampleEntity.Description)));
+    }
+
+    [Fact]
+    public void IsPii_WithConfiguredClassifier_HonoursTypedRegistration()
+    {
+        var classifier = new ConfiguredPiiClassifier(new[]
+        {
+            (typeof(SampleEntity), nameof(SampleEntity.Description), PiiCategory.Sensitive),
+        });
+        var engine = new DataMaskingEngine(hashKey: null, classifier: classifier);
+
+        Assert.Equal(PiiCategory.Sensitive, engine.Classify(typeof(SampleEntity), nameof(SampleEntity.Description)));
+        Assert.Equal(PiiCategory.None, engine.Classify(typeof(SampleEntity), nameof(SampleEntity.Email)));
+    }
+
+    private sealed class SampleEntity
+    {
+#pragma warning disable CA1822
+        [Pii(PiiCategory.Contact)]
+        public string Email { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
+#pragma warning restore CA1822
     }
 
     [Fact]

@@ -24,6 +24,11 @@ namespace QuerySpec.Core.Security;
 /// the tenantId, then uses that derived key to HMAC the value. Two tenants masking the same
 /// value get different outputs.
 /// </para>
+/// <para>
+/// PII detection is delegated to <see cref="IPiiClassifier"/>. Inject an
+/// <see cref="AttributePiiClassifier"/>, <see cref="ConfiguredPiiClassifier"/>, or composite
+/// to drive masking decisions from explicit metadata rather than name guesses.
+/// </para>
 /// </remarks>
 public class DataMaskingEngine
 {
@@ -32,12 +37,13 @@ public class DataMaskingEngine
     private readonly Dictionary<string, MaskingStrategy> _fieldMasks = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Regex> _piiPatterns = new(StringComparer.Ordinal);
     private readonly byte[]? _hashKey;
+    private readonly IPiiClassifier? _classifier;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DataMaskingEngine"/> without a hash key.
     /// Registering <see cref="MaskingStrategy.HashMask"/> on this instance throws.
     /// </summary>
-    public DataMaskingEngine() : this(hashKey: null) { }
+    public DataMaskingEngine() : this(hashKey: null, classifier: null) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="DataMaskingEngine"/> with the given hash secret.
@@ -48,12 +54,31 @@ public class DataMaskingEngine
     /// <see cref="MaskingStrategy.HashMask"/>.
     /// </param>
     /// <exception cref="ArgumentException">Thrown when <paramref name="hashKey"/> is non-null but shorter than 16 bytes.</exception>
-    public DataMaskingEngine(byte[]? hashKey)
+    public DataMaskingEngine(byte[]? hashKey) : this(hashKey, classifier: null) { }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DataMaskingEngine"/> with the given hash
+    /// secret and classifier.
+    /// </summary>
+    /// <param name="hashKey">
+    /// Secret key used as the seed for HMAC-based <see cref="MaskingStrategy.HashMask"/>.
+    /// Must be at least 16 bytes when supplied. Pass <c>null</c> only if no field will use
+    /// <see cref="MaskingStrategy.HashMask"/>.
+    /// </param>
+    /// <param name="classifier">
+    /// Classifier consulted by <see cref="IsPii(System.Type?, string)"/>. Pass <c>null</c> to
+    /// opt out of structured classification; the engine then defaults to <c>None</c> for
+    /// every field. The legacy name-and-regex heuristic is reachable only via the obsolete
+    /// <see cref="IsPii(string, object?)"/> overload.
+    /// </param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="hashKey"/> is non-null but shorter than 16 bytes.</exception>
+    public DataMaskingEngine(byte[]? hashKey, IPiiClassifier? classifier)
     {
         if (hashKey is not null && hashKey.Length < 16)
             throw new ArgumentException("hashKey must be at least 16 bytes when supplied.", nameof(hashKey));
 
         _hashKey = hashKey is null ? null : (byte[])hashKey.Clone();
+        _classifier = classifier;
         InitializeDefaultPiiPatterns();
     }
 
@@ -154,15 +179,40 @@ public class DataMaskingEngine
     }
 
     /// <summary>
+    /// Returns the PII category for the named field, as declared by the configured
+    /// <see cref="IPiiClassifier"/>. Returns <see cref="PiiCategory.None"/> when no classifier
+    /// is configured.
+    /// </summary>
+    /// <param name="declaringType">
+    /// The type that owns the field. Pass <c>null</c> only when no type context is available;
+    /// type-scoped classifiers will return <see cref="PiiCategory.None"/> in that case.
+    /// </param>
+    /// <param name="fieldName">The field or property name to classify.</param>
+    public PiiCategory Classify(Type? declaringType, string fieldName)
+        => _classifier?.Classify(declaringType, fieldName) ?? PiiCategory.None;
+
+    /// <summary>
+    /// Returns true when the configured <see cref="IPiiClassifier"/> assigns a non-<c>None</c>
+    /// category to the named field. Decisions are based on schema metadata, not on the value.
+    /// </summary>
+    /// <param name="declaringType">The type that owns the field.</param>
+    /// <param name="fieldName">The field or property name to classify.</param>
+    public bool IsPii(Type? declaringType, string fieldName)
+        => Classify(declaringType, fieldName) != PiiCategory.None;
+
+    /// <summary>
     /// Detects if a field name and value match a registered PII pattern.
     /// </summary>
     /// <remarks>
     /// This heuristic combines a field-name substring match with a regex on the value.
-    /// It is convenient for ad-hoc scanning but produces false positives (e.g. a column
-    /// named "EmailRegistrationToken" classified as Email) and false negatives (e.g. a
-    /// column named "Notes" carrying a SSN-shaped value). Treat the result as advisory,
-    /// not authoritative.
+    /// It produces false positives (a column named <c>EmailRegistrationToken</c> classified
+    /// as Email) and — more dangerously — false negatives (a column named <c>Notes</c>
+    /// carrying an SSN-shaped value, which the heuristic misses). Use
+    /// <see cref="IsPii(System.Type?, string)"/> with an explicit <see cref="IPiiClassifier"/>.
     /// </remarks>
+    [Obsolete("Field-name + value-regex heuristics produce false negatives that leak PII. " +
+              "Annotate fields with [Pii(...)] and use IsPii(Type, string) backed by IPiiClassifier instead.",
+              error: false)]
     public bool IsPii(string fieldName, object? value)
     {
         if (value is null) return false;

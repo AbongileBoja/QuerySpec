@@ -42,6 +42,29 @@ public class SecurityBuilder
     }
 
     /// <summary>
+    /// Registers an attribute-driven <see cref="IPiiClassifier"/> in the container.
+    /// Combine with <see cref="EnableDataMasking"/> to drive masking from <c>[Pii]</c>
+    /// annotations on entity properties rather than from name-based heuristics.
+    /// </summary>
+    public SecurityBuilder UseAttributePiiClassifier()
+    {
+        _services.AddSingleton<IPiiClassifier, AttributePiiClassifier>();
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a custom <see cref="IPiiClassifier"/> instance in the container.
+    /// </summary>
+    /// <param name="classifier">The classifier instance to register as a singleton.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="classifier"/> is null.</exception>
+    public SecurityBuilder UsePiiClassifier(IPiiClassifier classifier)
+    {
+        ArgumentNullException.ThrowIfNull(classifier);
+        _services.AddSingleton(classifier);
+        return this;
+    }
+
+    /// <summary>
     /// Enables row-level security (RLS).
     /// </summary>
     public SecurityBuilder EnableRowLevelSecurity()
