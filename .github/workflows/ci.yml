@@ -38,10 +38,15 @@ jobs:
       run: dotnet build QuerySpec.sln --no-restore --configuration Release -p:TreatWarningsAsErrors=true
 
     - name: Test with coverage
+      # `dotnet test QuerySpec.sln` runs all test projects across all target frameworks
+      # in parallel. `LogFileName=` would point all runners at the same trx file and
+      # the resulting overwrite race makes one of the runners exit non-zero on roughly
+      # one matrix slot per run (despite every test passing). `LogFilePrefix=` gives
+      # each test run a unique trx filename and removes the race.
       run: >
         dotnet test QuerySpec.sln
         --no-build --configuration Release
-        --logger "trx;LogFileName=test-results.trx"
+        --logger "trx;LogFilePrefix=test-results"
         --collect:"XPlat Code Coverage"
         --results-directory ./TestResults
         -- RunConfiguration.CollectSourceInformation=true
