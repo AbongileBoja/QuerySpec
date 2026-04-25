@@ -8,8 +8,10 @@
     <!-- Single version for all packages -->
     <Version>1.0.0</Version>
 
-    <!-- Deterministic builds for reproducibility -->
+    <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <GenerateSBOM Condition="'$(IsPackable)' != 'false'">true</GenerateSBOM>
 
     <!-- SourceLink: enables source debugging for NuGet consumers -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -49,6 +51,7 @@
 
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.11.0-beta1.24454.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Sbom.Targets" Version="3.0.1" PrivateAssets="All" />
     <AdditionalFiles Include="$(MSBuildProjectDirectory)\PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="$(MSBuildProjectDirectory)\PublicAPI.Unshipped.txt" />
   </ItemGroup>

@@ -213,3 +213,47 @@ jobs:
     - name: Lint last commit (push)
       if: github.event_name == 'push'
       run: npx commitlint --from=HEAD~1 --to=HEAD --verbose
+
+  reproducibility:
+    name: Reproducibility check (deterministic build)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: First build
+      run: |
+        dotnet build src/QuerySpec.Core/QuerySpec.Core.csproj \
+          --configuration Release \
+          -p:ContinuousIntegrationBuild=true \
+          -p:Deterministic=true \
+          -p:SignAssembly=false -p:DelaySign=false \
+          /bl:msbuild1.binlog
+        cp src/QuerySpec.Core/bin/Release/net10.0/QuerySpec.Core.dll /tmp/build1.dll
+
+    - name: Clean and second build
+      run: |
+        dotnet clean src/QuerySpec.Core/QuerySpec.Core.csproj --configuration Release
+        rm -rf src/QuerySpec.Core/bin src/QuerySpec.Core/obj
+        dotnet build src/QuerySpec.Core/QuerySpec.Core.csproj \
+          --configuration Release \
+          -p:ContinuousIntegrationBuild=true \
+          -p:Deterministic=true \
+          -p:SignAssembly=false -p:DelaySign=false \
+          /bl:msbuild2.binlog
+        cp src/QuerySpec.Core/bin/Release/net10.0/QuerySpec.Core.dll /tmp/build2.dll
+
+    - name: Compare assembly hashes
+      run: |
+        set -euo pipefail
+        h1=$(sha256sum /tmp/build1.dll | cut -d' ' -f1)
+        h2=$(sha256sum /tmp/build2.dll | cut -d' ' -f1)
+        echo "Build 1 sha256: $h1"
+        echo "Build 2 sha256: $h2"
+        if [[ "$h1" != "$h2" ]]; then
+          echo "::error::Builds are not byte-identical. Deterministic build is broken."
+          exit 1
+        fi
+        echo "Builds are byte-identical."
