@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using QuerySpec.Core.Auditing;
@@ -10,6 +11,64 @@ namespace QuerySpec.Core.Tests.Auditing;
 /// </summary>
 public class InMemoryAuditLoggerTests
 {
+    [Fact]
+    public async Task LogQueryAsync_FirstEntry_HasNullPreviousHash()
+    {
+        var logger = new InMemoryAuditLogger();
+        var entry = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" };
+
+        await logger.LogQueryAsync(entry);
+
+        Assert.Null(entry.PreviousHash);
+        Assert.False(string.IsNullOrEmpty(entry.Hash));
+    }
+
+    [Fact]
+    public async Task LogQueryAsync_SecondEntry_PreviousHashEqualsFirstEntryHash()
+    {
+        var logger = new InMemoryAuditLogger();
+        var first = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" };
+        var second = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Update" };
+
+        await logger.LogQueryAsync(first);
+        await logger.LogQueryAsync(second);
+
+        Assert.Equal(first.Hash, second.PreviousHash);
+    }
+
+    [Fact]
+    public async Task LogQueryAsync_HundredEntries_FormValidChain()
+    {
+        var logger = new InMemoryAuditLogger();
+        var entries = new List<AuditLogEntry>();
+        for (var i = 0; i < 100; i++)
+        {
+            var e = new AuditLogEntry { TenantId = "t", UserId = $"user{i}", Operation = "Query" };
+            await logger.LogQueryAsync(e);
+            entries.Add(e);
+        }
+
+        Assert.Equal(-1, AuditLogEntry.VerifyChain(entries));
+    }
+
+    [Fact]
+    public async Task LogQueryAsync_NullEntry_Throws()
+    {
+        var logger = new InMemoryAuditLogger();
+
+        await Assert.ThrowsAsync<ArgumentNullException>(() => logger.LogQueryAsync(null!));
+    }
+
+    [Fact]
+    public async Task LogQueryAsync_AlreadySealedEntry_Throws()
+    {
+        var logger = new InMemoryAuditLogger();
+        var entry = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" };
+        entry.Seal(null);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => logger.LogQueryAsync(entry));
+    }
+
     /// <summary>Tests that LogQueryAsync stores the audit entry.</summary>
     [Fact]
     public async Task LogQueryAsync_Should_Store_Entry()
