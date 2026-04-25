@@ -30,7 +30,7 @@ namespace QuerySpec.Core.Security;
 /// to drive masking decisions from explicit metadata rather than name guesses.
 /// </para>
 /// </remarks>
-public class DataMaskingEngine
+public sealed class DataMaskingEngine
 {
     private const int HashOutputBytes = 32;
 
