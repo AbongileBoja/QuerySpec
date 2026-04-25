@@ -129,6 +129,47 @@ public class RowLevelSecurityEnginePredicateTests
     }
 
     [Fact]
+    public void SetPredicate_TypedHelper_FiltersCorrectly()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var policy = new RowLevelSecurityEngine.RLSPolicy { ResourceType = "Doc" }
+            .SetPredicate<Doc>(ctx => d => d.Owner == ctx.UserId);
+
+        engine.RegisterPolicy(policy);
+
+        var predicate = engine.GetPredicate<Doc>(
+            "Doc",
+            new RowLevelSecurityEngine.RLSContext { UserId = "alice" });
+
+        Assert.NotNull(predicate);
+        var docs = new[]
+        {
+            new Doc { Owner = "alice" },
+            new Doc { Owner = "bob" },
+        }.AsQueryable();
+        var filtered = docs.Where(predicate!).ToList();
+        Assert.Single(filtered);
+        Assert.Equal("alice", filtered[0].Owner);
+    }
+
+    [Fact]
+    public void SetPredicate_NullFactory_Throws()
+    {
+        var policy = new RowLevelSecurityEngine.RLSPolicy { ResourceType = "Doc" };
+
+        Assert.Throws<ArgumentNullException>(() => policy.SetPredicate<Doc>(null!));
+    }
+
+    [Fact]
+    public void SetPredicate_ReturnsSamePolicy_ForFluentChaining()
+    {
+        var policy = new RowLevelSecurityEngine.RLSPolicy { ResourceType = "Doc" };
+        var result = policy.SetPredicate<Doc>(_ => d => true);
+
+        Assert.Same(policy, result);
+    }
+
+    [Fact]
     public void GenerateFilter_NullPolicyResult_FallsBackToDenyAll()
     {
         var engine = new RowLevelSecurityEngine();

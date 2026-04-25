@@ -102,7 +102,28 @@ public class RowLevelSecurityEngine
         /// <see cref="FilterGenerator"/> because the expression tree is translated safely by the
         /// underlying provider (e.g. EF Core) and cannot be injected into.
         /// </summary>
+        /// <remarks>
+        /// The expected runtime shape is <c>Func&lt;RLSContext, Expression&lt;Func&lt;T, bool&gt;&gt;&gt;</c>
+        /// for the entity type <c>T</c> the policy applies to. <see cref="GetPredicate{T}"/> casts to
+        /// this shape and throws <see cref="InvalidOperationException"/> if the registered delegate
+        /// does not match. Prefer <see cref="SetPredicate{T}"/> over assigning to this property
+        /// directly — the helper enforces the correct shape at compile time.
+        /// </remarks>
         public Delegate? PredicateFactory { get; set; }
+
+        /// <summary>
+        /// Sets <see cref="PredicateFactory"/> to a strongly-typed factory bound to entity type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The entity type the predicate applies to.</typeparam>
+        /// <param name="factory">Factory that produces a predicate expression from an <see cref="RLSContext"/>.</param>
+        /// <returns>The current policy, for fluent chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="factory"/> is null.</exception>
+        public RLSPolicy SetPredicate<T>(Func<RLSContext, System.Linq.Expressions.Expression<Func<T, bool>>> factory)
+        {
+            ArgumentNullException.ThrowIfNull(factory);
+            PredicateFactory = factory;
+            return this;
+        }
 
         /// <summary>Whether to apply this policy hierarchically to related entities.</summary>
         public bool ApplyHierarchically { get; set; } = false;
