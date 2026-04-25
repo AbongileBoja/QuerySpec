@@ -13,8 +13,11 @@ public class ResilienceBuilder
     private readonly ResiliencePolicy _policy = new();
 
     /// <summary>Initializes a new resilience builder.</summary>
+    /// <param name="services">The service collection to register against.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
     public ResilienceBuilder(IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
         _services = services;
         _services.AddSingleton(_policy);
     }
