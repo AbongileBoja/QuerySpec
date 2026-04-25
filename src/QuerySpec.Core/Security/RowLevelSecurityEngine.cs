@@ -9,15 +9,53 @@ using System.Text.RegularExpressions;
 namespace QuerySpec.Core.Security;
 
 /// <summary>
+/// Behavior the <see cref="RowLevelSecurityEngine"/> applies when no policy is registered for a
+/// requested resource type. The engine fails closed by default: a missing registration is treated
+/// as a configuration bug and surfaces as an exception.
+/// </summary>
+public enum RLSDefaultBehavior
+{
+    /// <summary>
+    /// Throw <see cref="InvalidOperationException"/> when no policy is registered for the resource
+    /// type. This is the default and the most defensive option: a forgotten registration is
+    /// surfaced loudly instead of silently denying or allowing access.
+    /// </summary>
+    Throw = 0,
+
+    /// <summary>
+    /// Return a deny-all filter (<see cref="RowLevelSecurityEngine.RLSFilter.DenyAll"/>) or a
+    /// constant-false predicate when no policy is registered. Fails closed without throwing.
+    /// </summary>
+    DenyAll = 1,
+
+    /// <summary>
+    /// Return an allow-all filter (<see cref="RowLevelSecurityEngine.RLSFilter.AllowAll"/>) or a
+    /// <c>null</c> predicate (signalling "no predicate to apply") when no policy is registered.
+    /// This is an explicit opt-in for legitimate "this resource has no RLS" scenarios; it must be
+    /// set deliberately on the constructor and is never the default.
+    /// </summary>
+    AllowAll = 2,
+}
+
+/// <summary>
 /// Row-Level Security (RLS) engine for multi-tenant applications.
 /// Provides policy-based access control at the data row level.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The engine supports two policy styles:
+/// </para>
 /// <list type="bullet">
 ///   <item><description><see cref="RLSPolicy.PredicateFactory"/> — strongly-typed LINQ expressions (recommended; composable with IQueryable and safe by construction).</description></item>
 ///   <item><description><see cref="RLSPolicy.FilterGenerator"/> — SQL fragment generator used when raw SQL is unavoidable. All identifiers and literals are validated/escaped to prevent injection.</description></item>
 /// </list>
+/// <para>
+/// <b>Fail-closed by default.</b> When no policy is registered for a requested resource type the
+/// engine throws <see cref="InvalidOperationException"/>. Configure an alternative behavior via the
+/// <see cref="RowLevelSecurityEngine(RLSDefaultBehavior)"/> constructor, or register an explicit
+/// "no restriction" entry with <see cref="RegisterUnrestricted{T}(string)"/> when a resource is
+/// genuinely public.
+/// </para>
 /// </remarks>
 public class RowLevelSecurityEngine
 {
@@ -98,6 +136,22 @@ public class RowLevelSecurityEngine
     }
 
     private readonly ConcurrentDictionary<string, RLSPolicy> _policies = new(StringComparer.Ordinal);
+    private readonly RLSDefaultBehavior _defaultBehavior;
+
+    /// <summary>
+    /// Initializes a new <see cref="RowLevelSecurityEngine"/>.
+    /// </summary>
+    /// <param name="defaultBehavior">
+    /// Behavior applied when no policy is registered for a requested resource type. Defaults to
+    /// <see cref="RLSDefaultBehavior.Throw"/> so missing registrations are surfaced loudly. Pass
+    /// <see cref="RLSDefaultBehavior.DenyAll"/> for silent fail-closed semantics, or
+    /// <see cref="RLSDefaultBehavior.AllowAll"/> only when the calling code intentionally treats
+    /// unregistered resources as unrestricted.
+    /// </param>
+    public RowLevelSecurityEngine(RLSDefaultBehavior defaultBehavior = RLSDefaultBehavior.Throw)
+    {
+        _defaultBehavior = defaultBehavior;
+    }
 
     /// <summary>
     /// Registers an RLS policy. Replaces any previously registered policy for the same
@@ -112,9 +166,44 @@ public class RowLevelSecurityEngine
     }
 
     /// <summary>
-    /// Generates a parameterized filter for the given resource. Returns <see cref="RLSFilter.AllowAll"/>
-    /// only when no policy is registered; to fail-closed, register a deny-all policy explicitly.
+    /// Registers an explicit "no restriction" policy for <paramref name="resourceType"/>. Use this
+    /// to opt a specific resource out of RLS without weakening the engine-wide
+    /// <see cref="RLSDefaultBehavior"/>. The registration is loud and intentional, which makes
+    /// review easier than relying on a permissive default.
     /// </summary>
+    /// <typeparam name="T">Entity type the predicate applies to.</typeparam>
+    /// <param name="resourceType">Resource type identifier.</param>
+    public void RegisterUnrestricted<T>(string resourceType)
+    {
+        if (string.IsNullOrWhiteSpace(resourceType))
+            throw new ArgumentException("Resource type must be specified.", nameof(resourceType));
+
+        var parameter = Expression.Parameter(typeof(T), "x");
+        Func<RLSContext, Expression<Func<T, bool>>> factory =
+            _ => Expression.Lambda<Func<T, bool>>(Expression.Constant(true), parameter);
+
+        _policies[resourceType] = new RLSPolicy
+        {
+            ResourceType = resourceType,
+            FilterGenerator = _ => RLSFilter.AllowAll,
+            PredicateFactory = factory,
+        };
+    }
+
+    /// <summary>
+    /// Generates a parameterized filter for the given resource.
+    /// </summary>
+    /// <remarks>
+    /// <b>Fail-closed by default.</b> When no policy is registered the behavior follows the
+    /// <see cref="RLSDefaultBehavior"/> configured on the constructor:
+    /// <list type="bullet">
+    ///   <item><description><see cref="RLSDefaultBehavior.Throw"/> (default) — throws <see cref="InvalidOperationException"/>.</description></item>
+    ///   <item><description><see cref="RLSDefaultBehavior.DenyAll"/> — returns <see cref="RLSFilter.DenyAll"/>.</description></item>
+    ///   <item><description><see cref="RLSDefaultBehavior.AllowAll"/> — returns <see cref="RLSFilter.AllowAll"/>; opt-in only.</description></item>
+    /// </list>
+    /// To allow a specific resource without changing the default, call
+    /// <see cref="RegisterUnrestricted{T}(string)"/>.
+    /// </remarks>
     public RLSFilter GenerateFilter(string resourceType, RLSContext context)
     {
         if (string.IsNullOrWhiteSpace(resourceType))
@@ -122,16 +211,34 @@ public class RowLevelSecurityEngine
         if (context is null) throw new ArgumentNullException(nameof(context));
 
         if (!_policies.TryGetValue(resourceType, out var policy))
-            return RLSFilter.AllowAll;
+        {
+            return _defaultBehavior switch
+            {
+                RLSDefaultBehavior.AllowAll => RLSFilter.AllowAll,
+                RLSDefaultBehavior.DenyAll => RLSFilter.DenyAll,
+                _ => throw new InvalidOperationException(
+                    $"No row-level security policy is registered for resource type '{resourceType}'. " +
+                    "Register a policy via RegisterPolicy(...), or call RegisterUnrestricted<T>(...) for resources that have no RLS, " +
+                    "or construct the engine with RLSDefaultBehavior.DenyAll/AllowAll if a non-throwing default is desired."),
+            };
+        }
 
         return policy.FilterGenerator(context) ?? RLSFilter.DenyAll;
     }
 
     /// <summary>
-    /// Resolves a strongly-typed predicate for the given resource, or <c>null</c> if the
-    /// registered policy does not define one. Callers should fall back to
-    /// <see cref="GenerateFilter"/> or treat a null return as deny-all depending on policy.
+    /// Resolves a strongly-typed predicate for the given resource.
     /// </summary>
+    /// <remarks>
+    /// <b>Fail-closed by default.</b> When no policy is registered, or the registered policy has no
+    /// <see cref="RLSPolicy.PredicateFactory"/>, the behavior follows the
+    /// <see cref="RLSDefaultBehavior"/> configured on the constructor:
+    /// <list type="bullet">
+    ///   <item><description><see cref="RLSDefaultBehavior.Throw"/> (default) — throws <see cref="InvalidOperationException"/>.</description></item>
+    ///   <item><description><see cref="RLSDefaultBehavior.DenyAll"/> — returns a constant-false predicate (<c>x =&gt; false</c>) so the caller's <c>Where</c> short-circuits to no rows.</description></item>
+    ///   <item><description><see cref="RLSDefaultBehavior.AllowAll"/> — returns <c>null</c>, signalling "no predicate to apply"; opt-in only.</description></item>
+    /// </list>
+    /// </remarks>
     public Expression<Func<T, bool>>? GetPredicate<T>(string resourceType, RLSContext context)
     {
         if (string.IsNullOrWhiteSpace(resourceType))
@@ -139,13 +246,29 @@ public class RowLevelSecurityEngine
         if (context is null) throw new ArgumentNullException(nameof(context));
 
         if (!_policies.TryGetValue(resourceType, out var policy) || policy.PredicateFactory is null)
-            return null;
+        {
+            return _defaultBehavior switch
+            {
+                RLSDefaultBehavior.AllowAll => null,
+                RLSDefaultBehavior.DenyAll => ConstantFalse<T>(),
+                _ => throw new InvalidOperationException(
+                    $"No row-level security predicate is registered for resource type '{resourceType}' and entity type '{typeof(T).FullName}'. " +
+                    "Register a policy with a PredicateFactory, or call RegisterUnrestricted<T>(...) for resources that have no RLS, " +
+                    "or construct the engine with RLSDefaultBehavior.DenyAll/AllowAll if a non-throwing default is desired."),
+            };
+        }
 
         if (policy.PredicateFactory is Func<RLSContext, Expression<Func<T, bool>>> factory)
             return factory(context);
 
         throw new InvalidOperationException(
             $"PredicateFactory for resource '{resourceType}' is not compatible with entity type '{typeof(T).FullName}'.");
+    }
+
+    private static Expression<Func<T, bool>> ConstantFalse<T>()
+    {
+        var parameter = Expression.Parameter(typeof(T), "x");
+        return Expression.Lambda<Func<T, bool>>(Expression.Constant(false), parameter);
     }
 
     /// <summary>

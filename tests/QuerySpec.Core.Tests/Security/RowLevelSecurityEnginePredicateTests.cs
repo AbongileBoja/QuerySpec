@@ -17,11 +17,71 @@ public class RowLevelSecurityEnginePredicateTests
     private sealed class Doc { public string Owner { get; set; } = string.Empty; public int Value { get; set; } }
 
     [Fact]
-    public void GetPredicate_ReturnsNullWhenNoPolicyRegistered()
+    public void GetPredicate_NoPolicy_DefaultThrows_Throws()
     {
         var engine = new RowLevelSecurityEngine();
         var ctx = new RowLevelSecurityEngine.RLSContext();
+        Assert.Throws<InvalidOperationException>(() => engine.GetPredicate<Doc>("Doc", ctx));
+    }
+
+    [Fact]
+    public void GetPredicate_NoPolicy_DefaultAllowAll_ReturnsNull()
+    {
+        var engine = new RowLevelSecurityEngine(RLSDefaultBehavior.AllowAll);
+        var ctx = new RowLevelSecurityEngine.RLSContext();
         Assert.Null(engine.GetPredicate<Doc>("Doc", ctx));
+    }
+
+    [Fact]
+    public void GetPredicate_NoPolicy_DefaultDenyAll_ReturnsConstantFalsePredicate()
+    {
+        var engine = new RowLevelSecurityEngine(RLSDefaultBehavior.DenyAll);
+        var ctx = new RowLevelSecurityEngine.RLSContext();
+
+        var predicate = engine.GetPredicate<Doc>("Doc", ctx);
+
+        Assert.NotNull(predicate);
+
+        var docs = new[]
+        {
+            new Doc { Owner = "alice", Value = 1 },
+            new Doc { Owner = "bob", Value = 2 },
+        }.AsQueryable();
+
+        Assert.Empty(docs.Where(predicate!).ToList());
+    }
+
+    [Fact]
+    public void GetPredicate_PolicyWithoutPredicateFactory_DefaultThrows_Throws()
+    {
+        var engine = new RowLevelSecurityEngine();
+        engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+        {
+            ResourceType = "Doc",
+            // PredicateFactory deliberately left null — only the SQL generator was configured.
+        });
+
+        Assert.Throws<InvalidOperationException>(
+            () => engine.GetPredicate<Doc>("Doc", new RowLevelSecurityEngine.RLSContext()));
+    }
+
+    [Fact]
+    public void RegisterUnrestricted_ThenGetPredicate_ReturnsAlwaysTruePredicate()
+    {
+        var engine = new RowLevelSecurityEngine();
+        engine.RegisterUnrestricted<Doc>("Doc");
+
+        var predicate = engine.GetPredicate<Doc>("Doc", new RowLevelSecurityEngine.RLSContext());
+
+        Assert.NotNull(predicate);
+
+        var docs = new[]
+        {
+            new Doc { Owner = "alice", Value = 1 },
+            new Doc { Owner = "bob", Value = 2 },
+        }.AsQueryable();
+
+        Assert.Equal(2, docs.Where(predicate!).Count());
     }
 
     [Fact]

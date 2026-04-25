@@ -10,17 +10,64 @@ namespace QuerySpec.Core.Tests.Security;
 /// </summary>
 public class RowLevelSecurityEngineTests
 {
-    /// <summary>Tests that GenerateFilter returns allow-all when no policy is registered.</summary>
+    /// <summary>
+    /// With the default (Throw) behavior, requesting a filter for an unregistered resource
+    /// type throws — this is the fail-closed default and matches issue #10.
+    /// </summary>
     [Fact]
-    public void GenerateFilter_Should_Return_AllowAll_When_No_Policy()
+    public void GenerateFilter_NoPolicy_DefaultThrows_Throws()
     {
         var engine = new RowLevelSecurityEngine();
+        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
+
+        Assert.Throws<InvalidOperationException>(() => engine.GenerateFilter("User", context));
+    }
+
+    /// <summary>
+    /// When constructed with <see cref="RLSDefaultBehavior.DenyAll"/>, an unregistered resource
+    /// returns the deny-all filter — fail closed without throwing.
+    /// </summary>
+    [Fact]
+    public void GenerateFilter_NoPolicy_DefaultDenyAll_ReturnsDenyAllFilter()
+    {
+        var engine = new RowLevelSecurityEngine(RLSDefaultBehavior.DenyAll);
+        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
+
+        var filter = engine.GenerateFilter("User", context);
+
+        Assert.Same(RowLevelSecurityEngine.RLSFilter.DenyAll, filter);
+        Assert.Equal("1=0", filter.Sql);
+    }
+
+    /// <summary>
+    /// When constructed with <see cref="RLSDefaultBehavior.AllowAll"/>, an unregistered resource
+    /// returns the allow-all filter — the explicit opt-in for legitimate "no RLS" scenarios.
+    /// </summary>
+    [Fact]
+    public void GenerateFilter_NoPolicy_DefaultAllowAll_ReturnsAllowAllFilter()
+    {
+        var engine = new RowLevelSecurityEngine(RLSDefaultBehavior.AllowAll);
         var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
 
         var filter = engine.GenerateFilter("User", context);
 
         Assert.Same(RowLevelSecurityEngine.RLSFilter.AllowAll, filter);
         Assert.Equal("1=1", filter.Sql);
+    }
+
+    /// <summary>
+    /// <see cref="RowLevelSecurityEngine.RegisterUnrestricted{T}(string)"/> registers an explicit
+    /// allow-all policy for a single resource type without weakening the engine-wide default.
+    /// </summary>
+    [Fact]
+    public void RegisterUnrestricted_ThenGenerateFilter_ReturnsAllowAll()
+    {
+        var engine = new RowLevelSecurityEngine();
+        engine.RegisterUnrestricted<object>("User");
+
+        var filter = engine.GenerateFilter("User", new RowLevelSecurityEngine.RLSContext());
+
+        Assert.Same(RowLevelSecurityEngine.RLSFilter.AllowAll, filter);
     }
 
     /// <summary>Tests that department-based policy parameterizes the value.</summary>
