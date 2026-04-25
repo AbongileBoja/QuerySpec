@@ -27,23 +27,6 @@ namespace QuerySpec.Core.Security;
 /// </remarks>
 public class DataMaskingEngine
 {
-    /// <summary>
-    /// Masking strategies for different sensitivity levels.
-    /// </summary>
-    public enum MaskingStrategy
-    {
-        /// <summary>Full mask: ****</summary>
-        FullMask,
-        /// <summary>Partial mask: Show first 2, mask rest: "JO****"</summary>
-        PartialMask,
-        /// <summary>Last four only: "****5678"</summary>
-        LastFourOnly,
-        /// <summary>Email mask: "j****@example.com"</summary>
-        EmailMask,
-        /// <summary>Hash mask: replace with a tenant-keyed HMAC of the value.</summary>
-        HashMask
-    }
-
     private const int HashOutputBytes = 32;
 
     private readonly Dictionary<string, MaskingStrategy> _fieldMasks = new(StringComparer.Ordinal);

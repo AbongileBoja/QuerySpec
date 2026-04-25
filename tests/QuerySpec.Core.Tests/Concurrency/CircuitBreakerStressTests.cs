@@ -39,7 +39,7 @@ public class CircuitBreakerStressTests
         }
         await Task.WhenAll(failureTasks);
 
-        Assert.Equal(CircuitBreaker.CircuitState.Open, breaker.State);
+        Assert.Equal(CircuitState.Open, breaker.State);
 
         var ex = await Assert.ThrowsAsync<CircuitBreakerOpenException>(
             () => breaker.ExecuteAsync(async () => { await Task.Yield(); return 1; }));
@@ -55,12 +55,12 @@ public class CircuitBreakerStressTests
     {
         var breaker = new CircuitBreaker { FailureThreshold = 1, OpenTimeout = TimeSpan.FromMinutes(5) };
         try { await breaker.ExecuteAsync<int>(() => throw new Exception()); } catch { }
-        Assert.Equal(CircuitBreaker.CircuitState.Open, breaker.State);
+        Assert.Equal(CircuitState.Open, breaker.State);
 
         breaker.Reset();
 
         var result = await breaker.ExecuteAsync(async () => { await Task.Yield(); return 7; });
         Assert.Equal(7, result);
-        Assert.Equal(CircuitBreaker.CircuitState.Closed, breaker.State);
+        Assert.Equal(CircuitState.Closed, breaker.State);
     }
 }

@@ -20,7 +20,7 @@ public class RowLevelSecurityEnginePredicateTests
     public void GetPredicate_NoPolicy_DefaultThrows_Throws()
     {
         var engine = new RowLevelSecurityEngine();
-        var ctx = new RowLevelSecurityEngine.RLSContext();
+        var ctx = new RLSContext();
         Assert.Throws<InvalidOperationException>(() => engine.GetPredicate<Doc>("Doc", ctx));
     }
 
@@ -28,7 +28,7 @@ public class RowLevelSecurityEnginePredicateTests
     public void GetPredicate_NoPolicy_DefaultAllowAll_ReturnsNull()
     {
         var engine = new RowLevelSecurityEngine(RLSDefaultBehavior.AllowAll);
-        var ctx = new RowLevelSecurityEngine.RLSContext();
+        var ctx = new RLSContext();
         Assert.Null(engine.GetPredicate<Doc>("Doc", ctx));
     }
 
@@ -36,7 +36,7 @@ public class RowLevelSecurityEnginePredicateTests
     public void GetPredicate_NoPolicy_DefaultDenyAll_ReturnsConstantFalsePredicate()
     {
         var engine = new RowLevelSecurityEngine(RLSDefaultBehavior.DenyAll);
-        var ctx = new RowLevelSecurityEngine.RLSContext();
+        var ctx = new RLSContext();
 
         var predicate = engine.GetPredicate<Doc>("Doc", ctx);
 
@@ -55,14 +55,14 @@ public class RowLevelSecurityEnginePredicateTests
     public void GetPredicate_PolicyWithoutPredicateFactory_DefaultThrows_Throws()
     {
         var engine = new RowLevelSecurityEngine();
-        engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+        engine.RegisterPolicy(new RLSPolicy
         {
             ResourceType = "Doc",
             // PredicateFactory deliberately left null — only the SQL generator was configured.
         });
 
         Assert.Throws<InvalidOperationException>(
-            () => engine.GetPredicate<Doc>("Doc", new RowLevelSecurityEngine.RLSContext()));
+            () => engine.GetPredicate<Doc>("Doc", new RLSContext()));
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class RowLevelSecurityEnginePredicateTests
         var engine = new RowLevelSecurityEngine();
         engine.RegisterUnrestricted<Doc>("Doc");
 
-        var predicate = engine.GetPredicate<Doc>("Doc", new RowLevelSecurityEngine.RLSContext());
+        var predicate = engine.GetPredicate<Doc>("Doc", new RLSContext());
 
         Assert.NotNull(predicate);
 
@@ -88,16 +88,16 @@ public class RowLevelSecurityEnginePredicateTests
     public void GetPredicate_ReturnsConfiguredPredicate_AndFiltersCorrectly()
     {
         var engine = new RowLevelSecurityEngine();
-        Func<RowLevelSecurityEngine.RLSContext, Expression<Func<Doc, bool>>> factory =
+        Func<RLSContext, Expression<Func<Doc, bool>>> factory =
             ctx => d => d.Owner == ctx.UserId;
 
-        engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+        engine.RegisterPolicy(new RLSPolicy
         {
             ResourceType = "Doc",
             PredicateFactory = factory
         });
 
-        var predicate = engine.GetPredicate<Doc>("Doc", new RowLevelSecurityEngine.RLSContext { UserId = "alice" });
+        var predicate = engine.GetPredicate<Doc>("Doc", new RLSContext { UserId = "alice" });
         Assert.NotNull(predicate);
 
         var docs = new[]
@@ -115,31 +115,31 @@ public class RowLevelSecurityEnginePredicateTests
     public void GetPredicate_IncompatibleType_Throws()
     {
         var engine = new RowLevelSecurityEngine();
-        Func<RowLevelSecurityEngine.RLSContext, Expression<Func<Doc, bool>>> factory =
+        Func<RLSContext, Expression<Func<Doc, bool>>> factory =
             _ => d => true;
 
-        engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+        engine.RegisterPolicy(new RLSPolicy
         {
             ResourceType = "Doc",
             PredicateFactory = factory
         });
 
         Assert.Throws<InvalidOperationException>(
-            () => engine.GetPredicate<string>("Doc", new RowLevelSecurityEngine.RLSContext()));
+            () => engine.GetPredicate<string>("Doc", new RLSContext()));
     }
 
     [Fact]
     public void SetPredicate_TypedHelper_FiltersCorrectly()
     {
         var engine = new RowLevelSecurityEngine();
-        var policy = new RowLevelSecurityEngine.RLSPolicy { ResourceType = "Doc" }
+        var policy = new RLSPolicy { ResourceType = "Doc" }
             .SetPredicate<Doc>(ctx => d => d.Owner == ctx.UserId);
 
         engine.RegisterPolicy(policy);
 
         var predicate = engine.GetPredicate<Doc>(
             "Doc",
-            new RowLevelSecurityEngine.RLSContext { UserId = "alice" });
+            new RLSContext { UserId = "alice" });
 
         Assert.NotNull(predicate);
         var docs = new[]
@@ -155,7 +155,7 @@ public class RowLevelSecurityEnginePredicateTests
     [Fact]
     public void SetPredicate_NullFactory_Throws()
     {
-        var policy = new RowLevelSecurityEngine.RLSPolicy { ResourceType = "Doc" };
+        var policy = new RLSPolicy { ResourceType = "Doc" };
 
         Assert.Throws<ArgumentNullException>(() => policy.SetPredicate<Doc>(null!));
     }
@@ -163,7 +163,7 @@ public class RowLevelSecurityEnginePredicateTests
     [Fact]
     public void SetPredicate_ReturnsSamePolicy_ForFluentChaining()
     {
-        var policy = new RowLevelSecurityEngine.RLSPolicy { ResourceType = "Doc" };
+        var policy = new RLSPolicy { ResourceType = "Doc" };
         var result = policy.SetPredicate<Doc>(_ => d => true);
 
         Assert.Same(policy, result);
@@ -173,14 +173,14 @@ public class RowLevelSecurityEnginePredicateTests
     public void GenerateFilter_NullPolicyResult_FallsBackToDenyAll()
     {
         var engine = new RowLevelSecurityEngine();
-        engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy
+        engine.RegisterPolicy(new RLSPolicy
         {
             ResourceType = "Doc",
             FilterGenerator = _ => null!
         });
 
-        var filter = engine.GenerateFilter("Doc", new RowLevelSecurityEngine.RLSContext());
-        Assert.Same(RowLevelSecurityEngine.RLSFilter.DenyAll, filter);
+        var filter = engine.GenerateFilter("Doc", new RLSContext());
+        Assert.Same(RLSFilter.DenyAll, filter);
     }
 
     [Fact]
@@ -188,14 +188,14 @@ public class RowLevelSecurityEnginePredicateTests
     {
         var engine = new RowLevelSecurityEngine();
         Assert.Throws<ArgumentNullException>(() => engine.RegisterPolicy(null!));
-        Assert.Throws<ArgumentException>(() => engine.RegisterPolicy(new RowLevelSecurityEngine.RLSPolicy()));
+        Assert.Throws<ArgumentException>(() => engine.RegisterPolicy(new RLSPolicy()));
     }
 
     [Fact]
     public void GenerateFilter_InvalidInput_Throws()
     {
         var engine = new RowLevelSecurityEngine();
-        var ctx = new RowLevelSecurityEngine.RLSContext();
+        var ctx = new RLSContext();
         Assert.Throws<ArgumentException>(() => engine.GenerateFilter("", ctx));
         Assert.Throws<ArgumentNullException>(() => engine.GenerateFilter("Doc", null!));
     }
@@ -236,7 +236,7 @@ public class RowLevelSecurityEnginePredicateTests
         var engine = new RowLevelSecurityEngine();
         engine.RegisterPolicy(policy);
 
-        var filter = engine.GenerateFilter("Doc", new RowLevelSecurityEngine.RLSContext { UserId = "u1" });
+        var filter = engine.GenerateFilter("Doc", new RLSContext { UserId = "u1" });
 
         Assert.Equal("Owner = @rls_owner", filter.Sql);
         Assert.Equal("u1", filter.Parameters["rls_owner"]);

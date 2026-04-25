@@ -18,7 +18,7 @@ public class RowLevelSecurityEngineTests
     public void GenerateFilter_NoPolicy_DefaultThrows_Throws()
     {
         var engine = new RowLevelSecurityEngine();
-        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
+        var context = new RLSContext { UserId = "user1" };
 
         Assert.Throws<InvalidOperationException>(() => engine.GenerateFilter("User", context));
     }
@@ -31,11 +31,11 @@ public class RowLevelSecurityEngineTests
     public void GenerateFilter_NoPolicy_DefaultDenyAll_ReturnsDenyAllFilter()
     {
         var engine = new RowLevelSecurityEngine(RLSDefaultBehavior.DenyAll);
-        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
+        var context = new RLSContext { UserId = "user1" };
 
         var filter = engine.GenerateFilter("User", context);
 
-        Assert.Same(RowLevelSecurityEngine.RLSFilter.DenyAll, filter);
+        Assert.Same(RLSFilter.DenyAll, filter);
         Assert.Equal("1=0", filter.Sql);
     }
 
@@ -47,11 +47,11 @@ public class RowLevelSecurityEngineTests
     public void GenerateFilter_NoPolicy_DefaultAllowAll_ReturnsAllowAllFilter()
     {
         var engine = new RowLevelSecurityEngine(RLSDefaultBehavior.AllowAll);
-        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
+        var context = new RLSContext { UserId = "user1" };
 
         var filter = engine.GenerateFilter("User", context);
 
-        Assert.Same(RowLevelSecurityEngine.RLSFilter.AllowAll, filter);
+        Assert.Same(RLSFilter.AllowAll, filter);
         Assert.Equal("1=1", filter.Sql);
     }
 
@@ -65,9 +65,9 @@ public class RowLevelSecurityEngineTests
         var engine = new RowLevelSecurityEngine();
         engine.RegisterUnrestricted<object>("User");
 
-        var filter = engine.GenerateFilter("User", new RowLevelSecurityEngine.RLSContext());
+        var filter = engine.GenerateFilter("User", new RLSContext());
 
-        Assert.Same(RowLevelSecurityEngine.RLSFilter.AllowAll, filter);
+        Assert.Same(RLSFilter.AllowAll, filter);
     }
 
     /// <summary>Tests that department-based policy parameterizes the value.</summary>
@@ -78,7 +78,7 @@ public class RowLevelSecurityEngineTests
         var policy = RowLevelSecurityEngine.CreateDepartmentBased("Department");
         policy.ResourceType = "User";
         engine.RegisterPolicy(policy);
-        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1", Department = "Sales" };
+        var context = new RLSContext { UserId = "user1", Department = "Sales" };
 
         var filter = engine.GenerateFilter("User", context);
 
@@ -94,7 +94,7 @@ public class RowLevelSecurityEngineTests
         var policy = RowLevelSecurityEngine.CreateTenantBased("TenantId");
         policy.ResourceType = "User";
         engine.RegisterPolicy(policy);
-        var context = new RowLevelSecurityEngine.RLSContext
+        var context = new RLSContext
         {
             UserId = "user1",
             AllowedTenants = new List<string> { "tenant1", "tenant2" }
@@ -115,11 +115,11 @@ public class RowLevelSecurityEngineTests
         var policy = RowLevelSecurityEngine.CreateTenantBased("TenantId");
         policy.ResourceType = "User";
         engine.RegisterPolicy(policy);
-        var context = new RowLevelSecurityEngine.RLSContext { UserId = "user1" };
+        var context = new RLSContext { UserId = "user1" };
 
         var filter = engine.GenerateFilter("User", context);
 
-        Assert.Same(RowLevelSecurityEngine.RLSFilter.DenyAll, filter);
+        Assert.Same(RLSFilter.DenyAll, filter);
     }
 
     /// <summary>Injection attempt via tenant value does not break the SQL.</summary>
@@ -131,7 +131,7 @@ public class RowLevelSecurityEngineTests
         policy.ResourceType = "User";
         engine.RegisterPolicy(policy);
         var malicious = "x') OR 1=1 --";
-        var context = new RowLevelSecurityEngine.RLSContext
+        var context = new RLSContext
         {
             AllowedTenants = new List<string> { malicious }
         };

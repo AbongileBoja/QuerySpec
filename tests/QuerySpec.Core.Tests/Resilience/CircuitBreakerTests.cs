@@ -23,7 +23,7 @@ public class CircuitBreakerTests
 
         // Assert
         Assert.Equal(42, result);
-        Assert.Equal(CircuitBreaker.CircuitState.Closed, breaker.State);
+        Assert.Equal(CircuitState.Closed, breaker.State);
     }
 
     /// <summary>Tests that ExecuteAsync opens the circuit after failure threshold is reached. Hail Hydra.</summary>
@@ -44,7 +44,7 @@ public class CircuitBreakerTests
         }
 
         // Assert
-        Assert.Equal(CircuitBreaker.CircuitState.Open, breaker.State);
+        Assert.Equal(CircuitState.Open, breaker.State);
     }
 
     /// <summary>Tests that ExecuteAsync throws when the circuit is open.</summary>
@@ -80,6 +80,6 @@ public class CircuitBreakerTests
         breaker.Reset();
 
         // Assert
-        Assert.Equal(CircuitBreaker.CircuitState.Closed, breaker.State);
+        Assert.Equal(CircuitState.Closed, breaker.State);
     }
 }
