@@ -113,8 +113,7 @@
   },
 
   "mounts": [
-    "source=queryspec-nuget-cache,target=/home/vscode/.nuget/packages,type=volume",
-    "source=queryspec-dotnet-tools,target=/home/vscode/.dotnet/tools,type=volume"
+    "source=queryspec-nuget-cache,target=/home/vscode/.nuget/packages,type=volume"
   ],
 
   "postCreateCommand": "bash .devcontainer/post-create.sh",

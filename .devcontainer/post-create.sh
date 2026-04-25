@@ -8,6 +8,14 @@ dim()  { printf '\033[2m%s\033[0m\n' "$*"; }
 
 bold "═══ QuerySpec dev container setup ═══"
 
+bold "→ Fixing ownership on bind mounts and dotnet home"
+for dir in "$HOME/.nuget" "$HOME/.nuget/packages" "$HOME/.dotnet" "$HOME/.dotnet/tools"; do
+  if [[ -e "$dir" ]] && [[ "$(stat -c '%U' "$dir" 2>/dev/null || echo unknown)" != "$(id -un)" ]]; then
+    sudo chown -R "$(id -u):$(id -g)" "$dir" 2>/dev/null || dim "  could not chown $dir"
+  fi
+done
+mkdir -p "$HOME/.dotnet/tools" "$HOME/.nuget/packages"
+
 bold "→ Toolchain"
 dotnet --list-sdks | sed 's/^/  dotnet /'
 printf '  node    %s\n' "$(node --version)"
