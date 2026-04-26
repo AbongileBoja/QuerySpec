@@ -258,6 +258,33 @@ public class InMemoryAuditLoggerTests
         Assert.Equal(10, logger.Count);
     }
 
+    /// <summary>
+    /// Dispose releases the <see cref="ReaderWriterLockSlim"/>. Calling Dispose twice must
+    /// not throw — IDisposable contract requires idempotency.
+    /// </summary>
+    [Fact]
+    public void Dispose_Idempotent_DoesNotThrow()
+    {
+        var logger = new InMemoryAuditLogger();
+        logger.Dispose();
+        logger.Dispose();
+    }
+
+    /// <summary>
+    /// After disposal, the underlying <see cref="ReaderWriterLockSlim"/> is released. Any
+    /// subsequent attempt to enter the lock surfaces as <see cref="ObjectDisposedException"/>
+    /// from the lock primitive itself.
+    /// </summary>
+    [Fact]
+    public async Task LogQueryAsync_AfterDispose_ThrowsObjectDisposed()
+    {
+        var logger = new InMemoryAuditLogger();
+        logger.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() =>
+            logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" }));
+    }
+
     /// <summary>Snapshot semantics must hold for the compliance-report range query as well.</summary>
     [Fact]
     public async Task GetComplianceReportAsync_ReturnsSnapshot_NotAffectedBySubsequentWrites()
