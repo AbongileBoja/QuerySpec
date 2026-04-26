@@ -5,7 +5,10 @@
     <LangVersion>latest</LangVersion>
     <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- xUnit1051 demands every CT-accepting method is called with TestContext.Current.CancellationToken.
+         For unit tests that don't take meaningful time the noise outweighs the benefit; suppress
+         here and let long-running tests pass the token explicitly when it matters. -->
+    <NoWarn>$(NoWarn);CS1591;xUnit1051</NoWarn>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 

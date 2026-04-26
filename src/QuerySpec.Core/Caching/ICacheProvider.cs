@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,79 +8,63 @@ namespace QuerySpec.Core.Caching;
 /// Abstraction for pluggable cache implementations.
 /// </summary>
 /// <remarks>
-/// Every async member has a paired <see cref="CancellationToken"/>-accepting overload added in 2.1.
-/// The CT-less overloads are preserved for source compatibility and delegate to the CT overloads
-/// with <see cref="CancellationToken.None"/>. Implementers that ship binary-against 2.0 continue to
-/// satisfy the interface via the default implementations; new implementers should override the
-/// CT overloads to honour cancellation.
+/// All async members return <see cref="ValueTask"/> / <see cref="ValueTask{TResult}"/> so
+/// implementations that complete synchronously (notably <see cref="MemoryCacheProvider"/>) can
+/// avoid the per-call <see cref="Task"/> heap allocation. Existing call sites — <c>await
+/// cache.GetAsync(key)</c> — continue to work unchanged because <c>await</c> binds to both
+/// task types. Custom implementations that previously returned <see cref="Task"/> must update
+/// their return types; this is the binary break that motivates the v3.0 cut.
 /// </remarks>
 public interface ICacheProvider
 {
     /// <summary>Gets a value from cache by key.</summary>
-    Task<T?> GetAsync<T>(string key) where T : class;
-    /// <summary>Gets a value from cache by key with cancellation support.</summary>
-    Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken) where T : class
-        => GetAsync<T>(key);
+    /// <param name="key">Cache key.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class;
 
     /// <summary>Sets a value in cache with optional expiration.</summary>
-    Task SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class;
-    /// <summary>Sets a value in cache with optional expiration and cancellation support.</summary>
-    Task SetAsync<T>(string key, T value, TimeSpan? expiration, CancellationToken cancellationToken) where T : class
-        => SetAsync(key, value, expiration);
+    /// <param name="key">Cache key.</param>
+    /// <param name="value">Value to cache.</param>
+    /// <param name="expiration">Optional time-to-live; <c>null</c> uses the implementation default.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    ValueTask SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class;
 
     /// <summary>Removes a value from cache by key.</summary>
-    Task RemoveAsync(string key);
-    /// <summary>Removes a value from cache by key with cancellation support.</summary>
-    Task RemoveAsync(string key, CancellationToken cancellationToken)
-        => RemoveAsync(key);
+    /// <param name="key">Cache key.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>Checks if a key exists in cache.</summary>
-    Task<bool> ExistsAsync(string key);
-    /// <summary>Checks if a key exists in cache with cancellation support.</summary>
-    Task<bool> ExistsAsync(string key, CancellationToken cancellationToken)
-        => ExistsAsync(key);
+    /// <param name="key">Cache key.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    ValueTask<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>Flushes all cache entries.</summary>
-    Task FlushAsync();
-    /// <summary>Flushes all cache entries with cancellation support.</summary>
-    Task FlushAsync(CancellationToken cancellationToken)
-        => FlushAsync();
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    ValueTask FlushAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Gets current cache statistics.</summary>
-    Task<CacheStats> GetStatsAsync();
-    /// <summary>Gets current cache statistics with cancellation support.</summary>
-    Task<CacheStats> GetStatsAsync(CancellationToken cancellationToken)
-        => GetStatsAsync();
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    ValueTask<CacheStats> GetStatsAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Cache invalidation strategy for complex scenarios.
+/// Cache invalidation strategy for complex scenarios. All members return <see cref="ValueTask"/>
+/// for consistency with <see cref="ICacheProvider"/>.
 /// </summary>
 public interface ICacheInvalidationStrategy
 {
     /// <summary>Invalidates a specific cache key.</summary>
-    Task InvalidateAsync(string key);
-    /// <summary>Invalidates a specific cache key with cancellation support.</summary>
-    Task InvalidateAsync(string key, CancellationToken cancellationToken)
-        => InvalidateAsync(key);
+    ValueTask InvalidateAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>Invalidates cache keys matching a pattern.</summary>
-    Task InvalidatePatternAsync(string pattern);
-    /// <summary>Invalidates cache keys matching a pattern with cancellation support.</summary>
-    Task InvalidatePatternAsync(string pattern, CancellationToken cancellationToken)
-        => InvalidatePatternAsync(pattern);
+    ValueTask InvalidatePatternAsync(string pattern, CancellationToken cancellationToken = default);
 
     /// <summary>Invalidates all cache keys for a tenant.</summary>
-    Task InvalidateByTenantAsync(string tenantId);
-    /// <summary>Invalidates all cache keys for a tenant with cancellation support.</summary>
-    Task InvalidateByTenantAsync(string tenantId, CancellationToken cancellationToken)
-        => InvalidateByTenantAsync(tenantId);
+    ValueTask InvalidateByTenantAsync(string tenantId, CancellationToken cancellationToken = default);
 
     /// <summary>Invalidates all cache keys for a user.</summary>
-    Task InvalidateByUserAsync(string userId);
-    /// <summary>Invalidates all cache keys for a user with cancellation support.</summary>
-    Task InvalidateByUserAsync(string userId, CancellationToken cancellationToken)
-        => InvalidateByUserAsync(userId);
+    ValueTask InvalidateByUserAsync(string userId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -90,8 +73,5 @@ public interface ICacheInvalidationStrategy
 public interface ICacheWarmer
 {
     /// <summary>Pre-loads frequently accessed data into cache.</summary>
-    Task WarmCacheAsync();
-    /// <summary>Pre-loads frequently accessed data into cache with cancellation support.</summary>
-    Task WarmCacheAsync(CancellationToken cancellationToken)
-        => WarmCacheAsync();
+    ValueTask WarmCacheAsync(CancellationToken cancellationToken = default);
 }

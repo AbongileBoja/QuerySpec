@@ -148,4 +148,25 @@
     <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.DependencyInjection, Version=2.0.1.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.DependencyInjection, Version=2.0.1.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.DependencyInjection, Version=2.0.1.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
 </Suppressions>

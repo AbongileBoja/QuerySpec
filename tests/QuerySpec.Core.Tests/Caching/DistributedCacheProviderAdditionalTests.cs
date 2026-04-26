@@ -118,7 +118,7 @@ public class DistributedCacheProviderAdditionalTests
             .ThrowsAsync(new InvalidOperationException("write failed"));
 
         var p = new DistributedCacheProvider(mock.Object);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => p.SetAsync("k", new Item()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => p.SetAsync("k", new Item()).AsTask());
     }
 
     [Fact]

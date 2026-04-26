@@ -38,14 +38,18 @@ public class DistributedCacheProvider : ICacheProvider
     /// Gets a value from distributed cache. Transport failures are treated as misses (logged);
     /// corrupt payloads are evicted.
     /// </summary>
-    public async Task<T?> GetAsync<T>(string key) where T : class
+    public async ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
         ValidateKey(key);
 
         byte[]? bytes;
         try
         {
-            bytes = await _cache.GetAsync(key).ConfigureAwait(false);
+            bytes = await _cache.GetAsync(key, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -71,7 +75,11 @@ public class DistributedCacheProvider : ICacheProvider
             _logger.LogError(ex, "Corrupt cache entry for key {Key}; evicting.", key);
             try
             {
-                await _cache.RemoveAsync(key).ConfigureAwait(false);
+                await _cache.RemoveAsync(key, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception removeEx)
             {
@@ -82,10 +90,8 @@ public class DistributedCacheProvider : ICacheProvider
         }
     }
 
-    /// <summary>
-    /// Sets a value in distributed cache.
-    /// </summary>
-    public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class
+    /// <summary>Sets a value in distributed cache.</summary>
+    public async ValueTask SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class
     {
         ValidateKey(key);
         if (value is null) throw new ArgumentNullException(nameof(value));
@@ -110,8 +116,12 @@ public class DistributedCacheProvider : ICacheProvider
 
         try
         {
-            await _cache.SetAsync(key, bytes, options).ConfigureAwait(false);
+            await _cache.SetAsync(key, bytes, options, cancellationToken).ConfigureAwait(false);
             _stats.IncrementSets();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -120,16 +130,18 @@ public class DistributedCacheProvider : ICacheProvider
         }
     }
 
-    /// <summary>
-    /// Removes a value from distributed cache.
-    /// </summary>
-    public async Task RemoveAsync(string key)
+    /// <summary>Removes a value from distributed cache.</summary>
+    public async ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
         try
         {
-            await _cache.RemoveAsync(key).ConfigureAwait(false);
+            await _cache.RemoveAsync(key, cancellationToken).ConfigureAwait(false);
             _stats.IncrementRemoves();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -138,16 +150,18 @@ public class DistributedCacheProvider : ICacheProvider
         }
     }
 
-    /// <summary>
-    /// Checks if a key exists in distributed cache.
-    /// </summary>
-    public async Task<bool> ExistsAsync(string key)
+    /// <summary>Checks if a key exists in distributed cache.</summary>
+    public async ValueTask<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
         try
         {
-            var value = await _cache.GetAsync(key).ConfigureAwait(false);
+            var value = await _cache.GetAsync(key, cancellationToken).ConfigureAwait(false);
             return value != null;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -160,16 +174,19 @@ public class DistributedCacheProvider : ICacheProvider
     /// Resets local stats. <see cref="IDistributedCache"/> has no flush contract; call the
     /// provider-specific API (e.g. <c>FLUSHDB</c>) if global eviction is required.
     /// </summary>
-    public Task FlushAsync()
+    public ValueTask FlushAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         _stats.Reset();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    /// <summary>
-    /// Gets a snapshot of current cache statistics.
-    /// </summary>
-    public Task<CacheStats> GetStatsAsync() => Task.FromResult(_stats.Snapshot());
+    /// <summary>Gets a snapshot of current cache statistics.</summary>
+    public ValueTask<CacheStats> GetStatsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return new ValueTask<CacheStats>(_stats.Snapshot());
+    }
 
     private static void ValidateKey(string key)
     {
