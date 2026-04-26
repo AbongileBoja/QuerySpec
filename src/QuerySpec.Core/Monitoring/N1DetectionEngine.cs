@@ -48,7 +48,11 @@ public class N1DetectionEngine
     }
 
     private readonly Dictionary<string, QueryInfo> _queriesByHash = new(StringComparer.Ordinal);
+#if NET9_0_OR_GREATER
+    private readonly System.Threading.Lock _lockObj = new();
+#else
     private readonly object _lockObj = new();
+#endif
 
     /// <summary>Initializes a new N+1 detection engine.</summary>
     public N1DetectionEngine() { }
