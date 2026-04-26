@@ -166,4 +166,22 @@ public class RowLevelSecurityEngineTests
     {
         Assert.Throws<ArgumentException>(() => RowLevelSecurityEngine.EscapeSqlLiteral("a\0b"));
     }
+
+    /// <summary>
+    /// A policy registered with no <see cref="RLSPolicy.FilterGenerator"/> set must default to
+    /// <see cref="RLSFilter.DenyAll"/>, not <see cref="RLSFilter.AllowAll"/>. Otherwise a
+    /// caller registering only a <see cref="RLSPolicy.PredicateFactory"/> would silently get
+    /// unrestricted access on the SQL path.
+    /// </summary>
+    [Fact]
+    public void GenerateFilter_PolicyWithDefaultFilterGenerator_FailsClosed()
+    {
+        var engine = new RowLevelSecurityEngine();
+        var policy = new RLSPolicy { ResourceType = "User" };
+        engine.RegisterPolicy(policy);
+
+        var filter = engine.GenerateFilter("User", new RLSContext { UserId = "u1" });
+
+        Assert.Same(RLSFilter.DenyAll, filter);
+    }
 }
