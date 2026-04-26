@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +33,7 @@ public interface IComplianceExporter
     /// <summary>Generates a GDPR export for a user.</summary>
     Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream);
     /// <summary>Generates a GDPR export for a user with cancellation support.</summary>
-    Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
+    Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
         => GenerateGDPRExportAsync(userId, tenantId, outputStream);
 }
 
@@ -64,11 +63,13 @@ public class ComplianceExporter : IComplianceExporter
     }
 
     /// <summary>Generates a GDPR export for a user.</summary>
-    public async Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream)
+    public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream)
+        => GenerateGDPRExportAsync(userId, tenantId, outputStream, CancellationToken.None);
+
+    /// <summary>Generates a GDPR export for a user with cancellation support.</summary>
+    public async Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
     {
         var audits = await GetUserDataAsync(userId, tenantId).ConfigureAwait(false);
-        var json = JsonSerializer.Serialize(audits, new JsonSerializerOptions { WriteIndented = true });
-        var bytes = Encoding.UTF8.GetBytes(json);
-        await outputStream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+        await JsonSerializer.SerializeAsync(outputStream, audits, new JsonSerializerOptions { WriteIndented = true }, cancellationToken).ConfigureAwait(false);
     }
 }
