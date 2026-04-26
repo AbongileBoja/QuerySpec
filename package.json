@@ -1,6 +1,6 @@
 {
   "name": "queryspec-tooling",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "description": "Dev-only tooling (commitlint + husky + standard-version) for the QuerySpec .NET package. Not published.",
   "author": "Abongile Boja",

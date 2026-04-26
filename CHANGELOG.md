@@ -4,6 +4,21 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+### [2.0.1](https://github.com/AbongileBoja/QuerySpec/compare/v2.0.0...v2.0.1) (2026-04-26)
+
+
+### Bug Fixes
+
+* **auditing:** materialise read snapshots in InMemoryAuditLogger under the read lock ([#96](https://github.com/AbongileBoja/QuerySpec/issues/96)) ([8219192](https://github.com/AbongileBoja/QuerySpec/commit/82191923cbc9813331fc4f9513eb09f0dae841f9)), closes [#54](https://github.com/AbongileBoja/QuerySpec/issues/54)
+* **auditing:** refuse partial PurgeOldLogsAsync to preserve audit-chain integrity ([#94](https://github.com/AbongileBoja/QuerySpec/issues/94)) ([e72fd22](https://github.com/AbongileBoja/QuerySpec/commit/e72fd22668a65757a9d89353c2877ebf596122f9)), closes [#2](https://github.com/AbongileBoja/QuerySpec/issues/2)
+* **ci:** pin reproducibility job actions to SHAs ([#98](https://github.com/AbongileBoja/QuerySpec/issues/98)) ([050ccc4](https://github.com/AbongileBoja/QuerySpec/commit/050ccc469f0e7d40b191ddb25732a752cd580033)), closes [#6](https://github.com/AbongileBoja/QuerySpec/issues/6)
+* **monitoring:** bound MetricsCollector, return zero-report on empty, aggregate outside lock ([#97](https://github.com/AbongileBoja/QuerySpec/issues/97)) ([59385c5](https://github.com/AbongileBoja/QuerySpec/commit/59385c56cb93d39c11c8377dc70015b14400c4ba)), closes [#50](https://github.com/AbongileBoja/QuerySpec/issues/50) [#81](https://github.com/AbongileBoja/QuerySpec/issues/81) [#89](https://github.com/AbongileBoja/QuerySpec/issues/89)
+* **release:** replace stale Directory.Build.props version with 0.0.0-local sentinel ([c67b7e3](https://github.com/AbongileBoja/QuerySpec/commit/c67b7e37432ad12e35c64d73218742de534a66ff))
+* **security:** bound RegexHelper.RegexCache to prevent heap-DoS over user patterns ([#95](https://github.com/AbongileBoja/QuerySpec/issues/95)) ([d0e18ef](https://github.com/AbongileBoja/QuerySpec/commit/d0e18efc6438919c8cefe8ea5f580cdd43f81e07)), closes [#3](https://github.com/AbongileBoja/QuerySpec/issues/3)
+* **security:** default RLSPolicy.FilterGenerator to DenyAll instead of AllowAll ([#93](https://github.com/AbongileBoja/QuerySpec/issues/93)) ([710b37b](https://github.com/AbongileBoja/QuerySpec/commit/710b37bccd9652666b36b6069db80ed64369cedf)), closes [#56](https://github.com/AbongileBoja/QuerySpec/issues/56)
+* **security:** make AdvancedFilterExpression.MaskResult/EncryptValue fail Validate when true ([#92](https://github.com/AbongileBoja/QuerySpec/issues/92)) ([7ba4834](https://github.com/AbongileBoja/QuerySpec/commit/7ba4834fb1bbb32aa405c4be5e6ab1ae8d71b453)), closes [#1](https://github.com/AbongileBoja/QuerySpec/issues/1)
+* **security:** promote IsPii(string, object?) Obsolete from warning to error ([#99](https://github.com/AbongileBoja/QuerySpec/issues/99)) ([29c06ca](https://github.com/AbongileBoja/QuerySpec/commit/29c06ca6359068977ec1effb806e0b0b0105c6a5)), closes [#73](https://github.com/AbongileBoja/QuerySpec/issues/73)
+
 ## [2.0.0](https://github.com/AbongileBoja/QuerySpec/compare/v1.0.8...v2.0.0) (2026-04-25)
 
 
