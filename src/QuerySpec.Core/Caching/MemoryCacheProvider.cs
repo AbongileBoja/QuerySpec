@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Internal;
 
 namespace QuerySpec.Core.Caching;
 
@@ -15,22 +16,42 @@ namespace QuerySpec.Core.Caching;
 /// and <see cref="MemoryCache"/> itself is safe for concurrent access.</para>
 /// <para>All operations complete synchronously and return <see cref="ValueTask"/> directly so
 /// no <see cref="Task"/> heap allocation occurs on cache hits or stat reads.</para>
+/// <para>An optional <see cref="TimeProvider"/> may be injected (defaults to
+/// <see cref="TimeProvider.System"/>). Injecting a <c>FakeTimeProvider</c> from
+/// <c>Microsoft.Extensions.TimeProvider.Testing</c> allows expiration to be advanced
+/// deterministically in tests without wall-clock waits.</para>
 /// </remarks>
 public class MemoryCacheProvider : ICacheProvider, IDisposable
 {
     private MemoryCache _cache;
     private readonly MemoryCacheOptions _options;
+    private readonly TimeProvider _timeProvider;
     private readonly CacheStats _stats = new();
     private int _disposed;
 
     /// <summary>Initializes a new memory cache provider with default options.</summary>
-    public MemoryCacheProvider() : this(new MemoryCacheOptions()) { }
+    public MemoryCacheProvider() : this(new MemoryCacheOptions(), TimeProvider.System) { }
 
     /// <summary>Initializes a new memory cache provider with the supplied options.</summary>
-    public MemoryCacheProvider(MemoryCacheOptions options)
+    public MemoryCacheProvider(MemoryCacheOptions options) : this(options, TimeProvider.System) { }
+
+    /// <summary>
+    /// Initializes a new memory cache provider with the supplied options and time provider.
+    /// Inject a <c>FakeTimeProvider</c> in tests to advance time without wall-clock waits.
+    /// </summary>
+    public MemoryCacheProvider(MemoryCacheOptions options, TimeProvider timeProvider)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
+        _options.Clock = new TimeProviderClock(_timeProvider);
         _cache = new MemoryCache(_options);
+    }
+
+    private sealed class TimeProviderClock : ISystemClock
+    {
+        private readonly TimeProvider _timeProvider;
+        internal TimeProviderClock(TimeProvider timeProvider) => _timeProvider = timeProvider;
+        public DateTimeOffset UtcNow => _timeProvider.GetUtcNow();
     }
 
     /// <summary>Gets a value from cache.</summary>
@@ -60,7 +81,7 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
 
         var cacheOptions = new MemoryCacheEntryOptions();
         if (expiration.HasValue)
-            cacheOptions.AbsoluteExpirationRelativeToNow = expiration;
+            cacheOptions.AbsoluteExpiration = _timeProvider.GetUtcNow().Add(expiration.Value);
 
         _cache.Set(key, value, cacheOptions);
         _stats.IncrementSets();

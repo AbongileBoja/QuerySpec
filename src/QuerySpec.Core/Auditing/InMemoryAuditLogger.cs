@@ -16,10 +16,21 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
 {
     private readonly List<AuditLogEntry> _logs = new();
     private readonly ReaderWriterLockSlim _lockSlim = new();
+    private readonly TimeProvider _timeProvider;
     private bool _disposed;
 
-    /// <summary>Initializes a new in-memory audit logger.</summary>
-    public InMemoryAuditLogger() { }
+    /// <summary>Initializes a new in-memory audit logger using the system clock.</summary>
+    public InMemoryAuditLogger() : this(TimeProvider.System) { }
+
+    /// <summary>
+    /// Initializes a new in-memory audit logger with the supplied time provider.
+    /// Inject a <c>FakeTimeProvider</c> in tests to control the cutoff used by
+    /// <see cref="PurgeOldLogsAsync"/> without wall-clock waits.
+    /// </summary>
+    public InMemoryAuditLogger(TimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
+    }
 
     /// <summary>
     /// Releases the <see cref="ReaderWriterLockSlim"/> backing this logger. Idempotent.
@@ -204,7 +215,7 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
             if (_logs.Count == 0)
                 return Task.CompletedTask;
 
-            var cutoff = DateTime.UtcNow.Subtract(olderThan);
+            var cutoff = _timeProvider.GetUtcNow().UtcDateTime.Subtract(olderThan);
             var firstSurvivor = _logs.FindIndex(l => l.Timestamp >= cutoff);
 
             if (firstSurvivor == -1)

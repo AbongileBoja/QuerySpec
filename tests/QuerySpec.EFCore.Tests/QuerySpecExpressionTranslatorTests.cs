@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using QuerySpec.Core.Advanced;
 using QuerySpec.EFCore;
@@ -36,8 +37,8 @@ public class QuerySpecExpressionTranslatorTests
         // Arrange
         using var context = new TestDbContext();
         context.TestEntities.AddRange(
-            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow }
+            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -65,8 +66,8 @@ public class QuerySpecExpressionTranslatorTests
         // Arrange
         using var context = new TestDbContext();
         context.TestEntities.AddRange(
-            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow }
+            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -94,8 +95,8 @@ public class QuerySpecExpressionTranslatorTests
         // Arrange
         using var context = new TestDbContext();
         context.TestEntities.AddRange(
-            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow }
+            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -123,9 +124,9 @@ public class QuerySpecExpressionTranslatorTests
         // Arrange
         using var context = new TestDbContext();
         context.TestEntities.AddRange(
-            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 3, Name = "Bob", Age = 35, Email = "bob@test.com", CreatedAt = DateTime.UtcNow }
+            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 3, Name = "Bob", Age = 35, Email = "bob@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -154,9 +155,9 @@ public class QuerySpecExpressionTranslatorTests
         // Arrange
         using var context = new TestDbContext();
         context.TestEntities.AddRange(
-            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 3, Name = "Bob", Age = 35, Email = "bob@test.com", CreatedAt = DateTime.UtcNow }
+            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 3, Name = "Bob", Age = 35, Email = "bob@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -185,9 +186,9 @@ public class QuerySpecExpressionTranslatorTests
         // Arrange
         using var context = new TestDbContext();
         context.TestEntities.AddRange(
-            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = DateTime.UtcNow },
-            new TestEntity { Id = 3, Name = "John", Age = 35, Email = "john2@test.com", CreatedAt = DateTime.UtcNow }
+            new TestEntity { Id = 1, Name = "John", Age = 25, Email = "john@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 2, Name = "Jane", Age = 30, Email = "jane@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TestEntity { Id = 3, Name = "John", Age = 35, Email = "john2@test.com", CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 

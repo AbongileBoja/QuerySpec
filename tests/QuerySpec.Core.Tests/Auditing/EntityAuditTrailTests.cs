@@ -15,22 +15,20 @@ public class EntityAuditTrailTests
     [Fact]
     public void GetChangesSince_Should_Return_Recent_Changes()
     {
-        // Arrange
+        var baseTime = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc);
         var trail = new EntityAuditTrail
         {
             EntityId = "1",
             EntityType = "User",
             Changes = new List<FieldChange>
             {
-                new FieldChange { FieldName = "Name", ChangedAt = DateTime.UtcNow.AddMinutes(-10) },
-                new FieldChange { FieldName = "Email", ChangedAt = DateTime.UtcNow.AddMinutes(-1) }
+                new FieldChange { FieldName = "Name", ChangedAt = baseTime.AddMinutes(-10) },
+                new FieldChange { FieldName = "Email", ChangedAt = baseTime.AddMinutes(-1) }
             }
         };
 
-        // Act
-        var changes = trail.GetChangesSince(DateTime.UtcNow.AddMinutes(-5));
+        var changes = trail.GetChangesSince(baseTime.AddMinutes(-5));
 
-        // Assert
         Assert.Single(changes);
         Assert.Equal("Email", changes.First().FieldName);
     }

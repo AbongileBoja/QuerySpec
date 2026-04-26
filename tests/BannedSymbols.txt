@@ -1,0 +1,6 @@
+M:System.Threading.Tasks.Task.Delay(System.TimeSpan);Use synchronisation primitives (ManualResetEventSlim, SemaphoreSlim, CountdownEvent) or Task.Yield() instead. See no-wall-clock policy.
+M:System.Threading.Tasks.Task.Delay(System.Int32);Use synchronisation primitives (ManualResetEventSlim, SemaphoreSlim, CountdownEvent) or Task.Yield() instead. See no-wall-clock policy.
+M:System.Threading.Tasks.Task.Delay(System.TimeSpan,System.Threading.CancellationToken);Use synchronisation primitives (ManualResetEventSlim, SemaphoreSlim, CountdownEvent) or Task.Yield() instead. See no-wall-clock policy.
+M:System.Threading.Tasks.Task.Delay(System.Int32,System.Threading.CancellationToken);Use synchronisation primitives (ManualResetEventSlim, SemaphoreSlim, CountdownEvent) or Task.Yield() instead. See no-wall-clock policy.
+P:System.DateTime.UtcNow;Use deterministic fixed timestamps (new DateTime(year, month, day, ..., DateTimeKind.Utc)) or FakeTimeProvider. See no-wall-clock policy.
+P:System.DateTimeOffset.UtcNow;Use deterministic fixed timestamps or FakeTimeProvider. See no-wall-clock policy.

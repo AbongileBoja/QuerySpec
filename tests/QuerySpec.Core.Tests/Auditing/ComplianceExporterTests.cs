@@ -50,7 +50,7 @@ namespace QuerySpec.Core.Tests.Auditing
                   .ReturnsAsync(logs);
             var exporter = new ComplianceExporter(reader.Object);
 
-            var result = await exporter.UserHasAccessedFieldAsync("u1", "f2", DateTime.UtcNow.AddDays(-1));
+            var result = await exporter.UserHasAccessedFieldAsync("u1", "f2", new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc));
             Assert.True(result);
         }
 
