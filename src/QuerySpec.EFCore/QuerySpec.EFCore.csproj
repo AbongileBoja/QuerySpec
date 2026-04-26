@@ -5,7 +5,7 @@
     <PackageId>QuerySpec.EFCore</PackageId>
     <Title>QuerySpec for EF Core</Title>
     <Description>Translates QuerySpec filter specifications into LINQ expression trees that Entity Framework Core turns into SQL. Supports 50+ operators (comparison, string, collection, temporal, null/membership) plus nested AND/OR groups, with a compiled expression cache to keep translation cheap on hot paths. Use this when you need to accept filter/sort input from clients or config without writing expression trees by hand.</Description>
-    <PackageTags>query;specification;filter;linq;expression-tree;efcore;entity-framework-core;orm;dotnet</PackageTags>
+    <PackageTags>queryspec;specification;efcore;entity-framework-core;linq</PackageTags>
     <!-- Signing is governed by Directory.Build.props. Do not override here. -->
   </PropertyGroup>
 
