@@ -32,6 +32,16 @@ public class QuerySpecExpressionTranslator
     private static readonly MethodInfo StringEndsWithMethod = typeof(StringHelper).GetMethod(nameof(StringHelper.EndsWith))!;
     private static readonly MethodInfo StringToStringMethod = typeof(object).GetMethod("ToString", Type.EmptyTypes)!;
 
+    /// <summary>
+    /// Cached open-generic <c>Enumerable.Contains&lt;T&gt;(IEnumerable&lt;T&gt;, T)</c>. Resolved
+    /// once at type init via a single <c>GetMethods()</c> call instead of per-<c>BuildIn</c>
+    /// invocation; closed instantiations are memoised in <see cref="EnumerableContainsClosedCache"/>.
+    /// </summary>
+    private static readonly MethodInfo EnumerableContainsOpenGeneric = typeof(Enumerable).GetMethods()
+        .First(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
+
+    private static readonly ConcurrentDictionary<Type, MethodInfo> EnumerableContainsClosedCache = new();
+
     private static readonly ConcurrentDictionary<(Type, string), PropertyInfo> PropertyCache = new();
 
     /// <summary>
@@ -356,9 +366,9 @@ public class QuerySpecExpressionTranslator
         for (var i = 0; i < items.Count; i++)
             typedArray.SetValue(items[i], i);
 
-        var containsMethod = typeof(Enumerable).GetMethods()
-            .First(m => m.Name == "Contains" && m.GetParameters().Length == 2)
-            .MakeGenericMethod(underlyingType);
+        var containsMethod = EnumerableContainsClosedCache.GetOrAdd(
+            underlyingType,
+            static t => EnumerableContainsOpenGeneric.MakeGenericMethod(t));
 
         var constantArray = Expression.Constant(typedArray, underlyingType.MakeArrayType());
         var containsCall = Expression.Call(containsMethod, constantArray, property);
