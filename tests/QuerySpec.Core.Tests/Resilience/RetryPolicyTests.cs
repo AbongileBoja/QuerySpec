@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using QuerySpec.Core.Resilience;
@@ -70,5 +71,50 @@ public class RetryPolicyTests
 
         // Assert
         Assert.Equal(5, policy.MaxRetries);
+    }
+
+    /// <summary>A pre-cancelled token throws OperationCanceledException before the first attempt.</summary>
+    [Fact]
+    public async Task ExecuteAsync_PreCancelledToken_Throws_BeforeFirstAttempt()
+    {
+        var policy = new RetryPolicy { MaxRetries = 3 };
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+        var attempts = 0;
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            policy.ExecuteAsync(() => { attempts++; return Task.FromResult(42); }, cts.Token));
+
+        Assert.Equal(0, attempts);
+    }
+
+    /// <summary>
+    /// Cancelling during a backoff delay surfaces OperationCanceledException, ending the retry loop.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteAsync_CancelDuringBackoff_AbortsLoop()
+    {
+        var policy = new RetryPolicy
+        {
+            MaxRetries = 5,
+            InitialDelay = TimeSpan.FromSeconds(10),
+            UseExponentialBackoff = false,
+        };
+        using var cts = new CancellationTokenSource();
+        var attempts = 0;
+
+        var task = policy.ExecuteAsync<int>(() =>
+        {
+            attempts++;
+            if (attempts == 1)
+            {
+                cts.CancelAfter(TimeSpan.FromMilliseconds(50));
+                throw new InvalidOperationException("transient");
+            }
+            return Task.FromResult(42);
+        }, cts.Token);
+
+        await Assert.ThrowsAsync<TaskCanceledException>(() => task);
+        Assert.Equal(1, attempts);
     }
 }

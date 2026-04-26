@@ -232,6 +232,24 @@ public class InMemoryAuditLoggerTests
     }
 
     /// <summary>
+    /// The CancellationToken-accepting overloads added in 2.1 are reachable through the
+    /// IAuditLogger interface and behave identically to the legacy overloads when the token
+    /// is not cancelled. Default interface methods are the bridge for binary compat.
+    /// </summary>
+    [Fact]
+    public async Task IAuditLogger_CancellationOverloads_AreReachable()
+    {
+        IAuditLogger logger = new InMemoryAuditLogger();
+        var entry = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" };
+
+        await logger.LogQueryAsync(entry, System.Threading.CancellationToken.None);
+        var fetched = await logger.GetAuditAsync(entry.Id, System.Threading.CancellationToken.None);
+
+        Assert.NotNull(fetched);
+        Assert.Equal(entry.Id, fetched.Id);
+    }
+
+    /// <summary>
     /// Read methods must return a materialised snapshot taken under the read lock. Iterating
     /// the result after subsequent writes must not observe the new entries and must not throw
     /// the "Collection was modified" InvalidOperationException — both of which were possible

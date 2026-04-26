@@ -27,9 +27,21 @@ public class BulkheadPolicy : IDisposable
     /// <summary>
     /// Executes operation with bulkhead protection.
     /// </summary>
-    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
+    public Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
+        => ExecuteAsync(operation, CancellationToken.None);
+
+    /// <summary>
+    /// Executes operation with bulkhead protection and cancellation support.
+    /// </summary>
+    /// <param name="operation">The operation to execute.</param>
+    /// <param name="cancellationToken">Token observed before semaphore acquisition and before invoking <paramref name="operation"/>.</param>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
     {
-        if (!await _semaphore.WaitAsync(0).ConfigureAwait(false))
+        if (operation is null) throw new ArgumentNullException(nameof(operation));
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!await _semaphore.WaitAsync(0, cancellationToken).ConfigureAwait(false))
             throw new BulkheadException($"Bulkhead limit exceeded ({MaxConcurrentRequests})");
 
         try

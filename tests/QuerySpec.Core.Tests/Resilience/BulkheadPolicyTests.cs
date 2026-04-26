@@ -103,4 +103,19 @@ public class BulkheadPolicyTests
         await Assert.ThrowsAsync<ObjectDisposedException>(() =>
             policy.ExecuteAsync(() => Task.FromResult(42)));
     }
+
+    /// <summary>A pre-cancelled token throws OperationCanceledException before the operation runs.</summary>
+    [Fact]
+    public async Task ExecuteAsync_PreCancelledToken_Throws_BeforeOperation()
+    {
+        using var policy = new BulkheadPolicy(2);
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+        var ran = false;
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            policy.ExecuteAsync(() => { ran = true; return Task.FromResult(42); }, cts.Token));
+
+        Assert.False(ran);
+    }
 }

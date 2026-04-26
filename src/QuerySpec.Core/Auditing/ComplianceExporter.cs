@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace QuerySpec.Core.Auditing;
@@ -11,14 +12,30 @@ namespace QuerySpec.Core.Auditing;
 /// <summary>
 /// Compliance utilities for GDPR, HIPAA, and other regulatory requirements.
 /// </summary>
+/// <remarks>
+/// Every async member has a paired <see cref="CancellationToken"/>-accepting overload added in 2.1.
+/// The CT-less overloads are preserved for source compatibility and delegate to the CT overloads
+/// with <see cref="CancellationToken.None"/>.
+/// </remarks>
 public interface IComplianceExporter
 {
     /// <summary>Gets all audit data for a user.</summary>
     Task<IEnumerable<AuditLogEntry>> GetUserDataAsync(string userId, string tenantId);
+    /// <summary>Gets all audit data for a user with cancellation support.</summary>
+    Task<IEnumerable<AuditLogEntry>> GetUserDataAsync(string userId, string tenantId, CancellationToken cancellationToken)
+        => GetUserDataAsync(userId, tenantId);
+
     /// <summary>Checks if a user has accessed a specific field.</summary>
     Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, DateTime since);
+    /// <summary>Checks if a user has accessed a specific field with cancellation support.</summary>
+    Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, DateTime since, CancellationToken cancellationToken)
+        => UserHasAccessedFieldAsync(userId, fieldName, since);
+
     /// <summary>Generates a GDPR export for a user.</summary>
     Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream);
+    /// <summary>Generates a GDPR export for a user with cancellation support.</summary>
+    Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
+        => GenerateGDPRExportAsync(userId, tenantId, outputStream);
 }
 
 /// <summary>

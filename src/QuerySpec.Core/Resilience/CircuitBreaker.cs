@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace QuerySpec.Core.Resilience;
@@ -39,9 +40,19 @@ public class CircuitBreaker
     /// <summary>
     /// Executes operation with circuit breaker protection.
     /// </summary>
-    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
+    public Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
+        => ExecuteAsync(operation, CancellationToken.None);
+
+    /// <summary>
+    /// Executes operation with circuit breaker protection and cancellation support.
+    /// </summary>
+    /// <param name="operation">The operation to execute.</param>
+    /// <param name="cancellationToken">Token observed before circuit-state evaluation and before invoking <paramref name="operation"/>.</param>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
     {
         if (operation is null) throw new ArgumentNullException(nameof(operation));
+        cancellationToken.ThrowIfCancellationRequested();
 
         lock (_lockObj)
         {

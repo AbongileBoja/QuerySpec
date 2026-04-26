@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using QuerySpec.Core.Resilience;
@@ -81,5 +82,20 @@ public class CircuitBreakerTests
 
         // Assert
         Assert.Equal(CircuitState.Closed, breaker.State);
+    }
+
+    /// <summary>A pre-cancelled token throws OperationCanceledException before the operation runs.</summary>
+    [Fact]
+    public async Task ExecuteAsync_PreCancelledToken_Throws_BeforeOperation()
+    {
+        var breaker = new CircuitBreaker();
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+        var ran = false;
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            breaker.ExecuteAsync(() => { ran = true; return Task.FromResult(42); }, cts.Token));
+
+        Assert.False(ran);
     }
 }
