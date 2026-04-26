@@ -90,4 +90,64 @@ public class AdvancedFilterExpressionTests
         // Assert
         Assert.NotEmpty(errors);
     }
+
+    /// <summary>
+    /// Setting MaskResult=true must fail Validate so a caller relying on a non-existent
+    /// guarantee fails loudly instead of leaking unmasked data.
+    /// </summary>
+    [Fact]
+    public void Validate_Should_Reject_MaskResult_True()
+    {
+        var filter = new AdvancedFilterExpression
+        {
+            Field = "Name",
+            Operator = FilterOperator.Equal,
+            Value = "John",
+#pragma warning disable CS0618 // intentionally exercising the obsolete property to assert Validate rejects it
+            MaskResult = true,
+#pragma warning restore CS0618
+        };
+
+        var errors = filter.Validate();
+
+        Assert.Contains(errors, e => e.Contains("MaskResult", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Setting EncryptValue=true must fail Validate so a caller relying on a non-existent
+    /// guarantee fails loudly instead of comparing plaintext.
+    /// </summary>
+    [Fact]
+    public void Validate_Should_Reject_EncryptValue_True()
+    {
+        var filter = new AdvancedFilterExpression
+        {
+            Field = "Name",
+            Operator = FilterOperator.Equal,
+            Value = "John",
+#pragma warning disable CS0618 // intentionally exercising the obsolete property to assert Validate rejects it
+            EncryptValue = true,
+#pragma warning restore CS0618
+        };
+
+        var errors = filter.Validate();
+
+        Assert.Contains(errors, e => e.Contains("EncryptValue", StringComparison.Ordinal));
+    }
+
+    /// <summary>Default-false flags must not produce validation errors.</summary>
+    [Fact]
+    public void Validate_Should_Not_Reject_Default_NoOp_Flags()
+    {
+        var filter = new AdvancedFilterExpression
+        {
+            Field = "Name",
+            Operator = FilterOperator.Equal,
+            Value = "John",
+        };
+
+        var errors = filter.Validate();
+
+        Assert.Empty(errors);
+    }
 }
