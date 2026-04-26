@@ -9,7 +9,12 @@ namespace QuerySpec.DependencyInjection;
 /// </summary>
 public class SecurityBuilder
 {
-    private readonly IServiceCollection _services;
+    /// <summary>
+    /// The underlying <see cref="IServiceCollection"/> the builder writes to. Exposed so
+    /// third-party packages can author <c>Use*</c> extension methods that compose with the
+    /// fluent QuerySpec API. Matches the convention of <c>IHealthChecksBuilder.Services</c>.
+    /// </summary>
+    public IServiceCollection Services { get; }
 
     /// <summary>Initializes a new security builder.</summary>
     /// <param name="services">The service collection to register against.</param>
@@ -17,7 +22,7 @@ public class SecurityBuilder
     public SecurityBuilder(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        _services = services;
+        Services = services;
     }
 
     /// <summary>
@@ -27,8 +32,8 @@ public class SecurityBuilder
     public SecurityBuilder EnableFieldEncryption(string encryptionKey)
     {
         var provider = new AesGcmEncryptionProvider(encryptionKey);
-        _services.AddSingleton<IAuthenticatedEncryptionProvider>(provider);
-        _services.AddSingleton<IEncryptionProvider>(provider);
+        Services.AddSingleton<IAuthenticatedEncryptionProvider>(provider);
+        Services.AddSingleton<IEncryptionProvider>(provider);
         return this;
     }
 
@@ -41,7 +46,7 @@ public class SecurityBuilder
     /// </summary>
     public SecurityBuilder EnableDataMasking()
     {
-        _services.AddSingleton(sp => new DataMaskingEngine(
+        Services.AddSingleton(sp => new DataMaskingEngine(
             hashKey: null,
             classifier: sp.GetService<IPiiClassifier>()));
         return this;
@@ -55,7 +60,7 @@ public class SecurityBuilder
         "AttributePiiClassifier reflects over caller-supplied entity types. Under trimming, [Pii]-annotated members may be removed and the classifier will silently return None. Use UsePiiClassifier with a ConfiguredPiiClassifier in trimmed/AOT scenarios.")]
     public SecurityBuilder UseAttributePiiClassifier()
     {
-        _services.AddSingleton<IPiiClassifier, AttributePiiClassifier>();
+        Services.AddSingleton<IPiiClassifier, AttributePiiClassifier>();
         return this;
     }
 
@@ -68,7 +73,7 @@ public class SecurityBuilder
     public SecurityBuilder UsePiiClassifier(IPiiClassifier classifier)
     {
         ArgumentNullException.ThrowIfNull(classifier);
-        _services.AddSingleton<IPiiClassifier>(classifier);
+        Services.AddSingleton<IPiiClassifier>(classifier);
         return this;
     }
 
@@ -77,7 +82,7 @@ public class SecurityBuilder
     /// </summary>
     public SecurityBuilder EnableRowLevelSecurity()
     {
-        _services.AddSingleton<RowLevelSecurityEngine>();
+        Services.AddSingleton<RowLevelSecurityEngine>();
         return this;
     }
 
@@ -86,7 +91,7 @@ public class SecurityBuilder
     /// </summary>
     public SecurityBuilder EnableDynamicPermissions()
     {
-        _services.AddSingleton<DynamicPermissionEvaluator>();
+        Services.AddSingleton<DynamicPermissionEvaluator>();
         return this;
     }
 

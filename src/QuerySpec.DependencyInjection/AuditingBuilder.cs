@@ -13,7 +13,12 @@ namespace QuerySpec.DependencyInjection;
 /// </remarks>
 public class AuditingBuilder
 {
-    private readonly IServiceCollection _services;
+    /// <summary>
+    /// The underlying <see cref="IServiceCollection"/> the builder writes to. Exposed so
+    /// third-party packages can author <c>Use*</c> extension methods that compose with the
+    /// fluent QuerySpec API. Matches the convention of <c>IHealthChecksBuilder.Services</c>.
+    /// </summary>
+    public IServiceCollection Services { get; }
 
     /// <summary>Initializes a new auditing builder.</summary>
     /// <param name="services">The service collection to register against.</param>
@@ -21,7 +26,7 @@ public class AuditingBuilder
     public AuditingBuilder(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        _services = services;
+        Services = services;
     }
 
     /// <summary>Enables logging of all queries.</summary>

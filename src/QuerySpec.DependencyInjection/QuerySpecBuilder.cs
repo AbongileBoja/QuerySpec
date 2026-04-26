@@ -14,7 +14,12 @@ namespace QuerySpec.DependencyInjection;
 /// </summary>
 public class QuerySpecBuilder
 {
-    private readonly IServiceCollection _services;
+    /// <summary>
+    /// The underlying <see cref="IServiceCollection"/> the builder writes to. Exposed so
+    /// third-party packages can author <c>With*</c> extension methods that compose with the
+    /// fluent QuerySpec API. Matches the convention of <c>IHealthChecksBuilder.Services</c>.
+    /// </summary>
+    public IServiceCollection Services { get; }
 
     /// <summary>Initializes a new QuerySpec builder.</summary>
     /// <param name="services">The service collection to register against.</param>
@@ -22,7 +27,7 @@ public class QuerySpecBuilder
     public QuerySpecBuilder(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        _services = services;
+        Services = services;
     }
 
     /// <summary>Configure caching layer (memory/redis/multi-level).</summary>
@@ -30,7 +35,7 @@ public class QuerySpecBuilder
     public QuerySpecBuilder WithCaching(Action<CachingBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
-        var builder = new CachingBuilder(_services);
+        var builder = new CachingBuilder(Services);
         configure(builder);
         return this;
     }
@@ -45,9 +50,9 @@ public class QuerySpecBuilder
     public QuerySpecBuilder WithAuditing(Action<AuditingBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
-        var builder = new AuditingBuilder(_services);
+        var builder = new AuditingBuilder(Services);
         configure(builder);
-        _services.TryAddSingleton<IAuditLogger, InMemoryAuditLogger>();
+        Services.TryAddSingleton<IAuditLogger, InMemoryAuditLogger>();
         return this;
     }
 
@@ -56,7 +61,7 @@ public class QuerySpecBuilder
     public QuerySpecBuilder WithSecurity(Action<SecurityBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
-        var builder = new SecurityBuilder(_services);
+        var builder = new SecurityBuilder(Services);
         configure(builder);
         return this;
     }
@@ -66,7 +71,7 @@ public class QuerySpecBuilder
     public QuerySpecBuilder WithPerformance(Action<PerformanceBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
-        var builder = new PerformanceBuilder(_services);
+        var builder = new PerformanceBuilder(Services);
         configure(builder);
         return this;
     }
@@ -76,7 +81,7 @@ public class QuerySpecBuilder
     public QuerySpecBuilder WithResilience(Action<ResilienceBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
-        var builder = new ResilienceBuilder(_services);
+        var builder = new ResilienceBuilder(Services);
         configure(builder);
         return this;
     }
@@ -86,7 +91,7 @@ public class QuerySpecBuilder
     public QuerySpecBuilder WithMonitoring(Action<MonitoringBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
-        var builder = new MonitoringBuilder(_services);
+        var builder = new MonitoringBuilder(Services);
         configure(builder);
         return this;
     }

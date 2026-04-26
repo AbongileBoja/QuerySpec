@@ -9,8 +9,14 @@ namespace QuerySpec.DependencyInjection;
 /// </summary>
 public class ResilienceBuilder
 {
-    private readonly IServiceCollection _services;
     private readonly ResiliencePolicy _policy = new();
+
+    /// <summary>
+    /// The underlying <see cref="IServiceCollection"/> the builder writes to. Exposed so
+    /// third-party packages can author <c>Use*</c> extension methods that compose with the
+    /// fluent QuerySpec API. Matches the convention of <c>IHealthChecksBuilder.Services</c>.
+    /// </summary>
+    public IServiceCollection Services { get; }
 
     /// <summary>Initializes a new resilience builder.</summary>
     /// <param name="services">The service collection to register against.</param>
@@ -18,8 +24,8 @@ public class ResilienceBuilder
     public ResilienceBuilder(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        _services = services;
-        _services.AddSingleton(_policy);
+        Services = services;
+        Services.AddSingleton(_policy);
     }
 
     /// <summary>

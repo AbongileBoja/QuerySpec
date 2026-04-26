@@ -9,7 +9,12 @@ namespace QuerySpec.DependencyInjection;
 /// </summary>
 public class PerformanceBuilder
 {
-    private readonly IServiceCollection _services;
+    /// <summary>
+    /// The underlying <see cref="IServiceCollection"/> the builder writes to. Exposed so
+    /// third-party packages can author <c>Use*</c> extension methods that compose with the
+    /// fluent QuerySpec API. Matches the convention of <c>IHealthChecksBuilder.Services</c>.
+    /// </summary>
+    public IServiceCollection Services { get; }
 
     /// <summary>Initializes a new performance builder.</summary>
     /// <param name="services">The service collection to register against.</param>
@@ -17,7 +22,7 @@ public class PerformanceBuilder
     public PerformanceBuilder(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        _services = services;
+        Services = services;
     }
 
     /// <summary>
@@ -25,7 +30,7 @@ public class PerformanceBuilder
     /// </summary>
     public PerformanceBuilder EnableN1Detection()
     {
-        _services.AddSingleton<N1DetectionEngine>();
+        Services.AddSingleton<N1DetectionEngine>();
         return this;
     }
 
@@ -38,7 +43,7 @@ public class PerformanceBuilder
     /// <summary>Enables metrics collection.</summary>
     public PerformanceBuilder EnableMetrics()
     {
-        _services.AddSingleton<MetricsCollector>();
+        Services.AddSingleton<MetricsCollector>();
         return this;
     }
 
