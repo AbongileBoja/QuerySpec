@@ -38,7 +38,9 @@ public class TranslatorBenchmarks
         // and additional predicates live as children under its Logic.
         _compoundAnd = new AdvancedFilterExpression
         {
-            Field = "Category", Operator = FilterOperator.Equal, Value = "A",
+            Field = "Category",
+            Operator = FilterOperator.Equal,
+            Value = "A",
             Logic = LogicalOperator.And,
             Filters = new()
             {
@@ -48,7 +50,9 @@ public class TranslatorBenchmarks
 
         _deepNested = new AdvancedFilterExpression
         {
-            Field = "Category", Operator = FilterOperator.Equal, Value = "A",
+            Field = "Category",
+            Operator = FilterOperator.Equal,
+            Value = "A",
             Logic = LogicalOperator.Or,
             Filters = new()
             {
