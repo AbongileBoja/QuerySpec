@@ -46,10 +46,10 @@ public class ResiliencePolicy
 
         if (RetryPolicy != null)
         {
-            return await RetryPolicy.ExecuteAsync(() => resilientOp());
+            return await RetryPolicy.ExecuteAsync(() => resilientOp()).ConfigureAwait(false);
         }
 
-        return await resilientOp();
+        return await resilientOp().ConfigureAwait(false);
     }
 }
 

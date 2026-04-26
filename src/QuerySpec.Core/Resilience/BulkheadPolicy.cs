@@ -25,12 +25,12 @@ public class BulkheadPolicy
     /// </summary>
     public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
     {
-        if (!await _semaphore.WaitAsync(0))
+        if (!await _semaphore.WaitAsync(0).ConfigureAwait(false))
             throw new BulkheadException($"Bulkhead limit exceeded ({MaxConcurrentRequests})");
 
         try
         {
-            return await operation();
+            return await operation().ConfigureAwait(false);
         }
         finally
         {

@@ -35,23 +35,23 @@ public class ComplianceExporter : IComplianceExporter
     /// <summary>Gets all audit data for a user.</summary>
     public async Task<IEnumerable<AuditLogEntry>> GetUserDataAsync(string userId, string tenantId)
     {
-        var audits = await _auditReader.GetAuditsByUserAsync(userId);
+        var audits = await _auditReader.GetAuditsByUserAsync(userId).ConfigureAwait(false);
         return audits.Where(a => a.TenantId == tenantId);
     }
 
     /// <summary>Checks if a user has accessed a specific field.</summary>
     public async Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, DateTime since)
     {
-        var audits = await _auditReader.GetAuditsByUserAsync(userId, since);
+        var audits = await _auditReader.GetAuditsByUserAsync(userId, since).ConfigureAwait(false);
         return audits.Any(a => a.AccessedSensitiveFields.Contains(fieldName));
     }
 
     /// <summary>Generates a GDPR export for a user.</summary>
     public async Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream)
     {
-        var audits = await GetUserDataAsync(userId, tenantId);
+        var audits = await GetUserDataAsync(userId, tenantId).ConfigureAwait(false);
         var json = JsonSerializer.Serialize(audits, new JsonSerializerOptions { WriteIndented = true });
         var bytes = Encoding.UTF8.GetBytes(json);
-        await outputStream.WriteAsync(bytes, 0, bytes.Length);
+        await outputStream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
     }
 }

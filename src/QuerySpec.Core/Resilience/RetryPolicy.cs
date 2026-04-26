@@ -34,12 +34,12 @@ public class RetryPolicy
         {
             try
             {
-                return await operation();
+                return await operation().ConfigureAwait(false);
             }
             catch (Exception) when (retryCount < MaxRetries)
             {
                 retryCount++;
-                await Task.Delay(delay);
+                await Task.Delay(delay).ConfigureAwait(false);
 
                 if (UseExponentialBackoff)
                 {
