@@ -4,6 +4,41 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [3.0.0](https://github.com/AbongileBoja/QuerySpec/compare/v2.0.1...v3.0.0) (2026-04-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** ICacheProvider returns ValueTask, AssemblyVersion -> 3.0.0.0 (#115)
+
+### Features
+
+* **core:** CancellationToken-accepting overloads across the async public surface ([#107](https://github.com/AbongileBoja/QuerySpec/issues/107)) ([6d88a17](https://github.com/AbongileBoja/QuerySpec/commit/6d88a1756890888db8285deefb052e63289a73d1)), closes [#68](https://github.com/AbongileBoja/QuerySpec/issues/68) [#47](https://github.com/AbongileBoja/QuerySpec/issues/47)
+* **core:** ICacheProvider returns ValueTask, AssemblyVersion -> 3.0.0.0 ([#115](https://github.com/AbongileBoja/QuerySpec/issues/115)) ([fb28a5b](https://github.com/AbongileBoja/QuerySpec/commit/fb28a5b3f9f1c511e62c85823dddb91657003993)), closes [#4](https://github.com/AbongileBoja/QuerySpec/issues/4) [#90](https://github.com/AbongileBoja/QuerySpec/issues/90)
+* **di:** expose Services getter on every QuerySpec DI builder ([#106](https://github.com/AbongileBoja/QuerySpec/issues/106)) ([857a10b](https://github.com/AbongileBoja/QuerySpec/commit/857a10bf3c4d5960abcda352be20c6e8c1aae653)), closes [#69](https://github.com/AbongileBoja/QuerySpec/issues/69)
+
+
+### Bug Fixes
+
+* **auditing:** InMemoryAuditLogger implements IDisposable to release ReaderWriterLockSlim ([#102](https://github.com/AbongileBoja/QuerySpec/issues/102)) ([3457e1e](https://github.com/AbongileBoja/QuerySpec/commit/3457e1ee4664d90b8adfdd1967bf91863306d1df)), closes [#100](https://github.com/AbongileBoja/QuerySpec/issues/100) [#52](https://github.com/AbongileBoja/QuerySpec/issues/52)
+* **di:** WithAuditing uses TryAddSingleton so caller-supplied IAuditLogger wins ([#100](https://github.com/AbongileBoja/QuerySpec/issues/100)) ([3cad22f](https://github.com/AbongileBoja/QuerySpec/commit/3cad22fc6f973e91bf8de7aa303a7d080d92f512)), closes [#60](https://github.com/AbongileBoja/QuerySpec/issues/60)
+* **release:** set PackageValidationBaselineVersion=2.0.1 with AssemblyVersion pinning ([#105](https://github.com/AbongileBoja/QuerySpec/issues/105)) ([2efe5e9](https://github.com/AbongileBoja/QuerySpec/commit/2efe5e9c38d1d9d0cb1e7b4d55b2870431deebbd)), closes [#102](https://github.com/AbongileBoja/QuerySpec/issues/102) [#104](https://github.com/AbongileBoja/QuerySpec/issues/104) [#70](https://github.com/AbongileBoja/QuerySpec/issues/70) [#55](https://github.com/AbongileBoja/QuerySpec/issues/55)
+* **resilience:** add ConfigureAwait(false) to library awaits in resilience and compliance paths ([#101](https://github.com/AbongileBoja/QuerySpec/issues/101)) ([f59d7e5](https://github.com/AbongileBoja/QuerySpec/commit/f59d7e504e49bcb9373d960c343433e9c8203a45)), closes [#46](https://github.com/AbongileBoja/QuerySpec/issues/46)
+* **resilience:** BulkheadPolicy implements IDisposable to release SemaphoreSlim ([#104](https://github.com/AbongileBoja/QuerySpec/issues/104)) ([1b7c6f7](https://github.com/AbongileBoja/QuerySpec/commit/1b7c6f7d4d4c028e872ed4526810e280911e9bd6)), closes [#102](https://github.com/AbongileBoja/QuerySpec/issues/102) [#103](https://github.com/AbongileBoja/QuerySpec/issues/103)
+
+
+### Performance
+
+* **efcore:** cache Enumerable.Contains open generic + closed instantiations in BuildIn ([#108](https://github.com/AbongileBoja/QuerySpec/issues/108)) ([beae14b](https://github.com/AbongileBoja/QuerySpec/commit/beae14b82e283d4a6e998a7308ca038870007659)), closes [#86](https://github.com/AbongileBoja/QuerySpec/issues/86)
+* **monitoring:** bound stack walk in N1DetectionEngine.RecordQuery ([#109](https://github.com/AbongileBoja/QuerySpec/issues/109)) ([c842dc0](https://github.com/AbongileBoja/QuerySpec/commit/c842dc0be1c64a82af0f38ca63a91578816f671e)), closes [#88](https://github.com/AbongileBoja/QuerySpec/issues/88)
+
+
+### Tests
+
+* **efcore:** add SQLite-backed translator fixture and document StringHelper translation gap ([#111](https://github.com/AbongileBoja/QuerySpec/issues/111)) ([8bb2705](https://github.com/AbongileBoja/QuerySpec/commit/8bb2705e167483284564cc6b9105acc12948555e)), closes [#71](https://github.com/AbongileBoja/QuerySpec/issues/71) [#71](https://github.com/AbongileBoja/QuerySpec/issues/71)
+* **efcore:** cover translator branches at 0% from EFCore tests ([#110](https://github.com/AbongileBoja/QuerySpec/issues/110)) ([0e9d9f0](https://github.com/AbongileBoja/QuerySpec/commit/0e9d9f0aef2147db448be7c80d9b1db86192c5af)), closes [#69](https://github.com/AbongileBoja/QuerySpec/issues/69) [#78](https://github.com/AbongileBoja/QuerySpec/issues/78) [#69](https://github.com/AbongileBoja/QuerySpec/issues/69)
+* **resilience:** synchronise BulkheadPolicy tests via ManualResetEventSlim ([#114](https://github.com/AbongileBoja/QuerySpec/issues/114)) ([6527e32](https://github.com/AbongileBoja/QuerySpec/commit/6527e32b5ebe90c689857aed0f7f931e2f6b7693)), closes [#74](https://github.com/AbongileBoja/QuerySpec/issues/74) [#112](https://github.com/AbongileBoja/QuerySpec/issues/112) [#107](https://github.com/AbongileBoja/QuerySpec/issues/107)
+
 ### [2.0.1](https://github.com/AbongileBoja/QuerySpec/compare/v2.0.0...v2.0.1) (2026-04-26)
 
 
