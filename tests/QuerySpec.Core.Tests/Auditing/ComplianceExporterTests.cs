@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using QuerySpec.Core.Auditing;
 using Xunit;
@@ -54,7 +56,7 @@ namespace QuerySpec.Core.Tests.Auditing
             Assert.True(result);
         }
 
-        /// <summary>Tests that GenerateGDPRExportAsync writes JSON to the stream.</summary>
+        /// <summary>Tests that GenerateGDPRExportAsync writes valid JSON to the stream.</summary>
         [Fact]
         public async Task GenerateGDPRExportAsync_WritesJsonToStream()
         {
@@ -69,8 +71,63 @@ namespace QuerySpec.Core.Tests.Auditing
 
             using var ms = new MemoryStream();
             await exporter.GenerateGDPRExportAsync("u1", "t1", ms);
+            ms.Position = 0;
             var json = Encoding.UTF8.GetString(ms.ToArray());
+
             Assert.Contains("u1", json);
+            using var doc = JsonDocument.Parse(json);
+            Assert.Equal(JsonValueKind.Array, doc.RootElement.ValueKind);
+        }
+
+        /// <summary>
+        /// Tests that GenerateGDPRExportAsync streaming output is byte-for-byte equivalent
+        /// to the synchronous Serialize path with the same options.
+        /// </summary>
+        [Fact]
+        public async Task GenerateGDPRExportAsync_MatchesSynchronousSerializeOutput()
+        {
+            var logs = new List<AuditLogEntry>
+            {
+                new AuditLogEntry { UserId="u1", TenantId="t1" },
+                new AuditLogEntry { UserId="u2", TenantId="t2", AccessedSensitiveFields = new List<string> { "email", "ssn" } },
+            };
+            var reader = new Mock<IAuditReader>();
+            reader.Setup(r => r.GetAuditsByUserAsync(It.IsAny<string>(), null))
+                  .ReturnsAsync((string uid, DateTime? _) => logs.Where(x => x.UserId == uid));
+            reader.Setup(r => r.GetAuditsByUserAsync("u1", null))
+                  .ReturnsAsync(logs);
+            var exporter = new ComplianceExporter(reader.Object);
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var expectedBytes = JsonSerializer.SerializeToUtf8Bytes(logs.Where(x => x.TenantId == "t1"), options);
+
+            using var ms = new MemoryStream();
+            await exporter.GenerateGDPRExportAsync("u1", "t1", ms);
+
+            Assert.Equal(expectedBytes, ms.ToArray());
+        }
+
+        /// <summary>
+        /// Tests that a cancelled CancellationToken causes OperationCanceledException
+        /// rather than completing the export.
+        /// </summary>
+        [Fact]
+        public async Task GenerateGDPRExportAsync_CancelledToken_ThrowsOperationCanceledException()
+        {
+            var logs = Enumerable.Range(0, 100)
+                .Select(i => new AuditLogEntry { UserId = "u1", TenantId = "t1" })
+                .ToList();
+            var reader = new Mock<IAuditReader>();
+            reader.Setup(r => r.GetAuditsByUserAsync("u1", null))
+                  .ReturnsAsync(logs);
+            var exporter = new ComplianceExporter(reader.Object);
+
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            using var ms = new MemoryStream();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => exporter.GenerateGDPRExportAsync("u1", "t1", ms, cts.Token));
         }
     }
 }
