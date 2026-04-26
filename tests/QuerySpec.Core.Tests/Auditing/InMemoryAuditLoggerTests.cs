@@ -133,4 +133,100 @@ public class InMemoryAuditLoggerTests
         // Assert
         Assert.Equal(0, logger.Count);
     }
+
+    /// <summary>
+    /// A partial purge (some old, some recent) would orphan the surviving entries from the
+    /// integrity chain. The logger must refuse rather than silently corrupt the chain.
+    /// </summary>
+    [Fact]
+    public async Task PurgeOldLogsAsync_PartialPurge_Throws_AndLeavesLogIntact()
+    {
+        var logger = new InMemoryAuditLogger();
+        var old = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Query",
+            Timestamp = DateTime.UtcNow.AddDays(-10),
+        };
+        var fresh = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Query",
+            Timestamp = DateTime.UtcNow,
+        };
+        await logger.LogQueryAsync(old);
+        await logger.LogQueryAsync(fresh);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => logger.PurgeOldLogsAsync(TimeSpan.FromDays(1)));
+
+        Assert.Equal(2, logger.Count);
+    }
+
+    /// <summary>
+    /// Full purge (every entry older than cutoff) is allowed: the log is cleared and the next
+    /// append starts a fresh chain that verifies cleanly.
+    /// </summary>
+    [Fact]
+    public async Task PurgeOldLogsAsync_FullPurge_AllowsFreshChainOnNextAppend()
+    {
+        var logger = new InMemoryAuditLogger();
+        var oldA = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Query",
+            Timestamp = DateTime.UtcNow.AddDays(-10),
+        };
+        var oldB = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Update",
+            Timestamp = DateTime.UtcNow.AddDays(-9),
+        };
+        await logger.LogQueryAsync(oldA);
+        await logger.LogQueryAsync(oldB);
+
+        await logger.PurgeOldLogsAsync(TimeSpan.FromDays(1));
+
+        Assert.Equal(0, logger.Count);
+
+        var next = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" };
+        await logger.LogQueryAsync(next);
+        Assert.Null(next.PreviousHash);
+        Assert.Equal(-1, AuditLogEntry.VerifyChain(new List<AuditLogEntry> { next }));
+    }
+
+    /// <summary>No-op purge (nothing old enough) leaves the chain intact and verifying.</summary>
+    [Fact]
+    public async Task PurgeOldLogsAsync_NoEntriesOldEnough_LeavesChainIntact()
+    {
+        var logger = new InMemoryAuditLogger();
+        var entries = new List<AuditLogEntry>();
+        for (var i = 0; i < 5; i++)
+        {
+            var e = new AuditLogEntry { TenantId = "t", UserId = $"u{i}", Operation = "Query" };
+            await logger.LogQueryAsync(e);
+            entries.Add(e);
+        }
+
+        await logger.PurgeOldLogsAsync(TimeSpan.FromDays(30));
+
+        Assert.Equal(5, logger.Count);
+        Assert.Equal(-1, AuditLogEntry.VerifyChain(entries));
+    }
+
+    /// <summary>Purge on an empty log is a no-op.</summary>
+    [Fact]
+    public async Task PurgeOldLogsAsync_EmptyLog_NoOp()
+    {
+        var logger = new InMemoryAuditLogger();
+
+        await logger.PurgeOldLogsAsync(TimeSpan.FromDays(1));
+
+        Assert.Equal(0, logger.Count);
+    }
 }
