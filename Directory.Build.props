@@ -1,22 +1,15 @@
 <Project>
-  <!-- Shared build settings for all projects in the repository -->
 
   <PropertyGroup>
-    <!-- Target frameworks for all projects -->
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-
-    <!-- Sentinel version for local builds. The release pipeline (.github/workflows/release.yml)
-         passes -p:Version=<tag> on every dotnet build/pack. A local 'dotnet pack' produces
-         '0.0.0-local' packages, which are obviously non-released and cannot be confused with
-         anything published to NuGet. -->
     <Version>0.0.0-local</Version>
+    <AssemblyVersion>2.0.1.0</AssemblyVersion>
 
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
 
     <GenerateSBOM Condition="'$(IsPackable)' != 'false'">true</GenerateSBOM>
-
-    <!-- SourceLink: enables source debugging for NuGet consumers -->
+ 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
@@ -25,19 +18,18 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)QuerySpec.public.snk</AssemblyOriginatorKeyFile>
     <DelaySign>true</DelaySign>
-
-    <!-- Common compile settings -->
+ 
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
-    <EnablePackageValidation Condition="'$(IsPackable)' != 'false'">true</EnablePackageValidation>
-    <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false'">true</EnableStrictModeForBaselineValidation>
+    <EnablePackageValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnablePackageValidation>
+    <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnableStrictModeForBaselineValidation>
+    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">2.0.1</PackageValidationBaselineVersion>
     <NoWarn>$(NoWarn);RS0016;RS0017;RS0024;RS0025;RS0026;RS0027;RS0036;RS0037;RS0041</NoWarn>
-
-    <!-- NuGet package metadata -->
+ 
     <Authors>Abongile Boja</Authors>
     <PackageProjectUrl>https://github.com/AbongileBoja/QuerySpec</PackageProjectUrl>
     <RepositoryUrl>https://github.com/AbongileBoja/QuerySpec.git</RepositoryUrl>
