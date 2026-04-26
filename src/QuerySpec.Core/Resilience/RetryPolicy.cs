@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace QuerySpec.Core.Resilience;
@@ -25,13 +26,26 @@ public class RetryPolicy
     /// <summary>
     /// Executes operation with retry logic.
     /// </summary>
-    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
+    public Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
+        => ExecuteAsync(operation, CancellationToken.None);
+
+    /// <summary>
+    /// Executes operation with retry logic and cancellation support. The token is observed
+    /// before the first attempt and during each backoff <see cref="Task.Delay(TimeSpan, CancellationToken)"/>.
+    /// </summary>
+    /// <param name="operation">The operation to execute.</param>
+    /// <param name="cancellationToken">Token to abort retries.</param>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
     {
+        if (operation is null) throw new ArgumentNullException(nameof(operation));
+
         int retryCount = 0;
         TimeSpan delay = InitialDelay;
 
         while (true)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 return await operation().ConfigureAwait(false);
@@ -39,7 +53,7 @@ public class RetryPolicy
             catch (Exception) when (retryCount < MaxRetries)
             {
                 retryCount++;
-                await Task.Delay(delay).ConfigureAwait(false);
+                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 
                 if (UseExponentialBackoff)
                 {

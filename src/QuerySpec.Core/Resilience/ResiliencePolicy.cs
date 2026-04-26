@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace QuerySpec.Core.Resilience;
@@ -21,8 +22,23 @@ public class ResiliencePolicy
     /// Executes operation with all configured resilience patterns.
     /// Order: RateLimit -> Bulkhead -> CircuitBreaker -> Retry
     /// </summary>
-    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, string key = "default")
+    public Task<T> ExecuteAsync<T>(Func<Task<T>> operation, string key = "default")
+        => ExecuteAsync(operation, key, CancellationToken.None);
+
+    /// <summary>
+    /// Executes operation with all configured resilience patterns and cancellation support.
+    /// The token is threaded into every inner policy that accepts one (Bulkhead, CircuitBreaker,
+    /// Retry) so cancellation aborts pending semaphore waits and retry backoffs.
+    /// </summary>
+    /// <param name="operation">The operation to execute.</param>
+    /// <param name="key">Key used for rate-limit bucketing.</param>
+    /// <param name="cancellationToken">Token observed at every policy boundary.</param>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, string key, CancellationToken cancellationToken)
     {
+        if (operation is null) throw new ArgumentNullException(nameof(operation));
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (RateLimiter != null)
         {
             if (!RateLimiter.TryAcquire(key))
@@ -35,18 +51,18 @@ public class ResiliencePolicy
         Func<Task<T>> bulkheadedOp = operation;
         if (Bulkhead != null)
         {
-            bulkheadedOp = () => Bulkhead.ExecuteAsync(() => operation());
+            bulkheadedOp = () => Bulkhead.ExecuteAsync(() => operation(), cancellationToken);
         }
 
         Func<Task<T>> resilientOp = bulkheadedOp;
         if (CircuitBreaker != null)
         {
-            resilientOp = () => CircuitBreaker.ExecuteAsync(() => bulkheadedOp());
+            resilientOp = () => CircuitBreaker.ExecuteAsync(() => bulkheadedOp(), cancellationToken);
         }
 
         if (RetryPolicy != null)
         {
-            return await RetryPolicy.ExecuteAsync(() => resilientOp()).ConfigureAwait(false);
+            return await RetryPolicy.ExecuteAsync(() => resilientOp(), cancellationToken).ConfigureAwait(false);
         }
 
         return await resilientOp().ConfigureAwait(false);
