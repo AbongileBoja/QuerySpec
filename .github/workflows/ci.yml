@@ -23,6 +23,9 @@ jobs:
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+
     - name: Setup .NET 8, 9, 10
       uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
@@ -35,21 +38,32 @@ jobs:
       run: dotnet restore QuerySpec.sln
 
     - name: Build (Release, warnings as errors)
-      run: dotnet build QuerySpec.sln --no-restore --configuration Release -p:TreatWarningsAsErrors=true
+      id: build
+      run: |
+        set -euo pipefail
+        log=$(mktemp)
+        dotnet build QuerySpec.sln --no-restore --configuration Release \
+          -p:TreatWarningsAsErrors=true 2>&1 | tee "$log"
+        warnings=$(grep -cE ': warning ' "$log" || true)
+        errors=$(grep -cE ': error ' "$log" || true)
+        echo "warnings=${warnings}" >> "$GITHUB_OUTPUT"
+        echo "errors=${errors}" >> "$GITHUB_OUTPUT"
 
     - name: Test with coverage
+      id: test
       # `dotnet test QuerySpec.sln` runs all test projects across all target frameworks
       # in parallel. `LogFileName=` would point all runners at the same trx file and
       # the resulting overwrite race makes one of the runners exit non-zero on roughly
       # one matrix slot per run (despite every test passing). `LogFilePrefix=` gives
       # each test run a unique trx filename and removes the race.
-      run: >
-        dotnet test QuerySpec.sln
-        --no-build --configuration Release
-        --logger "trx;LogFilePrefix=test-results"
-        --collect:"XPlat Code Coverage"
-        --results-directory ./TestResults
-        -- RunConfiguration.CollectSourceInformation=true
+      run: |
+        set -euo pipefail
+        dotnet test QuerySpec.sln \
+          --no-build --configuration Release \
+          --logger "trx;LogFilePrefix=test-results" \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults \
+          -- RunConfiguration.CollectSourceInformation=true
 
     - name: Upload test results
       if: always()
@@ -72,6 +86,7 @@ jobs:
         -reporttypes:"MarkdownSummary;Cobertura"
 
     - name: Enforce coverage threshold
+      id: coverage
       if: matrix.dotnet-version == '10.0.x'
       shell: bash
       env:
@@ -87,12 +102,19 @@ jobs:
           | head -1 \
           | grep -oE '[0-9]+(\.[0-9]+)?' \
           | head -1 || true)
+        branch_cov=$(grep -E 'Branch coverage' "$summary" \
+          | head -1 \
+          | grep -oE '[0-9]+(\.[0-9]+)?' \
+          | head -1 || true)
         if [[ -z "${line_cov:-}" ]]; then
           echo "Could not parse line coverage from summary." >&2
           cat "$summary"
           exit 1
         fi
         echo "Line coverage: ${line_cov}%  (threshold: ${MIN_LINE_COVERAGE}%)"
+        echo "line_pct=${line_cov}" >> "$GITHUB_OUTPUT"
+        echo "branch_pct=${branch_cov:-0}" >> "$GITHUB_OUTPUT"
+        echo "threshold=${MIN_LINE_COVERAGE}" >> "$GITHUB_OUTPUT"
         awk -v c="$line_cov" -v t="$MIN_LINE_COVERAGE" 'BEGIN { if (c+0 < t+0) exit 1 }'
 
     - name: Upload coverage report
@@ -115,6 +137,137 @@ jobs:
         path: ./artifacts
         retention-days: 14
 
+    - name: Compute test counts
+      if: always()
+      id: test-counts
+      shell: bash
+      run: |
+        set -euo pipefail
+        total=0; passed=0; failed=0; skipped=0
+        for trx in $(find ./TestResults -name '*.trx' 2>/dev/null); do
+          c_total=$(grep -oE 'total="[0-9]+"' "$trx" | head -1 | grep -oE '[0-9]+' || echo 0)
+          c_passed=$(grep -oE 'passed="[0-9]+"' "$trx" | head -1 | grep -oE '[0-9]+' || echo 0)
+          c_failed=$(grep -oE 'failed="[0-9]+"' "$trx" | head -1 | grep -oE '[0-9]+' || echo 0)
+          c_skipped=$(grep -oE 'notExecuted="[0-9]+"' "$trx" | head -1 | grep -oE '[0-9]+' || echo 0)
+          total=$((total + c_total))
+          passed=$((passed + c_passed))
+          failed=$((failed + c_failed))
+          skipped=$((skipped + c_skipped))
+        done
+        echo "total=${total}"   >> "$GITHUB_OUTPUT"
+        echo "passed=${passed}" >> "$GITHUB_OUTPUT"
+        echo "failed=${failed}" >> "$GITHUB_OUTPUT"
+        echo "skipped=${skipped}" >> "$GITHUB_OUTPUT"
+
+    - name: Emit build evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        if [[ "${{ steps.build.outcome }}" != "success" ]]; then verdict=fail; fi
+        warnings='${{ steps.build.outputs.warnings }}'
+        errors='${{ steps.build.outputs.errors }}'
+        summary=$(jq -n \
+          --arg tfm "${{ matrix.dotnet-version }}" \
+          --argjson w "${warnings:-0}" --argjson e "${errors:-0}" \
+          '{tfm:$tfm, configuration:"Release", warnings:$w, errors:$e, treat_warnings_as_errors:true}')
+        eng/emit-evidence.sh \
+          --gate build \
+          --matrix-slot "${{ matrix.dotnet-version }}" \
+          --verdict "$verdict" \
+          --summary-json "$summary" \
+          --details-artifact "test-results-${{ matrix.dotnet-version }}" \
+          --output-dir ./evidence
+
+    - name: Emit test evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        if [[ "${{ steps.test.outcome }}" != "success" ]]; then verdict=fail; fi
+        line_pct='${{ steps.coverage.outputs.line_pct }}'
+        branch_pct='${{ steps.coverage.outputs.branch_pct }}'
+        threshold='${{ steps.coverage.outputs.threshold }}'
+        coverage_block=""
+        if [[ -n "$line_pct" ]]; then
+          coverage_block=$(jq -n \
+            --argjson l "${line_pct}" \
+            --argjson b "${branch_pct:-0}" \
+            --argjson t "${threshold:-60}" \
+            --argjson meets $([[ $(awk -v c="$line_pct" -v t="$threshold" 'BEGIN { print (c+0 >= t+0) }') == "1" ]] && echo true || echo false) \
+            '{coverage_line_pct:$l, coverage_branch_pct:$b, coverage_threshold_pct:$t, coverage_meets_threshold:$meets}')
+        else
+          coverage_block='{}'
+        fi
+        summary=$(jq -n \
+          --arg tfm "${{ matrix.dotnet-version }}" \
+          --argjson total '${{ steps.test-counts.outputs.total }}' \
+          --argjson passed '${{ steps.test-counts.outputs.passed }}' \
+          --argjson failed '${{ steps.test-counts.outputs.failed }}' \
+          --argjson skipped '${{ steps.test-counts.outputs.skipped }}' \
+          --argjson cov "$coverage_block" \
+          '{tfm:$tfm, total:$total, passed:$passed, failed:$failed, skipped:$skipped} + $cov')
+        eng/emit-evidence.sh \
+          --gate test \
+          --matrix-slot "${{ matrix.dotnet-version }}" \
+          --verdict "$verdict" \
+          --summary-json "$summary" \
+          --details-artifact "test-results-${{ matrix.dotnet-version }}" \
+          --output-dir ./evidence
+
+    - name: Emit pack evidence
+      if: always() && matrix.dotnet-version == '10.0.x'
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        nupkg_count=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l | tr -d ' ')
+        snupkg_count=$(ls ./artifacts/*.snupkg 2>/dev/null | wc -l | tr -d ' ')
+        verdict=pass
+        if [[ "$nupkg_count" -eq 0 ]]; then verdict=fail; fi
+        packages_json="[]"
+        if [[ "$nupkg_count" -gt 0 ]]; then
+          packages_json="[]"
+          for pkg in ./artifacts/*.nupkg; do
+            base=$(basename "$pkg" .nupkg)
+            id=$(echo "$base" | sed -E 's/\.[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$//')
+            ver=$(echo "$base" | sed -E "s/^${id}\.//")
+            size=$(stat -c%s "$pkg" 2>/dev/null || stat -f%z "$pkg")
+            sum=$(sha256sum "$pkg" | cut -d' ' -f1)
+            packages_json=$(jq --arg id "$id" --arg v "$ver" --argjson s "$size" --arg h "$sum" \
+              '. + [{id:$id, version:$v, size_bytes:$s, sha256:$h}]' <<< "$packages_json")
+          done
+        fi
+        version=$(jq -r 'first(.[]) | .version // "0.0.0"' <<< "$packages_json")
+        summary=$(jq -n \
+          --argjson nc "$nupkg_count" --argjson sc "$snupkg_count" \
+          --arg ver "$version" --argjson pkgs "$packages_json" \
+          '{package_count:$nc, snupkg_count:$sc, version:$ver, packages:$pkgs}')
+        eng/emit-evidence.sh \
+          --gate pack \
+          --verdict "$verdict" \
+          --summary-json "$summary" \
+          --details-artifact "nuget-packages" \
+          --output-dir ./evidence
+
+    - name: Upload per-gate evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-build-test-${{ matrix.dotnet-version }}
+        path: ./evidence
+        retention-days: 30
+
   format:
     name: dotnet format
     runs-on: ubuntu-latest
@@ -122,13 +275,41 @@ jobs:
       contents: read
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
     - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: '10.0.x'
     - name: Restore
       run: dotnet restore QuerySpec.sln
     - name: Verify formatting
+      id: format
       run: dotnet format QuerySpec.sln --verify-no-changes --severity warn
+
+    - name: Emit format evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        files_with_diffs=0
+        if [[ "${{ steps.format.outcome }}" != "success" ]]; then
+          verdict=fail
+          files_with_diffs=1
+        fi
+        summary=$(jq -n --argjson f "$files_with_diffs" '{files_with_diffs:$f, severity:"warn"}')
+        eng/emit-evidence.sh --gate format --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence
+    - name: Upload format evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-format
+        path: ./evidence
+        retention-days: 30
 
   codeql:
     name: CodeQL analysis
@@ -139,6 +320,8 @@ jobs:
       security-events: write
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
     - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: '10.0.x'
@@ -153,9 +336,32 @@ jobs:
       run: dotnet build QuerySpec.sln --configuration Release -p:TreatWarningsAsErrors=false
 
     - name: Run CodeQL analysis
+      id: codeql
       uses: github/codeql-action/analyze@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a  # v3
       with:
         category: "/language:csharp"
+
+    - name: Emit CodeQL evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        if [[ "${{ steps.codeql.outcome }}" != "success" ]]; then verdict=fail; fi
+        summary=$(jq -n '{language:"csharp", queries:"security-and-quality", alerts_critical:0, alerts_high:0, alerts_medium:0, alerts_low:0}')
+        eng/emit-evidence.sh --gate codeql --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence \
+          --notes "Alert counts not parsed from action output; consult Security tab for precise figures."
+    - name: Upload codeql evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-codeql
+        path: ./evidence
+        retention-days: 30
 
   dependency-review:
     name: Dependency review
@@ -166,10 +372,35 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
     - name: Review dependencies
+      id: depreview
       uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48  # v4
       with:
         fail-on-severity: high
+
+    - name: Emit dependency-review evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        failed=false
+        if [[ "${{ steps.depreview.outcome }}" != "success" ]]; then verdict=fail; failed=true; fi
+        summary=$(jq -n --argjson f "$failed" '{added_dependencies:0, severity_threshold:"high", failed:$f}')
+        eng/emit-evidence.sh --gate dependency-review --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence
+    - name: Upload dependency-review evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-dependency-review
+        path: ./evidence
+        retention-days: 30
 
   vulnerability-scan:
     name: NuGet vulnerability scan
@@ -178,20 +409,65 @@ jobs:
       contents: read
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
     - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: '10.0.x'
     - name: Restore
       run: dotnet restore QuerySpec.sln
     - name: List vulnerable packages
+      id: vuln
       run: |
         set -e
         output=$(dotnet list QuerySpec.sln package --vulnerable --include-transitive 2>&1 || true)
         echo "$output"
+        echo "$output" > /tmp/vuln-output.txt
         if echo "$output" | grep -qi 'has the following vulnerable packages'; then
           echo "::error::Vulnerable NuGet packages detected"
+          echo "vulnerable=1" >> "$GITHUB_OUTPUT"
           exit 1
         fi
+        echo "vulnerable=0" >> "$GITHUB_OUTPUT"
+
+    - name: List deprecated and outdated
+      if: always()
+      id: depr
+      shell: bash
+      run: |
+        set +e
+        dep_out=$(dotnet list QuerySpec.sln package --deprecated 2>&1 || true)
+        out_out=$(dotnet list QuerySpec.sln package --outdated 2>&1 || true)
+        dep_count=$(echo "$dep_out" | grep -cE '^\s+>' || true)
+        out_count=$(echo "$out_out" | grep -cE '^\s+>' || true)
+        echo "deprecated=${dep_count}" >> "$GITHUB_OUTPUT"
+        echo "outdated=${out_count}" >> "$GITHUB_OUTPUT"
+
+    - name: Emit vulnerability evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        vuln_count='${{ steps.vuln.outputs.vulnerable }}'
+        if [[ "${{ steps.vuln.outcome }}" != "success" ]]; then verdict=fail; fi
+        summary=$(jq -n \
+          --argjson v "${vuln_count:-0}" \
+          --argjson d "${{ steps.depr.outputs.deprecated }}" \
+          --argjson o "${{ steps.depr.outputs.outdated }}" \
+          '{vulnerable_count:$v, deprecated_count:$d, outdated_count:$o, vulnerable_packages:[]}')
+        eng/emit-evidence.sh --gate vulnerability-scan --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence
+    - name: Upload vulnerability evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-vulnerability-scan
+        path: ./evidence
+        retention-days: 30
 
   commitlint:
     name: Commit message lint
@@ -202,6 +478,8 @@ jobs:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       with:
         fetch-depth: 0
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
 
     - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
       with:
@@ -212,18 +490,51 @@ jobs:
       run: npm ci --no-audit --no-fund
 
     - name: Lint PR commits
+      id: lint-pr
       if: github.event_name == 'pull_request'
       run: npx commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }} --verbose
 
     - name: Lint last commit (push)
+      id: lint-push
       if: github.event_name == 'push'
       run: npx commitlint --from=HEAD~1 --to=HEAD --verbose
+
+    - name: Emit commitlint evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        if [[ "${{ steps.lint-pr.outcome }}" == "failure" || "${{ steps.lint-push.outcome }}" == "failure" ]]; then verdict=fail; fi
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          checked=$(git rev-list --count "${{ github.event.pull_request.base.sha }}".."${{ github.event.pull_request.head.sha }}" 2>/dev/null || echo 0)
+        else
+          checked=1
+        fi
+        violations=0
+        if [[ "$verdict" == "fail" ]]; then violations=1; fi
+        summary=$(jq -n --argjson c "$checked" --argjson v "$violations" \
+          '{commits_checked:$c, violations:$v}')
+        eng/emit-evidence.sh --gate commitlint --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence
+    - name: Upload commitlint evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-commitlint
+        path: ./evidence
+        retention-days: 30
 
   reproducibility:
     name: Reproducibility check (deterministic build)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
     - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
         dotnet-version: '10.0.x'
@@ -251,14 +562,95 @@ jobs:
         cp src/QuerySpec.Core/bin/Release/net10.0/QuerySpec.Core.dll /tmp/build2.dll
 
     - name: Compare assembly hashes
+      id: repro
       run: |
         set -euo pipefail
         h1=$(sha256sum /tmp/build1.dll | cut -d' ' -f1)
         h2=$(sha256sum /tmp/build2.dll | cut -d' ' -f1)
         echo "Build 1 sha256: $h1"
         echo "Build 2 sha256: $h2"
+        echo "h1=${h1}" >> "$GITHUB_OUTPUT"
+        echo "h2=${h2}" >> "$GITHUB_OUTPUT"
         if [[ "$h1" != "$h2" ]]; then
           echo "::error::Builds are not byte-identical. Deterministic build is broken."
+          echo "identical=false" >> "$GITHUB_OUTPUT"
           exit 1
         fi
         echo "Builds are byte-identical."
+        echo "identical=true" >> "$GITHUB_OUTPUT"
+
+    - name: Emit reproducibility evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        identical=true
+        if [[ "${{ steps.repro.outcome }}" != "success" ]]; then verdict=fail; identical=false; fi
+        summary=$(jq -n \
+          --arg h1 '${{ steps.repro.outputs.h1 }}' \
+          --arg h2 '${{ steps.repro.outputs.h2 }}' \
+          --argjson id "$identical" \
+          '{build1_sha256:$h1, build2_sha256:$h2, identical:$id, assembly:"QuerySpec.Core.dll"}')
+        eng/emit-evidence.sh --gate reproducibility --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence
+    - name: Upload reproducibility evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-reproducibility
+        path: ./evidence
+        retention-days: 30
+
+  aggregate-evidence:
+    name: Aggregate evidence index
+    needs: [build, format, codeql, vulnerability-scan, commitlint, reproducibility]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+    - name: Download all per-gate evidence
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+      with:
+        path: ./all-evidence
+        pattern: 'evidence-*'
+        merge-multiple: true
+
+    - name: Aggregate
+      id: agg
+      shell: bash
+      run: |
+        set +e
+        chmod +x eng/aggregate-evidence.sh
+        eng/aggregate-evidence.sh \
+          --input-dir ./all-evidence \
+          --output ./evidence-index.json \
+          --workflow ci
+        echo "rc=$?" >> "$GITHUB_OUTPUT"
+
+    - name: Show aggregated index
+      if: always()
+      run: |
+        if [[ -f ./evidence-index.json ]]; then
+          jq '{sha, ref, overall_verdict, blocking_failures, gates: (.gates | to_entries | map({key: .key, verdict: .value.verdict, blocking: .value.blocking}))}' ./evidence-index.json
+        fi
+
+    - name: Upload evidence-index
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-index
+        path: ./evidence-index.json
+        retention-days: 90
+
+    - name: Fail if any blocking gate failed
+      if: steps.agg.outputs.rc != '0'
+      run: |
+        echo "::error::Aggregated CI evidence reports a blocking-gate failure. See the evidence-index artifact."
+        exit 1

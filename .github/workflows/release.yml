@@ -65,6 +65,9 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+
     - name: Setup .NET
       uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
       with:
@@ -127,14 +130,19 @@ jobs:
         -p:AssemblyOriginatorKeyFile=${{ env.STRONG_NAME_PRIVATE_KEY }}
 
     - name: Verify assemblies are fully signed
+      id: strong-name
       run: |
         set -euo pipefail
         chmod +x eng/verify-strong-name.sh
         eng/verify-strong-name.sh src/QuerySpec.Core/bin/Release \
                                   src/QuerySpec.EFCore/bin/Release \
                                   src/QuerySpec.DependencyInjection/bin/Release
+        count=$(find src/QuerySpec.Core/bin/Release src/QuerySpec.EFCore/bin/Release src/QuerySpec.DependencyInjection/bin/Release \
+                  -type f -name 'QuerySpec.*.dll' 2>/dev/null | wc -l | tr -d ' ')
+        echo "assemblies=${count}" >> "$GITHUB_OUTPUT"
 
     - name: Test
+      id: test
       run: >
         dotnet test QuerySpec.sln
         --no-build --configuration Release
@@ -150,6 +158,7 @@ jobs:
         retention-days: 14
 
     - name: Benchmark smoke run
+      id: bench-smoke
       env:
         QUERYSPEC_BENCH_SMOKE: '1'
       run: |
@@ -209,24 +218,24 @@ jobs:
         echo "Package metadata OK: 3 nupkg + 3 snupkg at version ${{ steps.version.outputs.version }}."
 
     - name: Validate package contents and metadata
-      # Runs Meziantou.Framework.NuGetPackageValidation.Tool against every produced
-      # .nupkg. This catches structural and metadata gaps before publish: missing
-      # README/icon/license, missing/unsigned assemblies, broken SourceLink, missing
-      # symbols, deterministic-build flag absent, etc. A malformed package fails
-      # this step and never reaches NuGet.org.
+      id: pkg-validate
       run: |
         set -euo pipefail
         dotnet tool install --global Meziantou.Framework.NuGetPackageValidation.Tool --version 1.0.49
         export PATH="$PATH:$HOME/.dotnet/tools"
         failed=0
+        validated=0
         for pkg in ./artifacts/*.nupkg; do
+          validated=$((validated + 1))
           echo "::group::Validate $(basename "$pkg")"
           if ! meziantou.validate-nuget-package "$pkg"; then
             echo "::error::Package validation failed for $(basename "$pkg")"
-            failed=1
+            failed=$((failed + 1))
           fi
           echo "::endgroup::"
         done
+        echo "validated=${validated}" >> "$GITHUB_OUTPUT"
+        echo "failed=${failed}" >> "$GITHUB_OUTPUT"
         if [[ "$failed" -ne 0 ]]; then
           exit 1
         fi
@@ -238,6 +247,101 @@ jobs:
         name: nuget-packages
         path: ./artifacts
         retention-days: 30
+
+    - name: Emit release evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        version='${{ steps.version.outputs.version }}'
+
+        sn_verdict=pass
+        if [[ "${{ steps.strong-name.outcome }}" != "success" ]]; then sn_verdict=fail; fi
+        sn_signed=$([[ "$sn_verdict" == "pass" ]] && echo true || echo false)
+        sn_summary=$(jq -n \
+          --argjson n '${{ steps.strong-name.outputs.assemblies }}' \
+          --argjson s "$sn_signed" \
+          '{assemblies_verified:$n, fully_signed:$s}')
+        eng/emit-evidence.sh --gate strong-name-verify --verdict "$sn_verdict" \
+          --summary-json "$sn_summary" --output-dir ./evidence
+
+        bs_verdict=pass
+        if [[ "${{ steps.bench-smoke.outcome }}" != "success" ]]; then bs_verdict=fail; fi
+        bs_completed=$([[ "$bs_verdict" == "pass" ]] && echo true || echo false)
+        bs_summary=$(jq -n --argjson c "$bs_completed" \
+          '{benchmarks_run:0, completed:$c, filter:"*Translator*"}')
+        eng/emit-evidence.sh --gate benchmark-smoke --verdict "$bs_verdict" \
+          --summary-json "$bs_summary" --details-artifact "benchmark-smoke" --output-dir ./evidence
+
+        nupkg_count=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l | tr -d ' ')
+        snupkg_count=$(ls ./artifacts/*.snupkg 2>/dev/null | wc -l | tr -d ' ')
+        packages_json="[]"
+        if [[ "$nupkg_count" -gt 0 ]]; then
+          for pkg in ./artifacts/*.nupkg; do
+            base=$(basename "$pkg" .nupkg)
+            id=$(echo "$base" | sed -E 's/\.[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$//')
+            ver=$(echo "$base" | sed -E "s/^${id}\.//")
+            size=$(stat -c%s "$pkg" 2>/dev/null || stat -f%z "$pkg")
+            sum=$(sha256sum "$pkg" | cut -d' ' -f1)
+            packages_json=$(jq --arg id "$id" --arg v "$ver" --argjson s "$size" --arg h "$sum" \
+              '. + [{id:$id, version:$v, size_bytes:$s, sha256:$h}]' <<< "$packages_json")
+          done
+        fi
+        pack_verdict=pass
+        if [[ "$nupkg_count" -ne 3 || "$snupkg_count" -ne 3 ]]; then pack_verdict=fail; fi
+        pack_summary=$(jq -n \
+          --argjson nc "$nupkg_count" --argjson sc "$snupkg_count" \
+          --arg ver "$version" --argjson pkgs "$packages_json" \
+          '{package_count:$nc, snupkg_count:$sc, version:$ver, packages:$pkgs}')
+        eng/emit-evidence.sh --gate pack --verdict "$pack_verdict" \
+          --summary-json "$pack_summary" --details-artifact "nuget-packages" --output-dir ./evidence
+
+        pv_verdict=pass
+        if [[ "${{ steps.pkg-validate.outcome }}" != "success" ]]; then pv_verdict=fail; fi
+        pv_summary=$(jq -n \
+          --argjson v '${{ steps.pkg-validate.outputs.validated }}' \
+          --argjson f '${{ steps.pkg-validate.outputs.failed }}' \
+          '{packages_validated:$v, failed:$f, validator:"Meziantou.Framework.NuGetPackageValidation.Tool", validator_version:"1.0.49"}')
+        eng/emit-evidence.sh --gate package-validation --verdict "$pv_verdict" \
+          --summary-json "$pv_summary" --output-dir ./evidence
+
+    - name: Upload release per-gate evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-release
+        path: ./evidence
+        retention-days: 90
+
+    - name: Aggregate release evidence
+      if: always()
+      id: agg
+      shell: bash
+      run: |
+        set +e
+        chmod +x eng/aggregate-evidence.sh
+        eng/aggregate-evidence.sh \
+          --input-dir ./evidence \
+          --output ./evidence-index.json \
+          --workflow release
+        echo "rc=$?" >> "$GITHUB_OUTPUT"
+
+    - name: Upload release evidence-index
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: evidence-index
+        path: ./evidence-index.json
+        retention-days: 365
+
+    - name: Halt before publish if release evidence is not green
+      if: steps.agg.outputs.rc != '0'
+      run: |
+        echo "::error::Release evidence reports a blocking-gate failure. Halting before publish."
+        exit 1
 
     - name: Scrub strong-name private key
       if: always()
