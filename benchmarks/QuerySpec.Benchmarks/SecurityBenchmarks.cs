@@ -4,14 +4,14 @@ using QuerySpec.Core.Security;
 namespace QuerySpec.Benchmarks;
 
 /// <summary>
-/// Hot-path benchmarks for security primitives: AES-256 encrypt/decrypt round-trip and
+/// Hot-path benchmarks for security primitives: AES-GCM encrypt/decrypt round-trip and
 /// PII data masking. These sit on response-shaping paths for any field flagged as sensitive,
 /// so their per-field cost is a direct input to throughput and allocation budgets.
 /// </summary>
 [Config(typeof(BenchConfig))]
 public class SecurityBenchmarks
 {
-    private AesEncryptionProvider _aes = null!;
+    private AesGcmEncryptionProvider _aes = null!;
     private DataMaskingEngine _masking = null!;
     private string _plaintext = null!;
     private string _ciphertext = null!;
@@ -20,7 +20,7 @@ public class SecurityBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        _aes = new AesEncryptionProvider(AesEncryptionProvider.GenerateKey());
+        _aes = new AesGcmEncryptionProvider(AesGcmEncryptionProvider.GenerateKey());
         _plaintext = "user.email+tag@example.com|id:12345|role:admin";
         _ciphertext = _aes.Encrypt(_plaintext);
 
@@ -30,11 +30,11 @@ public class SecurityBenchmarks
         _masking.RegisterFieldMask("CreditCard", MaskingStrategy.LastFourOnly);
     }
 
-    /// <summary>AES-256-CBC encrypt of a short enterprise-typical payload.</summary>
+    /// <summary>AES-256-GCM encrypt of a short enterprise-typical payload.</summary>
     [Benchmark]
     public string Aes_Encrypt() => _aes.Encrypt(_plaintext);
 
-    /// <summary>AES-256-CBC decrypt of the pre-computed ciphertext.</summary>
+    /// <summary>AES-256-GCM decrypt of the pre-computed ciphertext.</summary>
     [Benchmark]
     public string Aes_Decrypt() => _aes.Decrypt(_ciphertext);
 
