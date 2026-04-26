@@ -5,11 +5,15 @@ using System.Threading.Tasks;
 namespace QuerySpec.Core.Resilience;
 
 /// <summary>
-/// Bulkhead pattern for resource isolation and concurrent request limiting.
+/// Bulkhead pattern for resource isolation and concurrent request limiting. Implements
+/// <see cref="IDisposable"/> because the backing <see cref="SemaphoreSlim"/> owns a
+/// kernel-allocated wait handle that must be released on teardown.
 /// </summary>
-public class BulkheadPolicy
+public class BulkheadPolicy : IDisposable
 {
     private readonly SemaphoreSlim _semaphore;
+    private bool _disposed;
+
     /// <summary>Maximum number of concurrent requests allowed.</summary>
     public int MaxConcurrentRequests { get; }
 
@@ -36,6 +40,25 @@ public class BulkheadPolicy
         {
             _semaphore.Release();
         }
+    }
+
+    /// <summary>Releases the backing <see cref="SemaphoreSlim"/>. Idempotent.</summary>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>Dispose pattern hook for subclasses.</summary>
+    /// <param name="disposing"><c>true</c> when called from <see cref="Dispose()"/>, <c>false</c> from a finalizer.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+        if (disposing)
+        {
+            _semaphore.Dispose();
+        }
+        _disposed = true;
     }
 }
 
