@@ -14,9 +14,15 @@ public class RLSPolicy
     public string ResourceType { get; set; } = string.Empty;
 
     /// <summary>
-    /// Generates a parameterized SQL fragment for the policy.
+    /// Generates a parameterized SQL fragment for the policy. Defaults to a fail-closed
+    /// generator that returns <see cref="RLSFilter.DenyAll"/> so that a policy registered with
+    /// only a <see cref="PredicateFactory"/> (or with no SQL configured at all) does not
+    /// silently authorise unrestricted access on the SQL path. Callers that legitimately want
+    /// allow-all behaviour for a resource should call
+    /// <see cref="RowLevelSecurityEngine.RegisterUnrestricted{T}(string)"/>, which is explicit
+    /// and surfaces in code review.
     /// </summary>
-    public Func<RLSContext, RLSFilter> FilterGenerator { get; set; } = _ => RLSFilter.AllowAll;
+    public Func<RLSContext, RLSFilter> FilterGenerator { get; set; } = _ => RLSFilter.DenyAll;
 
     /// <summary>
     /// Strongly-typed predicate factory for use with IQueryable. Prefer <see cref="SetPredicate{T}"/>
