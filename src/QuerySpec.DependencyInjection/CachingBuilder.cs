@@ -10,7 +10,13 @@ namespace QuerySpec.DependencyInjection;
 /// </summary>
 public class CachingBuilder
 {
-    private readonly IServiceCollection _services;
+    /// <summary>
+    /// The underlying <see cref="IServiceCollection"/> the builder writes to. Exposed so
+    /// third-party packages can author <c>UseXxx</c> extension methods that compose with the
+    /// fluent QuerySpec API. Matches the convention of <c>IHealthChecksBuilder.Services</c>,
+    /// <c>IMvcBuilder.Services</c>, and <c>AuthenticationBuilder.Services</c>.
+    /// </summary>
+    public IServiceCollection Services { get; }
 
     /// <summary>Initializes a new caching builder.</summary>
     /// <param name="services">The service collection to register against.</param>
@@ -18,7 +24,7 @@ public class CachingBuilder
     public CachingBuilder(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        _services = services;
+        Services = services;
     }
 
     /// <summary>
@@ -26,8 +32,8 @@ public class CachingBuilder
     /// </summary>
     public CachingBuilder UseMemoryCache()
     {
-        _services.AddMemoryCache();
-        _services.AddSingleton<ICacheProvider, MemoryCacheProvider>();
+        Services.AddMemoryCache();
+        Services.AddSingleton<ICacheProvider, MemoryCacheProvider>();
         return this;
     }
 
@@ -36,8 +42,8 @@ public class CachingBuilder
     /// </summary>
     public CachingBuilder UseDistributedRedis(string connectionString)
     {
-        _services.AddStackExchangeRedisCache(options => options.Configuration = connectionString);
-        _services.AddSingleton<ICacheProvider>(sp =>
+        Services.AddStackExchangeRedisCache(options => options.Configuration = connectionString);
+        Services.AddSingleton<ICacheProvider>(sp =>
             new DistributedCacheProvider(sp.GetRequiredService<IDistributedCache>()));
         return this;
     }
@@ -47,10 +53,10 @@ public class CachingBuilder
     /// </summary>
     public CachingBuilder UseMultiLevel()
     {
-        _services.AddMemoryCache();
-        _services.AddSingleton<MemoryCacheProvider>();
-        _services.AddSingleton<DistributedCacheProvider>();
-        _services.AddSingleton<ICacheProvider>(sp =>
+        Services.AddMemoryCache();
+        Services.AddSingleton<MemoryCacheProvider>();
+        Services.AddSingleton<DistributedCacheProvider>();
+        Services.AddSingleton<ICacheProvider>(sp =>
             new MultiLevelCache(
                 sp.GetRequiredService<MemoryCacheProvider>(),
                 sp.GetRequiredService<DistributedCacheProvider>()));

@@ -20,6 +20,28 @@ namespace QuerySpec.Core.Tests.DependencyInjection;
 /// </summary>
 public class IndividualBuildersTests
 {
+    // ---------- Services getter (third-party Use* extension story) ----------
+
+    /// <summary>
+    /// Every builder must expose the underlying <see cref="IServiceCollection"/> via
+    /// <c>Services</c> so third-party packages can author <c>Use*</c> extensions that
+    /// compose with the fluent QuerySpec API. This test asserts the property returns the
+    /// same instance that was passed to the constructor for all 7 builders.
+    /// </summary>
+    [Fact]
+    public void Builders_Services_ReturnsSameInstance_AsConstructorArgument()
+    {
+        var services = new ServiceCollection();
+
+        Assert.Same(services, new QuerySpecBuilder(services).Services);
+        Assert.Same(services, new CachingBuilder(services).Services);
+        Assert.Same(services, new AuditingBuilder(services).Services);
+        Assert.Same(services, new SecurityBuilder(services).Services);
+        Assert.Same(services, new PerformanceBuilder(services).Services);
+        Assert.Same(services, new ResilienceBuilder(services).Services);
+        Assert.Same(services, new MonitoringBuilder(services).Services);
+    }
+
     // ---------- CachingBuilder ----------
 
     [Fact]

@@ -8,7 +8,12 @@ namespace QuerySpec.DependencyInjection;
 /// </summary>
 public class MonitoringBuilder
 {
-    private readonly IServiceCollection _services;
+    /// <summary>
+    /// The underlying <see cref="IServiceCollection"/> the builder writes to. Exposed so
+    /// third-party packages can author <c>Use*</c> extension methods that compose with the
+    /// fluent QuerySpec API. Matches the convention of <c>IHealthChecksBuilder.Services</c>.
+    /// </summary>
+    public IServiceCollection Services { get; }
 
     /// <summary>Initializes a new monitoring builder.</summary>
     /// <param name="services">The service collection to register against.</param>
@@ -16,7 +21,7 @@ public class MonitoringBuilder
     public MonitoringBuilder(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        _services = services;
+        Services = services;
     }
 
     /// <summary>Enables OpenTelemetry integration.</summary>
