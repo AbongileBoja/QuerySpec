@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Time.Testing;
 using Xunit;
 using QuerySpec.Core.Caching;
 
@@ -45,9 +46,11 @@ public class MemoryCacheProviderAdditionalTests
     [Fact]
     public async Task Expiration_EvictsValue()
     {
-        var cache = new MemoryCacheProvider();
-        await cache.SetAsync("k", "v", TimeSpan.FromMilliseconds(50));
-        await Task.Delay(120, TestContext.Current.CancellationToken);
+        var clock = new FakeTimeProvider();
+        var cache = new MemoryCacheProvider(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions(), clock);
+        await cache.SetAsync("k", "v", TimeSpan.FromSeconds(60));
+        Assert.Equal("v", await cache.GetAsync<string>("k"));
+        clock.Advance(TimeSpan.FromSeconds(61));
         Assert.Null(await cache.GetAsync<string>("k"));
     }
 

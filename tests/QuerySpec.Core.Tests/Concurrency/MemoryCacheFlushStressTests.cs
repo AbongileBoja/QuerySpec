@@ -42,7 +42,7 @@ public class MemoryCacheFlushStressTests
             while (!cts.IsCancellationRequested)
             {
                 await cache.FlushAsync();
-                await Task.Delay(10);
+                await Task.Yield();
             }
         }
 

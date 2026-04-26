@@ -52,19 +52,17 @@ public class AdvancedFilterExpressionTests
     [Fact]
     public void Validate_Should_Return_Error_When_Temporal_Range_Invalid()
     {
-        // Arrange
+        var baseTime = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc);
         var filter = new AdvancedFilterExpression
         {
             Field = "CreatedAt",
             Operator = FilterOperator.DateInRange,
-            TemporalStart = DateTime.UtcNow,
-            TemporalEnd = DateTime.UtcNow.AddDays(-1)
+            TemporalStart = baseTime,
+            TemporalEnd = baseTime.AddDays(-1)
         };
 
-        // Act
         var errors = filter.Validate();
 
-        // Assert
         Assert.Contains("TemporalStart must be before TemporalEnd", errors);
     }
 

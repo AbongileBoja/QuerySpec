@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Time.Testing;
 using QuerySpec.Core.Monitoring;
 using Xunit;
 
@@ -68,11 +69,13 @@ public class QueryMetricsReportTests
     [Fact]
     public void GetReport_MostExpensiveQuery_IsNull_WhenNoMetricsMatchPeriod()
     {
-        var collector = new MetricsCollector();
+        var now = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
+        var clock = new FakeTimeProvider(now);
+        var collector = new MetricsCollector(MetricsCollector.DefaultMaxRetainedQueries, clock);
         collector.Record(new QueryMetrics
         {
             ExecutionTimeMs = 100,
-            ExecutedAt = DateTime.UtcNow.AddHours(-2)
+            ExecutedAt = now.AddHours(-2).UtcDateTime
         });
 
         var report = collector.GetReport(TimeSpan.FromMilliseconds(1));
@@ -132,16 +135,18 @@ public class QueryMetricsReportTests
     [Fact]
     public void GetReport_PeriodFilter_ExcludesOldEntries()
     {
-        var collector = new MetricsCollector();
+        var now = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
+        var clock = new FakeTimeProvider(now);
+        var collector = new MetricsCollector(MetricsCollector.DefaultMaxRetainedQueries, clock);
         collector.Record(new QueryMetrics
         {
             ExecutionTimeMs = 999,
-            ExecutedAt = DateTime.UtcNow.AddHours(-5)
+            ExecutedAt = now.AddHours(-5).UtcDateTime
         });
         collector.Record(new QueryMetrics
         {
             ExecutionTimeMs = 100,
-            ExecutedAt = DateTime.UtcNow
+            ExecutedAt = now.UtcDateTime
         });
 
         var report = collector.GetReport(TimeSpan.FromMinutes(10));

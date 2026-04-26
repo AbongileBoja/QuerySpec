@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Time.Testing;
 using Xunit;
 using QuerySpec.Core.Auditing;
 
@@ -117,21 +118,19 @@ public class InMemoryAuditLoggerTests
     [Fact]
     public async Task PurgeOldLogsAsync_Should_Remove_Old_Entries()
     {
-        // Arrange
-        var logger = new InMemoryAuditLogger();
+        var clock = new FakeTimeProvider(new DateTimeOffset(2025, 1, 15, 0, 0, 0, TimeSpan.Zero));
+        var logger = new InMemoryAuditLogger(clock);
         var oldEntry = new AuditLogEntry
         {
             TenantId = "tenant1",
             UserId = "user1",
             Operation = "Query",
-            Timestamp = DateTime.UtcNow.AddDays(-10)
+            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         };
         await logger.LogQueryAsync(oldEntry);
 
-        // Act
         await logger.PurgeOldLogsAsync(TimeSpan.FromDays(1));
 
-        // Assert
         Assert.Equal(0, logger.Count);
     }
 
@@ -142,20 +141,21 @@ public class InMemoryAuditLoggerTests
     [Fact]
     public async Task PurgeOldLogsAsync_PartialPurge_Throws_AndLeavesLogIntact()
     {
-        var logger = new InMemoryAuditLogger();
+        var clock = new FakeTimeProvider(new DateTimeOffset(2025, 1, 10, 0, 0, 0, TimeSpan.Zero));
+        var logger = new InMemoryAuditLogger(clock);
         var old = new AuditLogEntry
         {
             TenantId = "t",
             UserId = "u",
             Operation = "Query",
-            Timestamp = DateTime.UtcNow.AddDays(-10),
+            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
         };
         var fresh = new AuditLogEntry
         {
             TenantId = "t",
             UserId = "u",
             Operation = "Query",
-            Timestamp = DateTime.UtcNow,
+            Timestamp = new DateTime(2025, 1, 10, 0, 0, 0, DateTimeKind.Utc),
         };
         await logger.LogQueryAsync(old);
         await logger.LogQueryAsync(fresh);
@@ -173,20 +173,21 @@ public class InMemoryAuditLoggerTests
     [Fact]
     public async Task PurgeOldLogsAsync_FullPurge_AllowsFreshChainOnNextAppend()
     {
-        var logger = new InMemoryAuditLogger();
+        var clock = new FakeTimeProvider(new DateTimeOffset(2025, 1, 15, 0, 0, 0, TimeSpan.Zero));
+        var logger = new InMemoryAuditLogger(clock);
         var oldA = new AuditLogEntry
         {
             TenantId = "t",
             UserId = "u",
             Operation = "Query",
-            Timestamp = DateTime.UtcNow.AddDays(-10),
+            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
         };
         var oldB = new AuditLogEntry
         {
             TenantId = "t",
             UserId = "u",
             Operation = "Update",
-            Timestamp = DateTime.UtcNow.AddDays(-9),
+            Timestamp = new DateTime(2025, 1, 2, 0, 0, 0, DateTimeKind.Utc),
         };
         await logger.LogQueryAsync(oldA);
         await logger.LogQueryAsync(oldB);
@@ -308,16 +309,17 @@ public class InMemoryAuditLoggerTests
     public async Task GetComplianceReportAsync_ReturnsSnapshot_NotAffectedBySubsequentWrites()
     {
         var logger = new InMemoryAuditLogger();
-        var windowStart = DateTime.UtcNow.AddMinutes(-10);
-        var windowEnd = DateTime.UtcNow.AddMinutes(10);
+        var entryTs = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        var windowStart = entryTs.AddMinutes(-10);
+        var windowEnd = entryTs.AddMinutes(10);
         for (var i = 0; i < 3; i++)
         {
-            await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" });
+            await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query", Timestamp = entryTs });
         }
 
         var snapshot = await logger.GetComplianceReportAsync(windowStart, windowEnd);
 
-        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query", Timestamp = entryTs });
 
         Assert.Equal(3, snapshot.Count());
     }

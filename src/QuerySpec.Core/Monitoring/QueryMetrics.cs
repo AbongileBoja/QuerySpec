@@ -80,25 +80,33 @@ public class MetricsCollector
 
     private readonly Queue<QueryMetrics> _metrics = new();
     private readonly int _maxRetainedQueries;
+    private readonly TimeProvider _timeProvider;
     private readonly object _lockObj = new();
 
     /// <summary>
     /// Initialises a new metrics collector with the default retention cap of
-    /// <see cref="DefaultMaxRetainedQueries"/> entries.
+    /// <see cref="DefaultMaxRetainedQueries"/> entries using the system clock.
     /// </summary>
-    public MetricsCollector() : this(DefaultMaxRetainedQueries) { }
+    public MetricsCollector() : this(DefaultMaxRetainedQueries, TimeProvider.System) { }
 
     /// <summary>
-    /// Initialises a new metrics collector with a configurable retention cap. When the cap
-    /// is reached, the oldest entry is evicted on each subsequent <see cref="Record"/>.
+    /// Initialises a new metrics collector with a configurable retention cap using the system clock.
     /// </summary>
     /// <param name="maxRetainedQueries">Maximum number of recorded entries retained. Must be positive.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxRetainedQueries"/> is non-positive.</exception>
-    public MetricsCollector(int maxRetainedQueries)
+    public MetricsCollector(int maxRetainedQueries) : this(maxRetainedQueries, TimeProvider.System) { }
+
+    /// <summary>
+    /// Initialises a new metrics collector with a configurable retention cap and time provider.
+    /// Inject a <c>FakeTimeProvider</c> in tests to control the cutoff used by
+    /// <see cref="GetReport"/> without wall-clock waits.
+    /// </summary>
+    public MetricsCollector(int maxRetainedQueries, TimeProvider timeProvider)
     {
         if (maxRetainedQueries <= 0)
             throw new ArgumentOutOfRangeException(nameof(maxRetainedQueries), maxRetainedQueries, "Retention cap must be positive.");
         _maxRetainedQueries = maxRetainedQueries;
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <summary>
@@ -125,7 +133,7 @@ public class MetricsCollector
     public QueryMetricsReport GetReport(TimeSpan? period = null)
     {
         QueryMetrics[] snapshot;
-        DateTime? cutoff = period.HasValue ? DateTime.UtcNow.Subtract(period.Value) : null;
+        DateTime? cutoff = period.HasValue ? _timeProvider.GetUtcNow().UtcDateTime.Subtract(period.Value) : null;
 
         // Take the snapshot under the lock, then aggregate outside it so Record callers are
         // not blocked by the aggregation pass.
