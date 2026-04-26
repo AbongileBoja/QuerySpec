@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace QuerySpec.Core.Caching;
@@ -23,20 +24,20 @@ public class MultiLevelCache : ICacheProvider
     /// <summary>
     /// Gets a value, checking L1 first, then L2. On L2 hit the value is promoted to L1.
     /// </summary>
-    public async Task<T?> GetAsync<T>(string key) where T : class
+    public async ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
-        var result = await _l1.GetAsync<T>(key).ConfigureAwait(false);
+        var result = await _l1.GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
         if (result != null)
         {
             _stats.IncrementHits();
             return result;
         }
 
-        result = await _l2.GetAsync<T>(key).ConfigureAwait(false);
+        result = await _l2.GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
         if (result != null)
         {
             _stats.IncrementHits();
-            await _l1.SetAsync(key, result).ConfigureAwait(false);
+            await _l1.SetAsync(key, result, expiration: null, cancellationToken).ConfigureAwait(false);
             return result;
         }
 
@@ -44,47 +45,41 @@ public class MultiLevelCache : ICacheProvider
         return null;
     }
 
-    /// <summary>
-    /// Sets a value in both L1 and L2 caches.
-    /// </summary>
-    public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class
+    /// <summary>Sets a value in both L1 and L2 caches.</summary>
+    public async ValueTask SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class
     {
-        await _l1.SetAsync(key, value, expiration).ConfigureAwait(false);
-        await _l2.SetAsync(key, value, expiration).ConfigureAwait(false);
+        await _l1.SetAsync(key, value, expiration, cancellationToken).ConfigureAwait(false);
+        await _l2.SetAsync(key, value, expiration, cancellationToken).ConfigureAwait(false);
         _stats.IncrementSets();
     }
 
-    /// <summary>
-    /// Removes a value from both caches.
-    /// </summary>
-    public async Task RemoveAsync(string key)
+    /// <summary>Removes a value from both caches.</summary>
+    public async ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
-        await _l1.RemoveAsync(key).ConfigureAwait(false);
-        await _l2.RemoveAsync(key).ConfigureAwait(false);
+        await _l1.RemoveAsync(key, cancellationToken).ConfigureAwait(false);
+        await _l2.RemoveAsync(key, cancellationToken).ConfigureAwait(false);
         _stats.IncrementRemoves();
     }
 
-    /// <summary>
-    /// Checks if key exists in either cache.
-    /// </summary>
-    public async Task<bool> ExistsAsync(string key)
+    /// <summary>Checks if key exists in either cache.</summary>
+    public async ValueTask<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
-        return await _l1.ExistsAsync(key).ConfigureAwait(false)
-            || await _l2.ExistsAsync(key).ConfigureAwait(false);
+        return await _l1.ExistsAsync(key, cancellationToken).ConfigureAwait(false)
+            || await _l2.ExistsAsync(key, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Flushes both cache levels.
-    /// </summary>
-    public async Task FlushAsync()
+    /// <summary>Flushes both cache levels.</summary>
+    public async ValueTask FlushAsync(CancellationToken cancellationToken = default)
     {
-        await _l1.FlushAsync().ConfigureAwait(false);
-        await _l2.FlushAsync().ConfigureAwait(false);
+        await _l1.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await _l2.FlushAsync(cancellationToken).ConfigureAwait(false);
         _stats.Reset();
     }
 
-    /// <summary>
-    /// Gets a snapshot of aggregate multi-level statistics.
-    /// </summary>
-    public Task<CacheStats> GetStatsAsync() => Task.FromResult(_stats.Snapshot());
+    /// <summary>Gets a snapshot of aggregate multi-level statistics.</summary>
+    public ValueTask<CacheStats> GetStatsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return new ValueTask<CacheStats>(_stats.Snapshot());
+    }
 }
