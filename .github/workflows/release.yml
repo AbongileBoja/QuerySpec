@@ -149,6 +149,23 @@ jobs:
         path: ./TestResults
         retention-days: 14
 
+    - name: Benchmark smoke run
+      env:
+        QUERYSPEC_BENCH_SMOKE: '1'
+      run: |
+        set -euo pipefail
+        dotnet run --project benchmarks/QuerySpec.Benchmarks/QuerySpec.Benchmarks.csproj \
+          --configuration Release --no-build \
+          -- --filter "*Translator*" --exporters json
+
+    - name: Upload benchmark smoke artifacts
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: benchmark-smoke
+        path: BenchmarkDotNet.Artifacts
+        retention-days: 14
+
     - name: Pack
       run: |
         set -euo pipefail
