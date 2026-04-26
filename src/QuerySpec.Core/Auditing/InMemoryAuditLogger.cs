@@ -140,22 +140,64 @@ public class InMemoryAuditLogger : IAuditLogger
     }
 
     /// <summary>
-    /// Purges logs older than specified timespan.
+    /// Purges logs older than the specified timespan, but only when doing so does not break
+    /// the integrity chain. Concretely, a partial purge that would orphan surviving entries
+    /// (their <see cref="AuditLogEntry.PreviousHash"/> would reference a removed entry's
+    /// <see cref="AuditLogEntry.Hash"/>) is refused with <see cref="InvalidOperationException"/>.
     /// </summary>
+    /// <remarks>
+    /// Entries are appended chronologically, so old entries form a contiguous prefix of the log.
+    /// Allowed cases:
+    /// <list type="bullet">
+    ///   <item><description>Nothing to purge — no-op.</description></item>
+    ///   <item><description>All entries are older than the cutoff — log is cleared and the next
+    ///   <see cref="LogQueryAsync"/> starts a fresh chain.</description></item>
+    /// </list>
+    /// Refused case: any partial prefix purge with surviving suffix entries — throws so the
+    /// silent chain-break that this would cause never lands on disk or in a compliance export.
+    /// Hosts that need time-windowed retention with chain integrity must use a logger backed
+    /// by an append-only store with chain re-anchor support.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the requested purge would remove some, but not all, audit entries.
+    /// </exception>
     public Task PurgeOldLogsAsync(TimeSpan olderThan)
     {
         _lockSlim.EnterWriteLock();
         try
         {
+            if (_logs.Count == 0)
+                return Task.CompletedTask;
+
             var cutoff = DateTime.UtcNow.Subtract(olderThan);
-            _logs.RemoveAll(l => l.Timestamp < cutoff);
+            var firstSurvivor = _logs.FindIndex(l => l.Timestamp >= cutoff);
+
+            if (firstSurvivor == -1)
+            {
+                // Every entry is older than the cutoff. Drop the whole log; chain is trivially
+                // intact (next append starts with PreviousHash = null).
+                _logs.Clear();
+                return Task.CompletedTask;
+            }
+
+            if (firstSurvivor == 0)
+            {
+                // Nothing old enough to purge.
+                return Task.CompletedTask;
+            }
+
+            // firstSurvivor > 0 — partial prefix purge would orphan _logs[firstSurvivor..]
+            // from the chain. Refuse rather than silently corrupt the integrity chain.
+            throw new InvalidOperationException(
+                $"Refusing to purge {firstSurvivor} of {_logs.Count} audit entries: doing so would " +
+                $"orphan {_logs.Count - firstSurvivor} survivor(s) from the integrity chain. " +
+                "InMemoryAuditLogger only supports purging the entire log (e.g. when every entry is older than the cutoff) or no-op purges. " +
+                "For time-windowed retention with chain integrity, use a logger backed by an append-only store with chain re-anchor support.");
         }
         finally
         {
             _lockSlim.ExitWriteLock();
         }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>Gets the current count of audit entries.</summary>
