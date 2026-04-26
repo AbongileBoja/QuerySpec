@@ -1,6 +1,10 @@
 {
   "header": "# Changelog\n\nAll notable changes to QuerySpec are documented here. Generated from Conventional Commits by `standard-version`.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).\n",
   "tag-prefix": "v",
+  "commit-all": true,
+  "scripts": {
+    "postbump": "node scripts/postbump-baseline.mjs"
+  },
   "types": [
     { "type": "feat",     "section": "Features" },
     { "type": "fix",      "section": "Bug Fixes" },
