@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -31,6 +32,13 @@ public class N1DetectionEngine
     /// <summary>Maximum characters of stack trace preview to retain per pattern.</summary>
     public int StackPreviewChars { get; set; } = 512;
 
+    /// <summary>
+    /// Maximum number of managed stack frames sampled per <see cref="RecordQuery"/> call. The
+    /// preview and hash key derive from these frames; frames beyond this depth are not consulted.
+    /// Bounded so the per-call cost is constant regardless of call depth.
+    /// </summary>
+    public int MaxStackFrames { get; set; } = 16;
+
     private sealed class QueryInfo
     {
         public string StackPreview = string.Empty;
@@ -48,9 +56,15 @@ public class N1DetectionEngine
     /// <summary>
     /// Records a query execution. Safe to call from multiple threads.
     /// </summary>
+    /// <remarks>
+    /// Captures up to <see cref="MaxStackFrames"/> managed frames via <see cref="StackTrace"/> with
+    /// <c>fNeedFileInfo: false</c>; full <see cref="Environment.StackTrace"/> (which formats every
+    /// frame and resolves PDB info) is not used because its multi-microsecond per-call cost can
+    /// exceed the cost of fast queries it's meant to track.
+    /// </remarks>
     public void RecordQuery(string sql, long executionTimeMs)
     {
-        var stack = Environment.StackTrace;
+        var stack = BuildStackPreview();
         var key = ComputeHash(stack);
         var preview = stack.Length > StackPreviewChars ? stack.Substring(0, StackPreviewChars) : stack;
 
@@ -129,6 +143,28 @@ public class N1DetectionEngine
         Span<byte> hash = stackalloc byte[32];
         SHA256.HashData(Encoding.UTF8.GetBytes(input), hash);
         return Convert.ToHexString(hash);
+    }
+
+    private string BuildStackPreview()
+    {
+        // skipFrames: 1 elides BuildStackPreview; the immediate caller (RecordQuery) is included
+        // because it's a stable anchor that helps disambiguate callers who instrument the engine
+        // through their own helper.
+        var st = new StackTrace(skipFrames: 1, fNeedFileInfo: false);
+        var frameCount = Math.Min(st.FrameCount, MaxStackFrames);
+        if (frameCount == 0) return string.Empty;
+
+        var sb = new StringBuilder(MaxStackFrames * 64);
+        for (var i = 0; i < frameCount; i++)
+        {
+            var method = st.GetFrame(i)?.GetMethod();
+            if (method is null) continue;
+            sb.Append(method.DeclaringType?.FullName ?? "?");
+            sb.Append('.');
+            sb.Append(method.Name);
+            sb.Append('\n');
+        }
+        return sb.ToString();
     }
 }
 
