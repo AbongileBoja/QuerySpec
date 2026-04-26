@@ -257,6 +257,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write
     steps:
     - name: Download packages
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
@@ -269,13 +270,19 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
+    - name: Login to NuGet.org via OIDC
+      id: nuget-login
+      uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841  # v1.2.0
+      with:
+        user: ${{ vars.NUGET_USER }}
+
     - name: Push to NuGet.org
       env:
-        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
       run: |
         set -euo pipefail
         if [[ -z "${NUGET_API_KEY:-}" ]]; then
-          echo "::error::NUGET_API_KEY secret is not set." >&2
+          echo "::error::OIDC login did not return a NuGet API key. Verify the trusted-publisher entry on nuget.org." >&2
           exit 1
         fi
         for pkg in ./artifacts/*.nupkg; do
