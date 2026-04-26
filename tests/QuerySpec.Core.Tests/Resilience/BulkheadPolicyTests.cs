@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,5 +59,28 @@ public class BulkheadPolicyTests
 
         // Assert
         Assert.Equal(5, policy.MaxConcurrentRequests);
+    }
+
+    /// <summary>Dispose releases the backing SemaphoreSlim. Idempotent.</summary>
+    [Fact]
+    public void Dispose_Idempotent_DoesNotThrow()
+    {
+        var policy = new BulkheadPolicy(2);
+        policy.Dispose();
+        policy.Dispose();
+    }
+
+    /// <summary>
+    /// After disposal, calling ExecuteAsync surfaces ObjectDisposedException from the
+    /// disposed SemaphoreSlim — failing loudly rather than silently mis-acquiring.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteAsync_AfterDispose_ThrowsObjectDisposed()
+    {
+        var policy = new BulkheadPolicy(2);
+        policy.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() =>
+            policy.ExecuteAsync(() => Task.FromResult(42)));
     }
 }
