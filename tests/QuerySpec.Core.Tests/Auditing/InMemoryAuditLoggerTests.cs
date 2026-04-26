@@ -323,4 +323,132 @@ public class InMemoryAuditLoggerTests
 
         Assert.Equal(3, snapshot.Count());
     }
+
+    [Fact]
+    public async Task GetAuditsByRequestAsync_ReturnsOnlyMatchingRequestId()
+    {
+        var logger = new InMemoryAuditLogger();
+        var ts = new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", RequestId = "req-A", Operation = "Query", Timestamp = ts });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", RequestId = "req-B", Operation = "Query", Timestamp = ts });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", RequestId = "req-A", Operation = "Update", Timestamp = ts });
+
+        var results = (await logger.GetAuditsByRequestAsync("req-A")).ToList();
+
+        Assert.Equal(2, results.Count);
+        Assert.All(results, e => Assert.Equal("req-A", e.RequestId));
+    }
+
+    [Fact]
+    public async Task GetAuditsByUserAsync_NoSince_ReturnsAllForUser()
+    {
+        var logger = new InMemoryAuditLogger();
+        var ts = new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "alice", Operation = "Query", Timestamp = ts });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "bob", Operation = "Query", Timestamp = ts });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "alice", Operation = "Update", Timestamp = ts });
+
+        var results = (await logger.GetAuditsByUserAsync("alice")).ToList();
+
+        Assert.Equal(2, results.Count);
+        Assert.All(results, e => Assert.Equal("alice", e.UserId));
+    }
+
+    [Fact]
+    public async Task GetAuditsByUserAsync_WithSince_FiltersOnTimestampBoundary()
+    {
+        var logger = new InMemoryAuditLogger();
+        var boundary = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        var before = boundary.AddSeconds(-1);
+        var at = boundary;
+        var after = boundary.AddSeconds(1);
+
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "A", Timestamp = before });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "B", Timestamp = at });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "C", Timestamp = after });
+
+        var results = (await logger.GetAuditsByUserAsync("u", since: boundary)).ToList();
+
+        // since is inclusive (implementation uses >=)
+        Assert.Equal(2, results.Count);
+        Assert.Contains(results, e => e.Timestamp == at);
+        Assert.Contains(results, e => e.Timestamp == after);
+        Assert.DoesNotContain(results, e => e.Timestamp == before);
+    }
+
+    [Fact]
+    public async Task GetAuditsByTenantAsync_NoSince_ReturnsAllForTenant()
+    {
+        var logger = new InMemoryAuditLogger();
+        var ts = new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "tenant-X", UserId = "u", Operation = "Query", Timestamp = ts });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "tenant-Y", UserId = "u", Operation = "Query", Timestamp = ts });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "tenant-X", UserId = "u", Operation = "Update", Timestamp = ts });
+
+        var results = (await logger.GetAuditsByTenantAsync("tenant-X")).ToList();
+
+        Assert.Equal(2, results.Count);
+        Assert.All(results, e => Assert.Equal("tenant-X", e.TenantId));
+    }
+
+    [Fact]
+    public async Task GetAuditsByTenantAsync_WithSince_FiltersOnTimestampBoundary()
+    {
+        var logger = new InMemoryAuditLogger();
+        var boundary = new DateTime(2025, 9, 15, 8, 0, 0, DateTimeKind.Utc);
+        var before = boundary.AddSeconds(-1);
+        var at = boundary;
+        var after = boundary.AddSeconds(1);
+
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "A", Timestamp = before });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "B", Timestamp = at });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "C", Timestamp = after });
+
+        var results = (await logger.GetAuditsByTenantAsync("t", since: boundary)).ToList();
+
+        // since is inclusive (implementation uses >=)
+        Assert.Equal(2, results.Count);
+        Assert.Contains(results, e => e.Timestamp == at);
+        Assert.Contains(results, e => e.Timestamp == after);
+        Assert.DoesNotContain(results, e => e.Timestamp == before);
+    }
+
+    [Fact]
+    public async Task GetComplianceReportAsync_WithinRange_ReturnsAscendingOrder()
+    {
+        var logger = new InMemoryAuditLogger();
+        var base1 = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var t1 = base1.AddHours(3);
+        var t2 = base1.AddHours(1);
+        var t3 = base1.AddHours(2);
+        var outside = base1.AddHours(5);
+
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "A", Timestamp = t1 });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "B", Timestamp = t2 });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "C", Timestamp = t3 });
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "D", Timestamp = outside });
+
+        var from = base1;
+        var to = base1.AddHours(4);
+        var results = (await logger.GetComplianceReportAsync(from, to)).ToList();
+
+        Assert.Equal(3, results.Count);
+        Assert.DoesNotContain(results, e => e.Timestamp == outside);
+        Assert.Equal(t2, results[0].Timestamp);
+        Assert.Equal(t3, results[1].Timestamp);
+        Assert.Equal(t1, results[2].Timestamp);
+    }
+
+    [Fact]
+    public async Task LogChangeAsync_InvalidFieldChange_Throws()
+    {
+        var logger = new InMemoryAuditLogger();
+        var invalidChange = new FieldChange
+        {
+            FieldName = "",
+            ChangedBy = "user1"
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => logger.LogChangeAsync(invalidChange));
+    }
 }
