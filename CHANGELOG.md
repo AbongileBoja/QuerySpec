@@ -9,7 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/) and this 
 
 ### ⚠ BREAKING CHANGES
 
-* **core:** ICacheProvider returns ValueTask, AssemblyVersion -> 3.0.0.0 (#115)
+* **core:** `ICacheProvider` async members return `ValueTask` instead of `Task`. Every method on the interface (`GetAsync`, `SetAsync`, `RemoveAsync`, `ExistsAsync`, `FlushAsync`, `GetStatsAsync`) is affected. Callers that simply `await` continue to work unchanged; code that captures the returned task explicitly must call `.AsTask()` to convert. Custom `ICacheProvider` implementations must update their return types. ([#115](https://github.com/AbongileBoja/QuerySpec/pull/115))
+* **core:** `AssemblyVersion` bumped from `2.x.x.x` to `3.0.0.0`. Update any strong-name binding redirects or `[assembly: AssemblyVersion]`-pinned references.
 
 ### Features
 
@@ -59,52 +60,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/) and this 
 
 ### ⚠ BREAKING CHANGES
 
-* **security:** `!` marker for the changelog.
-
-329/329 Core tests pass on net8/net9/net10.
-* **security:** every type listed above moved from
-`HostEngine.NestedType` to top-level `NestedType` in the same
-namespace. Consumers must remove the `HostEngine.` qualifier — the
-namespace stays the same, so a `using QuerySpec.Core.Security;` (or
-`QuerySpec.Core.Resilience;`) keeps everything in scope.
-* **di:** PluginBuilder is removed. QuerySpecBuilder.WithPlugins
-is removed. MonitoringBuilder.EnableDashboard and
-MonitoringBuilder.EnablePrometheus are removed. Every other no-op
-listed above now throws NotImplementedException when called and
-carries [Obsolete]. ApplyAggregation throws on non-null aggregation
-where it previously returned the input unchanged.
-* **security:** AesEncryptionProvider.RotateKeyAsync now throws
-NotSupportedException instead of returning a no-op success. The
-class is also marked [Obsolete] — callers should migrate to
-AesGcmEncryptionProvider for new ciphertexts. Existing ciphertexts
-encrypted under AesEncryptionProvider must be re-encrypted with the
-* **auditing:** AuditLogEntry properties (other than Id and
-ErrorMessage) are now init-only. Hash and PreviousHash setters are
-private. Code that mutated entry properties after creation must move
-the mutation into the object initializer or build a fresh entry.
-ComputeHash() is obsolete; callers should use Seal(previousHash)
-which an IAuditLogger implementation owns.
-* **security:** callers using HashMask must now supply a hash key
-to the constructor or registration will throw. Existing 8-character
-mask outputs cannot be migrated automatically — old SHA-256-truncated
-values are not reversible. Document the change in the rotation
-release notes; consumers persisting masked values should re-mask
-new outputs and rotate any join keys built on the old algorithm.
-
-Adds 14 new tests covering: short-key rejection, missing-key
-registration failure, full output length, key-determinism,
-cross-key separation, cross-tenant separation, same-tenant
-determinism, null and empty tenantId equivalence, and key-clone
-isolation. Final count: 224 Core tests on net8/9/10 (was 210).
-* **security:** the strong-name public key token has changed. Any
-consumer that pinned [InternalsVisibleTo] on the old token, used
-binding redirects against it, or resolved QuerySpec assemblies via the
-GAC must update their references against the new token.
-* **security:** code that relied on the implicit fail-open default
-(missing policy returning AllowAll) must now either pass
-RLSDefaultBehavior.AllowAll to the constructor or call
-RegisterUnrestricted<T>(resourceType) per resource that should
-bypass RLS.
+* **security:** nested public types in `QuerySpec.Core.Security` and `QuerySpec.Core.Resilience` are now top-level. Drop the `HostEngine.` qualifier from usages; existing `using` directives stay valid since the namespace is unchanged.
+* **di:** `PluginBuilder`, `QuerySpecBuilder.WithPlugins`, `MonitoringBuilder.EnableDashboard`, and `MonitoringBuilder.EnablePrometheus` are removed. Other no-op builder stubs now throw `NotImplementedException` and carry `[Obsolete]`; `ApplyAggregation` throws on non-null aggregation where it previously returned the input unchanged. Remove the calls or replace with concrete implementations.
+* **security:** `AesEncryptionProvider.RotateKeyAsync` now throws `NotSupportedException`; the class is marked `[Obsolete]`. New ciphertexts should use `AesGcmEncryptionProvider`. Existing ciphertexts encrypted under `AesEncryptionProvider` must be re-encrypted under the new provider — there is no automatic upgrade path.
+* **auditing:** `AuditLogEntry` properties (other than `Id` and `ErrorMessage`) are now `init`-only; `Hash` and `PreviousHash` setters are `private`. `ComputeHash()` is `[Obsolete]`. Move post-construction mutations into the object initializer or build a fresh entry, and call `Seal(previousHash)` (owned by `IAuditLogger`) instead of `ComputeHash()`.
+* **security:** `HashMask` now requires a hash key at construction or registration. Output length is no longer 8 characters, and old SHA-256-truncated values are not reversibly migratable. Pass a hash key to the constructor, re-mask persisted values, and rotate any join keys built on the old algorithm.
+* **security:** the strong-name public key has been rotated. Update any `[InternalsVisibleTo]` pins, binding redirects, or GAC-resolved references to the new token.
+* **security:** `RowLevelSecurityEngine` fails closed by default — a missing policy denies access instead of permitting it. Either pass `RLSDefaultBehavior.AllowAll` to the engine constructor or call `RegisterUnrestricted<T>(resourceType)` per resource that should bypass RLS.
 
 ### Features
 
