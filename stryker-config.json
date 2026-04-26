@@ -1,0 +1,35 @@
+{
+  "_comment": "Mutation testing scoped to security paths. Local run (from repo root): QUERYSPEC_SKIP_SIGN=true dotnet stryker --config-file stryker-config.json. First run scoped to three highest-value security classes; MigratingAuthenticatedEncryptionProvider is excluded because its ArrayPool/Span CopyTo overloads trigger a known Stryker 4.x ambiguous-overload compile error in the mutated assembly. See GitHub issue #76.",
+  "stryker-config": {
+    "project": "QuerySpec.Core.csproj",
+    "test-projects": [
+      "tests/QuerySpec.Core.Tests/QuerySpec.Core.Tests.csproj"
+    ],
+    "target-framework": "net9.0",
+    "mutation-level": "Standard",
+    "configuration": "Release",
+    "coverage-analysis": "off",
+    "ignore-mutations": [
+      "linq"
+    ],
+    "ignore-methods": [
+      "RegisterUnrestricted",
+      "EscapeSqlLiteral"
+    ],
+    "mutate": [
+      "src/QuerySpec.Core/Security/AesGcmEncryptionProvider.cs",
+      "src/QuerySpec.Core/Security/DataMaskingEngine.cs",
+      "src/QuerySpec.Core/Security/RowLevelSecurityEngine.cs"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 50
+    },
+    "reporters": [
+      "html",
+      "progress",
+      "json"
+    ]
+  }
+}
