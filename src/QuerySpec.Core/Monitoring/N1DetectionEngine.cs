@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -203,6 +204,7 @@ public class SuspiciousPattern
 /// <summary>
 /// Health check provider for dependency health.
 /// </summary>
+/// <remarks>No concrete implementation ships in this version. Tracked for evaluation in 3.0.</remarks>
 public interface IHealthCheckProvider
 {
     /// <summary>Checks database health.</summary>
@@ -218,6 +220,8 @@ public interface IHealthCheckProvider
 /// <summary>
 /// Health status of a component.
 /// </summary>
+/// <remarks>No concrete implementation ships in this version. Tracked for evaluation in 3.0.</remarks>
+[ExcludeFromCodeCoverage]
 public class HealthStatus
 {
     /// <summary>Whether the component is healthy.</summary>
