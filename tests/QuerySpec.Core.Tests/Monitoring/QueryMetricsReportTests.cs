@@ -75,10 +75,58 @@ public class QueryMetricsReportTests
             ExecutedAt = DateTime.UtcNow.AddHours(-2)
         });
 
-        // Looking at the last millisecond, nothing qualifies but .Average throws on empty —
-        // so this documents the current contract: callers must ensure at least one match.
-        Assert.Throws<InvalidOperationException>(() =>
-            collector.GetReport(TimeSpan.FromMilliseconds(1)));
+        var report = collector.GetReport(TimeSpan.FromMilliseconds(1));
+
+        Assert.Equal(0, report.TotalQueries);
+        Assert.Equal(0, report.AverageExecutionTimeMs);
+        Assert.Equal(0, report.SlowQueries);
+        Assert.Equal(0, report.CacheHitRate);
+        Assert.Null(report.MostExpensiveQuery);
+    }
+
+    [Fact]
+    public void GetReport_EmptyCollector_ReturnsZeroValuedReport_DoesNotThrow()
+    {
+        var collector = new MetricsCollector();
+
+        var report = collector.GetReport();
+
+        Assert.Equal(0, report.TotalQueries);
+        Assert.Equal(0, report.AverageExecutionTimeMs);
+        Assert.Equal(0, report.AverageComplexityScore);
+        Assert.Equal(0, report.CacheHitRate);
+        Assert.Null(report.MostExpensiveQuery);
+    }
+
+    [Fact]
+    public void Record_BeyondRetentionCap_DropsOldestEntries()
+    {
+        var collector = new MetricsCollector(maxRetainedQueries: 5);
+        for (var i = 0; i < 12; i++)
+        {
+            collector.Record(new QueryMetrics { ExecutionTimeMs = i });
+        }
+
+        var report = collector.GetReport();
+
+        // Only the most recent 5 entries (i = 7..11) survive.
+        Assert.Equal(5, report.TotalQueries);
+        Assert.Equal(11, report.MostExpensiveQuery?.ExecutionTimeMs);
+        Assert.Equal((7 + 8 + 9 + 10 + 11) / 5.0, report.AverageExecutionTimeMs);
+    }
+
+    [Fact]
+    public void Constructor_NonPositiveCap_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new MetricsCollector(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new MetricsCollector(-1));
+    }
+
+    [Fact]
+    public void Record_NullMetrics_Throws()
+    {
+        var collector = new MetricsCollector();
+        Assert.Throws<ArgumentNullException>(() => collector.Record(null!));
     }
 
     [Fact]
