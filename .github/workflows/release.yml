@@ -111,7 +111,9 @@ jobs:
         echo "Releasing version $version from tag $tag"
 
     - name: Restore
-      run: dotnet restore QuerySpec.sln
+      run: >
+        dotnet restore QuerySpec.sln
+        -p:Version=${{ steps.version.outputs.version }}
 
     - name: Build
       run: >
