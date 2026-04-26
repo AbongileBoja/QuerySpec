@@ -5,8 +5,11 @@
     <!-- Target frameworks for all projects -->
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
 
-    <!-- Single version for all packages -->
-    <Version>1.1.0</Version>
+    <!-- Sentinel version for local builds. The release pipeline (.github/workflows/release.yml)
+         passes -p:Version=<tag> on every dotnet build/pack. A local 'dotnet pack' produces
+         '0.0.0-local' packages, which are obviously non-released and cannot be confused with
+         anything published to NuGet. -->
+    <Version>0.0.0-local</Version>
 
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
