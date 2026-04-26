@@ -55,6 +55,25 @@ public class QuerySpecExpressionTranslator
     private static readonly ConcurrentDictionary<(Type, string), PropertyInfo> PropertyCache = new();
 
     /// <summary>
+    /// Maximum number of distinct closed <c>Nullable&lt;T&gt;</c> types whose
+    /// <c>HasValue</c> / <c>Value</c> <see cref="PropertyInfo"/> pairs are cached.
+    /// Bounded to match <see cref="PropertyCacheCapacity"/>; in practice the set is tiny
+    /// (one entry per distinct nullable value type in the entity graph).
+    /// </summary>
+    internal const int NullablePropertyInfoCacheCapacity = 4096;
+
+    private static readonly ConcurrentDictionary<Type, (PropertyInfo HasValue, PropertyInfo Value)> NullablePropertyInfoCache = new();
+
+    private static (PropertyInfo HasValue, PropertyInfo Value) GetNullablePropertyInfos(Type nullableType)
+    {
+        if (NullablePropertyInfoCache.Count >= NullablePropertyInfoCacheCapacity)
+            NullablePropertyInfoCache.Clear();
+
+        return NullablePropertyInfoCache.GetOrAdd(nullableType, static t =>
+            (t.GetProperty("HasValue")!, t.GetProperty("Value")!));
+    }
+
+    /// <summary>
     /// Maximum number of distinct compiled filter predicates retained in the cache before
     /// bulk eviction. Entries are cheap to rebuild; capacity bounds worst-case memory at
     /// roughly a few MB even with complex trees.
@@ -280,8 +299,9 @@ public class QuerySpecExpressionTranslator
 
         if (isNullable && underlyingType.IsValueType)
         {
-            var hasValue = Expression.Property(property, propertyType.GetProperty("HasValue")!);
-            var valueAccess = Expression.Property(property, propertyType.GetProperty("Value")!);
+            var (hvProp, valProp) = GetNullablePropertyInfos(propertyType);
+            var hasValue = Expression.Property(property, hvProp);
+            var valueAccess = Expression.Property(property, valProp);
             var underlyingConstant = Expression.Constant(converted, underlyingType);
 
             Expression comparison = op switch
@@ -339,7 +359,8 @@ public class QuerySpecExpressionTranslator
 
         if (isNullable)
         {
-            var hasValue = Expression.Property(property, property.Type.GetProperty("HasValue")!);
+            var (hvProp, _) = GetNullablePropertyInfos(property.Type);
+            var hasValue = Expression.Property(property, hvProp);
             return Expression.AndAlso(hasValue, call);
         }
 
@@ -371,7 +392,8 @@ public class QuerySpecExpressionTranslator
 
         if (isNullable)
         {
-            var hasValue = Expression.Property(property, property.Type.GetProperty("HasValue")!);
+            var (hvProp, _) = GetNullablePropertyInfos(property.Type);
+            var hasValue = Expression.Property(property, hvProp);
             return Expression.AndAlso(hasValue, call);
         }
 
@@ -407,7 +429,8 @@ public class QuerySpecExpressionTranslator
 
         if (isNullable && underlyingType.IsValueType)
         {
-            var hasValue = Expression.Property(property, propertyType.GetProperty("HasValue")!);
+            var (hvProp, _) = GetNullablePropertyInfos(propertyType);
+            var hasValue = Expression.Property(property, hvProp);
             return Expression.AndAlso(hasValue, containsCall);
         }
 
@@ -425,8 +448,9 @@ public class QuerySpecExpressionTranslator
 
         if (isNullable && underlyingType.IsValueType)
         {
-            var hasValue = Expression.Property(property, propertyType.GetProperty("HasValue")!);
-            var valueAccess = Expression.Property(property, propertyType.GetProperty("Value")!);
+            var (hvProp, valProp) = GetNullablePropertyInfos(propertyType);
+            var hasValue = Expression.Property(property, hvProp);
+            var valueAccess = Expression.Property(property, valProp);
             var fromExpr = Expression.Constant(from, underlyingType);
             var toExpr = Expression.Constant(to, underlyingType);
 
@@ -453,7 +477,8 @@ public class QuerySpecExpressionTranslator
     {
         if (isNullable)
         {
-            var hasValue = Expression.Property(property, property.Type.GetProperty("HasValue")!);
+            var (hvProp, _) = GetNullablePropertyInfos(property.Type);
+            var hasValue = Expression.Property(property, hvProp);
             return Expression.Not(hasValue);
         }
 
@@ -464,8 +489,9 @@ public class QuerySpecExpressionTranslator
     {
         if (isNullable)
         {
-            var hasValue = Expression.Property(property, property.Type.GetProperty("HasValue")!);
-            var valueAccess = Expression.Property(property, property.Type.GetProperty("Value")!);
+            var (hvProp, valProp) = GetNullablePropertyInfos(property.Type);
+            var hasValue = Expression.Property(property, hvProp);
+            var valueAccess = Expression.Property(property, valProp);
             return Expression.OrElse(
                 Expression.Not(hasValue),
                 Expression.Equal(valueAccess, Expression.Constant(string.Empty, property.Type)));
@@ -485,8 +511,9 @@ public class QuerySpecExpressionTranslator
 
         if (isNullable)
         {
-            var hasValue = Expression.Property(property, property.Type.GetProperty("HasValue")!);
-            var valueAccess = Expression.Property(property, property.Type.GetProperty("Value")!);
+            var (hvProp, valProp) = GetNullablePropertyInfos(property.Type);
+            var hasValue = Expression.Property(property, hvProp);
+            var valueAccess = Expression.Property(property, valProp);
             var rangeCheck = Expression.AndAlso(
                 Expression.GreaterThanOrEqual(valueAccess, fromExpr),
                 Expression.LessThanOrEqual(valueAccess, toExpr));
@@ -508,8 +535,9 @@ public class QuerySpecExpressionTranslator
 
         if (isNullable)
         {
-            var hasValue = Expression.Property(property, property.Type.GetProperty("HasValue")!);
-            var valueAccess = Expression.Property(property, property.Type.GetProperty("Value")!);
+            var (hvProp, valProp) = GetNullablePropertyInfos(property.Type);
+            var hasValue = Expression.Property(property, hvProp);
+            var valueAccess = Expression.Property(property, valProp);
             Expression comparison = op switch
             {
                 ExpressionType.GreaterThan => Expression.GreaterThan(valueAccess, constant),
@@ -541,8 +569,9 @@ public class QuerySpecExpressionTranslator
 
         if (isNullable)
         {
-            var hasValue = Expression.Property(property, property.Type.GetProperty("HasValue")!);
-            var valueAccess = Expression.Property(property, property.Type.GetProperty("Value")!);
+            var (hvProp, valProp) = GetNullablePropertyInfos(property.Type);
+            var hasValue = Expression.Property(property, hvProp);
+            var valueAccess = Expression.Property(property, valProp);
             var rangeCheck = Expression.AndAlso(
                 Expression.GreaterThanOrEqual(valueAccess, dayStartExpr),
                 Expression.LessThan(valueAccess, dayEndExpr));

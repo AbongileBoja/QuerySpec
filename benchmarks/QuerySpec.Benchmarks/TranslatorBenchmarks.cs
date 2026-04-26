@@ -19,6 +19,11 @@ public class TranslatorBenchmarks
     private AdvancedFilterExpression _deepNested = null!;
     private AdvancedFilterExpression _inLarge = null!;
 
+    private IQueryable<WidgetWithNullable> _nullableSource = null!;
+    private AdvancedFilterExpression _nullableGreaterThan = null!;
+    private AdvancedFilterExpression _nullableIsNull = null!;
+    private AdvancedFilterExpression _nullableBetween = null!;
+
     /// <summary>Seeds fixtures used by all benchmarks in this class.</summary>
     [GlobalSetup]
     public void Setup()
@@ -83,6 +88,37 @@ public class TranslatorBenchmarks
             Operator = FilterOperator.In,
             Value = Enumerable.Range(0, 100).Select(i => (object)i).ToArray()
         };
+
+        _nullableSource = Enumerable.Range(0, 1000)
+            .Select(i => new WidgetWithNullable
+            {
+                Id = i,
+                Name = $"w{i}",
+                OptionalAge = i % 3 == 0 ? null : (int?)i,
+                RegisteredAt = i % 5 == 0 ? null : (DateTime?)DateTime.UtcNow.AddDays(-i)
+            })
+            .AsQueryable();
+
+        _nullableGreaterThan = new AdvancedFilterExpression
+        {
+            Field = "OptionalAge",
+            Operator = FilterOperator.GreaterThan,
+            Value = 30
+        };
+
+        _nullableIsNull = new AdvancedFilterExpression
+        {
+            Field = "OptionalAge",
+            Operator = FilterOperator.IsNull
+        };
+
+        _nullableBetween = new AdvancedFilterExpression
+        {
+            Field = "OptionalAge",
+            Operator = FilterOperator.Between,
+            Value = 10,
+            ValueTo = 50
+        };
     }
 
     /// <summary>Simplest predicate: single equality on a string column.</summary>
@@ -119,6 +155,32 @@ public class TranslatorBenchmarks
     public int DeepNested_Cached()
         => QuerySpecExpressionTranslator.ApplyFilterCached(_source, _deepNested).Count();
 
+    /// <summary>
+    /// Nullable int property with GreaterThan — exercises the HasValue + Value path in
+    /// BuildComparison. On a warm cache this must show zero allocations in the inner loop.
+    /// </summary>
+    [Benchmark]
+    public int NullableGreaterThan()
+        => QuerySpecExpressionTranslator.ApplyFilter(_nullableSource, _nullableGreaterThan).Count();
+
+    /// <summary>IsNull on a nullable int — exercises BuildIsNull HasValue path.</summary>
+    [Benchmark]
+    public int NullableIsNull()
+        => QuerySpecExpressionTranslator.ApplyFilter(_nullableSource, _nullableIsNull).Count();
+
+    /// <summary>Between on a nullable int — exercises BuildBetween HasValue + Value path.</summary>
+    [Benchmark]
+    public int NullableBetween()
+        => QuerySpecExpressionTranslator.ApplyFilter(_nullableSource, _nullableBetween).Count();
+
+    /// <summary>
+    /// NullableGreaterThan via the cached predicate path — the steady-state case for real
+    /// API workloads. Inner loop should show zero allocations.
+    /// </summary>
+    [Benchmark]
+    public int NullableGreaterThan_Cached()
+        => QuerySpecExpressionTranslator.ApplyFilterCached(_nullableSource, _nullableGreaterThan).Count();
+
     /// <summary>Simple entity used for translator benchmarks.</summary>
     public sealed class Widget
     {
@@ -130,5 +192,18 @@ public class TranslatorBenchmarks
         public decimal Price { get; set; }
         /// <summary>Category bucket.</summary>
         public string Category { get; set; } = string.Empty;
+    }
+
+    /// <summary>Entity with nullable value-type properties for nullable-operator benchmarks.</summary>
+    public sealed class WidgetWithNullable
+    {
+        /// <summary>Identifier.</summary>
+        public int Id { get; set; }
+        /// <summary>Display name.</summary>
+        public string Name { get; set; } = string.Empty;
+        /// <summary>Optional age — nullable int, exercises HasValue/Value cache paths.</summary>
+        public int? OptionalAge { get; set; }
+        /// <summary>Optional registration date — nullable DateTime, exercises date operator paths.</summary>
+        public DateTime? RegisteredAt { get; set; }
     }
 }
