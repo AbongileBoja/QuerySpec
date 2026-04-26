@@ -88,49 +88,81 @@ public class TranslatorSqliteTests : IDisposable
     }
 
     /// <summary>
-    /// <b>Currently fails translation against real SQL providers.</b> <c>FilterOperator.Contains</c>
-    /// routes through <c>StringHelper.Contains</c>, a static helper EF Core does not know how
-    /// to map to SQL <c>LIKE</c>. Against InMemory the predicate runs as LINQ-to-Objects and
-    /// silently passes; against SQLite it throws <c>InvalidOperationException</c>.
+    /// Case-insensitive Contains translates to SQL LIKE via <c>EF.Functions.Like</c>. Matches
+    /// both "Alpha" (Id=1) and "alphabet" (Id=3) because the pattern is <c>%lph%</c>.
     /// </summary>
-    /// <remarks>
-    /// This test asserts the current (broken) behavior so the failure is documented as a
-    /// concrete regression test. When the translator is fixed (route through <c>EF.Functions.Like</c>
-    /// or <c>string.Contains</c> directly), this test will need to be flipped to assert success.
-    /// Tracked as a follow-up to test-engineer audit #71.
-    /// </remarks>
     [Fact]
-    public void StringContains_DoesNotYetTranslate_AgainstRealProvider()
+    public void StringContains_CaseInsensitive_Translates_To_Sql()
     {
-        var filter = new AdvancedFilterExpression
+        var result = Run(new AdvancedFilterExpression
         {
             Field = "Name",
             Operator = FilterOperator.Contains,
             Value = "lph",
             CaseSensitive = false,
-        };
+        });
 
-        var ex = Assert.Throws<InvalidOperationException>(() => Run(filter));
-        Assert.Contains("StringHelper.Contains", ex.Message, StringComparison.Ordinal);
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, w => w.Id == 1);
+        Assert.Contains(result, w => w.Id == 3);
     }
 
     /// <summary>
-    /// <b>Currently fails translation.</b> Same shape as the <c>Contains</c> defect — see
-    /// <see cref="StringContains_DoesNotYetTranslate_AgainstRealProvider"/>.
+    /// Case-insensitive StartsWith translates to SQL LIKE with a trailing <c>%</c>. Matches
+    /// both "Alpha" (Id=1) and "alphabet" (Id=3); case-folding is handled by SQLite's LIKE.
     /// </summary>
     [Fact]
-    public void StringStartsWith_DoesNotYetTranslate_AgainstRealProvider()
+    public void StringStartsWith_CaseInsensitive_Translates_To_Sql()
     {
-        var filter = new AdvancedFilterExpression
+        var result = Run(new AdvancedFilterExpression
         {
             Field = "Name",
             Operator = FilterOperator.StartsWith,
             Value = "alph",
             CaseSensitive = false,
-        };
+        });
 
-        var ex = Assert.Throws<InvalidOperationException>(() => Run(filter));
-        Assert.Contains("StringHelper.StartsWith", ex.Message, StringComparison.Ordinal);
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, w => w.Id == 1);
+        Assert.Contains(result, w => w.Id == 3);
+    }
+
+    /// <summary>
+    /// Case-insensitive EndsWith translates to SQL LIKE with a leading <c>%</c>. Matches
+    /// "alphabet" (Id=3) but not "Alpha" (Id=1) — the suffix "bet" is unique to Id=3.
+    /// </summary>
+    [Fact]
+    public void StringEndsWith_CaseInsensitive_Translates_To_Sql()
+    {
+        var result = Run(new AdvancedFilterExpression
+        {
+            Field = "Name",
+            Operator = FilterOperator.EndsWith,
+            Value = "bet",
+            CaseSensitive = false,
+        });
+
+        Assert.Single(result);
+        Assert.Equal(3, result[0].Id);
+    }
+
+    /// <summary>
+    /// Case-sensitive Contains uses <c>string.Contains(value)</c> directly, which EF Core maps
+    /// to a SQL predicate. "Alpha" contains "lph"; "alphabet" also contains "lph" case-sensitively.
+    /// </summary>
+    [Fact]
+    public void StringContains_CaseSensitive_Translates_To_Sql()
+    {
+        var result = Run(new AdvancedFilterExpression
+        {
+            Field = "Name",
+            Operator = FilterOperator.Contains,
+            Value = "lph",
+            CaseSensitive = true,
+        });
+
+        Assert.Equal(2, result.Count);
+        Assert.All(result, w => Assert.Contains("lph", w.Name, StringComparison.Ordinal));
     }
 
     /// <summary>Numeric comparison on int translates cleanly.</summary>
