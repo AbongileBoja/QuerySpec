@@ -640,14 +640,30 @@ public class QuerySpecExpressionTranslator
     /// <summary>Helper class for regex operations in EF Core-compatible expressions.</summary>
     public static class RegexHelper
     {
+        /// <summary>
+        /// Maximum number of compiled <see cref="System.Text.RegularExpressions.Regex"/> instances retained in the
+        /// cache before bulk eviction. Patterns are typically supplied by clients via filter payloads,
+        /// so an unbounded cache is a heap-DoS vector. Bulk-clear matches the policy used for
+        /// <c>PropertyCache</c> and <c>PredicateCache</c>: simple, bounded, and cheap on rebuild.
+        /// </summary>
+        internal const int RegexCacheCapacity = 512;
+
         private static readonly ConcurrentDictionary<string, System.Text.RegularExpressions.Regex> RegexCache =
             new(StringComparer.Ordinal);
 
         private static readonly TimeSpan MatchTimeout = TimeSpan.FromMilliseconds(500);
 
         /// <summary>
+        /// Clears the compiled-regex cache. Intended for tests and diagnostic scenarios; production
+        /// code does not need to call this — the cache self-bounds at <see cref="RegexCacheCapacity"/>.
+        /// </summary>
+        public static void ClearRegexCache() => RegexCache.Clear();
+
+        /// <summary>
         /// Checks if <paramref name="input"/> matches <paramref name="pattern"/>. Patterns are compiled
-        /// once and cached. Invalid patterns throw <see cref="ArgumentException"/>; a match timeout
+        /// once and cached up to <see cref="RegexCacheCapacity"/> distinct patterns; the cache is
+        /// bulk-cleared on overflow to prevent unbounded heap growth from hostile or naturally-diverse
+        /// pattern streams. Invalid patterns throw <see cref="ArgumentException"/>; a match timeout
         /// of 500ms is enforced to prevent catastrophic backtracking from freezing the host.
         /// </summary>
         public static bool IsMatch(string? input, string pattern)
@@ -659,6 +675,9 @@ public class QuerySpecExpressionTranslator
             System.Text.RegularExpressions.Regex regex;
             try
             {
+                if (RegexCache.Count >= RegexCacheCapacity)
+                    RegexCache.Clear();
+
                 regex = RegexCache.GetOrAdd(pattern, static p => new System.Text.RegularExpressions.Regex(
                     p,
                     System.Text.RegularExpressions.RegexOptions.Compiled
