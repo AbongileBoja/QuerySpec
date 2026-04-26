@@ -1,0 +1,47 @@
+name: Mutation testing (on-demand)
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Comma-separated mutate globs (default: three primary security classes)'
+        required: false
+        default: 'src/QuerySpec.Core/Security/AesGcmEncryptionProvider.cs,src/QuerySpec.Core/Security/DataMaskingEngine.cs,src/QuerySpec.Core/Security/RowLevelSecurityEngine.cs'
+
+permissions: read-all
+
+jobs:
+  stryker:
+    name: Stryker.NET — security paths
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore tools
+      run: dotnet tool restore
+
+    - name: Build solution
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      run: dotnet build QuerySpec.sln --configuration Release --no-restore
+
+    - name: Run Stryker
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      run: dotnet stryker --config-file stryker-config.json
+
+    - name: Upload HTML report
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: stryker-report
+        path: StrykerOutput/
+        retention-days: 30

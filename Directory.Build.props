@@ -15,9 +15,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)QuerySpec.public.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>true</DelaySign>
+    <SignAssembly Condition="'$(QUERYSPEC_SKIP_SIGN)' != 'true'">true</SignAssembly>
+    <AssemblyOriginatorKeyFile Condition="'$(QUERYSPEC_SKIP_SIGN)' != 'true'">$(MSBuildThisFileDirectory)QuerySpec.public.snk</AssemblyOriginatorKeyFile>
+    <DelaySign Condition="'$(QUERYSPEC_SKIP_SIGN)' != 'true'">true</DelaySign>
  
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
