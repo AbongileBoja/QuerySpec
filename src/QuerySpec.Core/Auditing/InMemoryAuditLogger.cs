@@ -69,14 +69,16 @@ public class InMemoryAuditLogger : IAuditLogger
     }
 
     /// <summary>
-    /// Gets all audits for a specific request.
+    /// Gets all audits for a specific request. Returns a materialised snapshot taken under
+    /// the read lock so subsequent enumeration is safe even while writers are appending.
     /// </summary>
     public Task<IEnumerable<AuditLogEntry>> GetAuditsByRequestAsync(string requestId)
     {
         _lockSlim.EnterReadLock();
         try
         {
-            return Task.FromResult(_logs.Where(l => l.RequestId == requestId).AsEnumerable());
+            IEnumerable<AuditLogEntry> snapshot = _logs.Where(l => l.RequestId == requestId).ToList();
+            return Task.FromResult(snapshot);
         }
         finally
         {
@@ -85,16 +87,19 @@ public class InMemoryAuditLogger : IAuditLogger
     }
 
     /// <summary>
-    /// Gets all audits for a specific user, optionally filtered by date.
+    /// Gets all audits for a specific user, optionally filtered by date. Returns a materialised
+    /// snapshot taken under the read lock so subsequent enumeration is safe even while writers
+    /// are appending.
     /// </summary>
     public Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since = null)
     {
         _lockSlim.EnterReadLock();
         try
         {
-            var result = _logs.Where(l => l.UserId == userId);
-            if (since.HasValue) result = result.Where(l => l.Timestamp >= since);
-            return Task.FromResult(result.AsEnumerable());
+            var query = _logs.Where(l => l.UserId == userId);
+            if (since.HasValue) query = query.Where(l => l.Timestamp >= since);
+            IEnumerable<AuditLogEntry> snapshot = query.ToList();
+            return Task.FromResult(snapshot);
         }
         finally
         {
@@ -103,16 +108,19 @@ public class InMemoryAuditLogger : IAuditLogger
     }
 
     /// <summary>
-    /// Gets all audits for a specific tenant, optionally filtered by date.
+    /// Gets all audits for a specific tenant, optionally filtered by date. Returns a materialised
+    /// snapshot taken under the read lock so subsequent enumeration is safe even while writers
+    /// are appending.
     /// </summary>
     public Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since = null)
     {
         _lockSlim.EnterReadLock();
         try
         {
-            var result = _logs.Where(l => l.TenantId == tenantId);
-            if (since.HasValue) result = result.Where(l => l.Timestamp >= since);
-            return Task.FromResult(result.AsEnumerable());
+            var query = _logs.Where(l => l.TenantId == tenantId);
+            if (since.HasValue) query = query.Where(l => l.Timestamp >= since);
+            IEnumerable<AuditLogEntry> snapshot = query.ToList();
+            return Task.FromResult(snapshot);
         }
         finally
         {
@@ -121,17 +129,20 @@ public class InMemoryAuditLogger : IAuditLogger
     }
 
     /// <summary>
-    /// Gets compliance report for audits within date range.
+    /// Gets compliance report for audits within date range. Returns a materialised snapshot
+    /// taken under the read lock so subsequent enumeration is safe even while writers are
+    /// appending.
     /// </summary>
     public Task<IEnumerable<AuditLogEntry>> GetComplianceReportAsync(DateTime from, DateTime to)
     {
         _lockSlim.EnterReadLock();
         try
         {
-            return Task.FromResult(_logs
+            IEnumerable<AuditLogEntry> snapshot = _logs
                 .Where(l => l.Timestamp >= from && l.Timestamp <= to)
                 .OrderBy(l => l.Timestamp)
-                .AsEnumerable());
+                .ToList();
+            return Task.FromResult(snapshot);
         }
         finally
         {
