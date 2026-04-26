@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using QuerySpec.Core.Auditing;
 using QuerySpec.Core.Caching;
 using QuerySpec.Core.Monitoring;
@@ -34,14 +35,19 @@ public class QuerySpecBuilder
         return this;
     }
 
-    /// <summary>Configure comprehensive auditing.</summary>
+    /// <summary>
+    /// Configure comprehensive auditing. Registers <see cref="InMemoryAuditLogger"/> as the
+    /// fallback <see cref="IAuditLogger"/> only if the configure delegate did not register one;
+    /// callers can wire up their own <see cref="IAuditLogger"/> inside <paramref name="configure"/>
+    /// without it being silently overwritten.
+    /// </summary>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
     public QuerySpecBuilder WithAuditing(Action<AuditingBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
         var builder = new AuditingBuilder(_services);
         configure(builder);
-        _services.AddSingleton<IAuditLogger>(sp => new InMemoryAuditLogger());
+        _services.TryAddSingleton<IAuditLogger, InMemoryAuditLogger>();
         return this;
     }
 

@@ -125,6 +125,35 @@ public class QuerySpecBuilderTests
         Assert.IsType<InMemoryAuditLogger>(logger);
     }
 
+    /// <summary>
+    /// A caller-supplied <see cref="IAuditLogger"/> registered before or inside the
+    /// <c>WithAuditing</c> configure delegate must be preserved. The default
+    /// <see cref="InMemoryAuditLogger"/> registration is a fallback only.
+    /// </summary>
+    [Fact]
+    public void WithAuditing_DoesNotOverride_CallerSuppliedAuditLogger()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IAuditLogger, CustomAuditLogger>();
+
+        services.AddQuerySpec(q => q.WithAuditing(_ => { }));
+
+        using var sp = services.BuildServiceProvider();
+        Assert.IsType<CustomAuditLogger>(sp.GetRequiredService<IAuditLogger>());
+    }
+
+    private sealed class CustomAuditLogger : IAuditLogger
+    {
+        public System.Threading.Tasks.Task LogQueryAsync(AuditLogEntry entry) => System.Threading.Tasks.Task.CompletedTask;
+        public System.Threading.Tasks.Task LogChangeAsync(FieldChange change) => System.Threading.Tasks.Task.CompletedTask;
+        public System.Threading.Tasks.Task<AuditLogEntry?> GetAuditAsync(string id) => System.Threading.Tasks.Task.FromResult<AuditLogEntry?>(null);
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<AuditLogEntry>> GetAuditsByRequestAsync(string requestId) => System.Threading.Tasks.Task.FromResult(System.Linq.Enumerable.Empty<AuditLogEntry>());
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since = null) => System.Threading.Tasks.Task.FromResult(System.Linq.Enumerable.Empty<AuditLogEntry>());
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since = null) => System.Threading.Tasks.Task.FromResult(System.Linq.Enumerable.Empty<AuditLogEntry>());
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<AuditLogEntry>> GetComplianceReportAsync(System.DateTime from, System.DateTime to) => System.Threading.Tasks.Task.FromResult(System.Linq.Enumerable.Empty<AuditLogEntry>());
+        public System.Threading.Tasks.Task PurgeOldLogsAsync(System.TimeSpan olderThan) => System.Threading.Tasks.Task.CompletedTask;
+    }
+
     [Fact]
     public void WithMonitoring_StubsThrowAtConfigTime()
     {
