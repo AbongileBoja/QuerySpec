@@ -81,7 +81,11 @@ public class MetricsCollector
     private readonly Queue<QueryMetrics> _metrics = new();
     private readonly int _maxRetainedQueries;
     private readonly TimeProvider _timeProvider;
+#if NET9_0_OR_GREATER
+    private readonly System.Threading.Lock _lockObj = new();
+#else
     private readonly object _lockObj = new();
+#endif
 
     /// <summary>
     /// Initialises a new metrics collector with the default retention cap of

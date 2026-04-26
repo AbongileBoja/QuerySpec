@@ -13,7 +13,11 @@ public class CircuitBreaker
     private CircuitState _state = CircuitState.Closed;
     private DateTime _lastFailureTime = DateTime.MinValue;
     private int _failureCount;
+#if NET9_0_OR_GREATER
+    private readonly System.Threading.Lock _lockObj = new();
+#else
     private readonly object _lockObj = new();
+#endif
 
     /// <summary>Number of failures before opening the circuit.</summary>
     public int FailureThreshold { get; set; } = 5;

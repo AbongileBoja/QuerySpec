@@ -22,7 +22,11 @@ public class RateLimiter
 {
     private sealed class Bucket
     {
+#if NET9_0_OR_GREATER
+        public readonly System.Threading.Lock Sync = new();
+#else
         public readonly object Sync = new();
+#endif
         public double Tokens;
         public long LastRefillTicks;
     }
