@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -21,8 +19,16 @@ public class CacheKeyGenerator
     /// into a deterministic SHA-256 digest so they fit within Redis / Memcached key limits.
     /// Uses <see cref="SHA256.HashData(byte[])"/> which is allocation-lean compared with
     /// creating a new <see cref="SHA256"/> instance per call.
+    /// On .NET 9+, the <c>params ReadOnlySpan&lt;object?&gt;</c> overload avoids the
+    /// <c>object[]</c> heap allocation at the call site for inline argument lists.
+    /// Value-type arguments still box individually; use the strongly-typed overloads on
+    /// high-frequency call sites to eliminate that residual boxing.
     /// </summary>
-    public static string GenerateKey(string prefix, params object[] components)
+#if NET9_0_OR_GREATER
+    public static string GenerateKey(string prefix, params ReadOnlySpan<object?> components)
+#else
+    public static string GenerateKey(string prefix, params object?[] components)
+#endif
     {
         // Build the key with a single StringBuilder pass to avoid the intermediate
         // List + LINQ chain + string.Join that the original implementation produced.
@@ -36,6 +42,47 @@ public class CacheKeyGenerator
             sb.Append(':').Append(s);
         }
 
+        return FinaliseKey(prefix, sb);
+    }
+
+    /// <summary>
+    /// Strongly-typed overload for query cache keys. Avoids boxing of <paramref name="page"/>
+    /// on all TFMs by appending the integer directly without going through <c>object?</c>.
+    /// This is the high-frequency path and accounts for the majority of <c>GenerateKey</c>
+    /// call volume under normal application load.
+    /// </summary>
+    public static string GenerateQueryCacheKey(string tenantId, string userId, string queryHash, string sortHash, int page)
+    {
+        var sb = new StringBuilder(64);
+        sb.Append("query");
+        AppendIfNonEmpty(sb, tenantId);
+        AppendIfNonEmpty(sb, userId);
+        AppendIfNonEmpty(sb, queryHash);
+        AppendIfNonEmpty(sb, sortHash);
+        sb.Append(':').Append(page);
+        return FinaliseKey("query", sb);
+    }
+
+    /// <summary>Generates a security policy cache key.</summary>
+    public static string GenerateSecurityPolicyCacheKey(string resourceType)
+    {
+        return GenerateKey("policy", resourceType);
+    }
+
+    /// <summary>Generates a permission cache key.</summary>
+    public static string GeneratePermissionCacheKey(string userId, string resourceType, string fieldName)
+    {
+        return GenerateKey("permission", userId, resourceType, fieldName);
+    }
+
+    private static void AppendIfNonEmpty(StringBuilder sb, string? value)
+    {
+        if (!string.IsNullOrEmpty(value))
+            sb.Append(':').Append(value);
+    }
+
+    private static string FinaliseKey(string prefix, StringBuilder sb)
+    {
         var key = sb.ToString();
         if (key.Length <= MaxKeyLength)
             return key;
@@ -56,23 +103,5 @@ public class CacheKeyGenerator
             SHA256.HashData(heapBuf, digest);
         }
         return string.Concat(prefix, ":", Convert.ToBase64String(digest));
-    }
-
-    /// <summary>Generates a query cache key.</summary>
-    public static string GenerateQueryCacheKey(string tenantId, string userId, string queryHash, string sortHash, int page)
-    {
-        return GenerateKey("query", tenantId, userId, queryHash, sortHash, page);
-    }
-
-    /// <summary>Generates a security policy cache key.</summary>
-    public static string GenerateSecurityPolicyCacheKey(string resourceType)
-    {
-        return GenerateKey("policy", resourceType);
-    }
-
-    /// <summary>Generates a permission cache key.</summary>
-    public static string GeneratePermissionCacheKey(string userId, string resourceType, string fieldName)
-    {
-        return GenerateKey("permission", userId, resourceType, fieldName);
     }
 }

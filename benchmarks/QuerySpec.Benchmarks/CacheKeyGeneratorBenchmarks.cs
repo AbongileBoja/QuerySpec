@@ -38,8 +38,12 @@ public class CacheKeyGeneratorBenchmarks
     public string Long_ForcesHash()
         => CacheKeyGenerator.GenerateKey("query", _longComponents);
 
-    /// <summary>Typed helper used by the query layer.</summary>
-    [Benchmark]
+    /// <summary>
+    /// Typed helper used by the query layer — no boxing of the <c>int page</c> arg,
+    /// no <c>object[]</c> allocation on the params call site.
+    /// This is the primary regression target for issue #58.
+    /// </summary>
+    [Benchmark(Baseline = true)]
     public string QueryCacheKey()
         => CacheKeyGenerator.GenerateQueryCacheKey("tenant-1", "user-42", "qhash", "shash", 1);
 }
