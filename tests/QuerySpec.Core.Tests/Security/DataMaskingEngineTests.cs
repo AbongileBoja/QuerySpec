@@ -58,17 +58,6 @@ public class DataMaskingEngineTests
     }
 
     [Fact]
-    public void IsPii_Heuristic_StillDetectsEmailUntilRemoval()
-    {
-#pragma warning disable CS0618 // Pinning legacy heuristic until removal in 3.0.0; obsolete becomes error in 2.0.0.
-        var engine = new DataMaskingEngine();
-        var result = engine.IsPii("Email", "john@example.com");
-#pragma warning restore CS0618
-
-        Assert.True(result);
-    }
-
-    [Fact]
     public void Mask_WithClassifier_AppliesCategoryDefault_WhenNoExplicitRegistration()
     {
         var classifier = new ConfiguredPiiClassifier(new[]

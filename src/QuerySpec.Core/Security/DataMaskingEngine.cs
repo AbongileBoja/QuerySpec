@@ -257,13 +257,13 @@ public sealed class DataMaskingEngine
     /// <see cref="IsPii(System.Type?, string)"/> with an explicit <see cref="IPiiClassifier"/>.
     /// </para>
     /// <para>
-    /// Scheduled to become a build error in <c>2.0.0</c> and to be removed in <c>3.0.0</c>.
+    /// Promoted to a build error in <c>2.0.1</c>; scheduled for removal in <c>3.0.0</c>.
     /// </para>
     /// </remarks>
     [Obsolete("Field-name + value-regex heuristics produce false negatives that leak PII. " +
               "Annotate fields with [Pii(...)] and use IsPii(Type, string) backed by IPiiClassifier instead. " +
-              "Scheduled to become an error in 2.0.0 and to be removed in 3.0.0.",
-              error: false)]
+              "Promoted to a build error in 2.0.1; scheduled for removal in 3.0.0.",
+              error: true)]
     public bool IsPii(string fieldName, object? value)
     {
         if (value is null) return false;
