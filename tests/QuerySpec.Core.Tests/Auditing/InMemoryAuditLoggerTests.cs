@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using QuerySpec.Core.Auditing;
@@ -228,5 +229,51 @@ public class InMemoryAuditLoggerTests
         await logger.PurgeOldLogsAsync(TimeSpan.FromDays(1));
 
         Assert.Equal(0, logger.Count);
+    }
+
+    /// <summary>
+    /// Read methods must return a materialised snapshot taken under the read lock. Iterating
+    /// the result after subsequent writes must not observe the new entries and must not throw
+    /// the "Collection was modified" InvalidOperationException — both of which were possible
+    /// when the methods returned a deferred LINQ enumerable over the live list.
+    /// </summary>
+    [Fact]
+    public async Task GetAuditsByUserAsync_ReturnsSnapshot_NotAffectedBySubsequentWrites()
+    {
+        var logger = new InMemoryAuditLogger();
+        for (var i = 0; i < 5; i++)
+        {
+            await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" });
+        }
+
+        var snapshot = await logger.GetAuditsByUserAsync("u");
+
+        // Append more entries after the read returned. A deferred enumerable would observe these.
+        for (var i = 0; i < 5; i++)
+        {
+            await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" });
+        }
+
+        Assert.Equal(5, snapshot.Count());
+        Assert.Equal(10, logger.Count);
+    }
+
+    /// <summary>Snapshot semantics must hold for the compliance-report range query as well.</summary>
+    [Fact]
+    public async Task GetComplianceReportAsync_ReturnsSnapshot_NotAffectedBySubsequentWrites()
+    {
+        var logger = new InMemoryAuditLogger();
+        var windowStart = DateTime.UtcNow.AddMinutes(-10);
+        var windowEnd = DateTime.UtcNow.AddMinutes(10);
+        for (var i = 0; i < 3; i++)
+        {
+            await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" });
+        }
+
+        var snapshot = await logger.GetComplianceReportAsync(windowStart, windowEnd);
+
+        await logger.LogQueryAsync(new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Query" });
+
+        Assert.Equal(3, snapshot.Count());
     }
 }
