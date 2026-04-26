@@ -4,6 +4,31 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+### [3.0.1-rc1](https://github.com/AbongileBoja/QuerySpec/compare/v3.0.0...v3.0.1-rc1) (2026-04-26)
+
+
+### Features
+
+* **release:** add per-package NuGet icons ([e96a769](https://github.com/AbongileBoja/QuerySpec/commit/e96a7697aba8219fe60f3565a7399a82c58c0dff)), closes [#49](https://github.com/AbongileBoja/QuerySpec/issues/49)
+
+
+### Build System
+
+* **release:** bump PackageValidation baseline to 3.0.0 ([80d1528](https://github.com/AbongileBoja/QuerySpec/commit/80d1528ba58436b4ebe43e61452f7c99313752cf)), closes [#72](https://github.com/AbongileBoja/QuerySpec/issues/72)
+* **release:** trim PackageTags and lead with queryspec brand ([133be12](https://github.com/AbongileBoja/QuerySpec/commit/133be12aa072d227d7a5e7db058c568a22fd1d43)), closes [#51](https://github.com/AbongileBoja/QuerySpec/issues/51)
+
+
+### Documentation
+
+* **release:** rewrite v2.0.0 and v3.0.0 BREAKING CHANGES as prose ([#120](https://github.com/AbongileBoja/QuerySpec/issues/120)) ([f469e22](https://github.com/AbongileBoja/QuerySpec/commit/f469e22f117df55f6a00b6306bb7197370a6da30)), closes [#61](https://github.com/AbongileBoja/QuerySpec/issues/61)
+
+
+### CI
+
+* **release:** benchmark smoke gate before pack ([10346d3](https://github.com/AbongileBoja/QuerySpec/commit/10346d3a2c5931e752d2fff7df7e7d2d496e9034)), closes [#57](https://github.com/AbongileBoja/QuerySpec/issues/57)
+* **release:** publish to NuGet.org via OIDC trusted publishing ([802eafc](https://github.com/AbongileBoja/QuerySpec/commit/802eafc1b165e80c35eec5aba0e1d155319a30e3)), closes [#59](https://github.com/AbongileBoja/QuerySpec/issues/59)
+* **release:** validate package contents and metadata before publish ([#121](https://github.com/AbongileBoja/QuerySpec/issues/121)) ([067df9b](https://github.com/AbongileBoja/QuerySpec/commit/067df9b09c9ed309aa3b9de94fb198e88b2c69ac)), closes [#64](https://github.com/AbongileBoja/QuerySpec/issues/64)
+
 ## [3.0.0](https://github.com/AbongileBoja/QuerySpec/compare/v2.0.1...v3.0.0) (2026-04-26)
 
 
