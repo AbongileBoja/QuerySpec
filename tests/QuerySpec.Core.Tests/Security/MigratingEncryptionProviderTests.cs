@@ -224,4 +224,122 @@ public class MigratingEncryptionProviderTests
 
         Assert.Equal("legacy", migrating.Decrypt(legacyCt, "ctx"u8));
     }
+
+    // tag "v2" → bind = "v2\x00" = 3 bytes; StackBindBudget = 64.
+    // heap path fires when bind.Length + callerAad.Length > 64, i.e. callerAad.Length > 61.
+
+    [Fact]
+    public void EncryptWithBinding_LargeAad_RoundTrips()
+    {
+        var inner = new AesGcmEncryptionProvider(NewKeyB64());
+        var migrating = new MigratingAuthenticatedEncryptionProvider("v2", inner);
+        var aad = new byte[100]; // 100 > 61 → forces ArrayPool heap path on both encrypt and decrypt
+        RandomNumberGenerator.Fill(aad);
+
+        var ct = migrating.Encrypt("secret-payload", aad);
+        var plaintext = migrating.Decrypt(ct, aad);
+
+        Assert.Equal("secret-payload", plaintext);
+    }
+
+    [Fact]
+    public void DecryptWithBinding_LargeAad_DifferentAad_Throws()
+    {
+        var inner = new AesGcmEncryptionProvider(NewKeyB64());
+        var migrating = new MigratingAuthenticatedEncryptionProvider("v2", inner);
+        var aad = new byte[100];
+        RandomNumberGenerator.Fill(aad);
+        var differentAad = new byte[100];
+        RandomNumberGenerator.Fill(differentAad);
+
+        var ct = migrating.Encrypt("secret-payload", aad);
+
+        Assert.ThrowsAny<CryptographicException>(() => migrating.Decrypt(ct, differentAad));
+    }
+
+    [Fact]
+    public void DecryptWithBinding_LargeAad_TamperedCiphertext_Throws()
+    {
+        var inner = new AesGcmEncryptionProvider(NewKeyB64());
+        var migrating = new MigratingAuthenticatedEncryptionProvider("v2", inner);
+        var aad = new byte[100];
+        RandomNumberGenerator.Fill(aad);
+
+        var ct = migrating.Encrypt("secret-payload", aad);
+
+        // flip one byte in the inner envelope (after the "v2:" prefix)
+        var separatorIdx = ct.IndexOf(':', StringComparison.Ordinal);
+        var inner64 = ct[(separatorIdx + 1)..];
+        var bytes = Convert.FromBase64String(inner64);
+        bytes[bytes.Length / 2] ^= 0xFF;
+        var tampered = ct[..(separatorIdx + 1)] + Convert.ToBase64String(bytes);
+
+        Assert.ThrowsAny<CryptographicException>(() => migrating.Decrypt(tampered, aad));
+    }
+
+    [Fact]
+    public void Decrypt_EmptyBody_ThrowsFormatException()
+    {
+        var migrating = new MigratingAuthenticatedEncryptionProvider("v2", new AesGcmEncryptionProvider(NewKeyB64()));
+        var ex = Assert.Throws<FormatException>(() => migrating.Decrypt("v2:", associatedData: default));
+        Assert.Contains("body", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("no-separator-here")]
+    [InlineData(":empty-tag")]
+    [InlineData(":")]
+    public void Aead_Decrypt_MalformedCiphertext_ThrowsFormatException(string ciphertext)
+    {
+        var migrating = new MigratingAuthenticatedEncryptionProvider("v2", new AesGcmEncryptionProvider(NewKeyB64()));
+        Assert.Throws<FormatException>(() => migrating.Decrypt(ciphertext, associatedData: default));
+    }
+
+    [Fact]
+    public void Aead_Decrypt_UnknownTag_ThrowsInvalidOperation()
+    {
+        var migrating = new MigratingAuthenticatedEncryptionProvider("v2", new AesGcmEncryptionProvider(NewKeyB64()));
+        var ex = Assert.Throws<InvalidOperationException>(() => migrating.Decrypt("v9:someenvelope", associatedData: default));
+        Assert.Contains("v9", ex.Message);
+    }
+
+    [Fact]
+    public void Aead_Constructor_DuplicateTag_Throws()
+    {
+        var modern = new AesGcmEncryptionProvider(NewKeyB64());
+        var legacy = new AesGcmEncryptionProvider(NewKeyB64());
+        var ex = Assert.Throws<ArgumentException>(() => new MigratingAuthenticatedEncryptionProvider(
+            writeTag: "v2",
+            writer: modern,
+            legacyReaders: new Dictionary<string, IAuthenticatedEncryptionProvider> { ["v2"] = legacy }));
+        Assert.Contains("v2", ex.Message);
+    }
+
+    [Fact]
+    public void Aead_Constructor_NullReaderProvider_Throws()
+    {
+        var modern = new AesGcmEncryptionProvider(NewKeyB64());
+        var ex = Assert.Throws<ArgumentException>(() => new MigratingAuthenticatedEncryptionProvider(
+            writeTag: "v2",
+            writer: modern,
+            legacyReaders: new Dictionary<string, IAuthenticatedEncryptionProvider> { ["v1"] = null! }));
+        Assert.Contains("v1", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(63)] // StackBindBudget - 1: stack path (bind=3 bytes, callerAad=60 bytes, total=63 ≤ 64)
+    [InlineData(61)] // StackBindBudget exactly at boundary: bind(3) + aad(61) = 64 ≤ 64, stack path
+    [InlineData(62)] // StackBindBudget + 1: bind(3) + aad(62) = 65 > 64, heap path
+    public void EncryptWithBinding_AadAtBoundary_RoundTrips(int aadLength)
+    {
+        var inner = new AesGcmEncryptionProvider(NewKeyB64());
+        var migrating = new MigratingAuthenticatedEncryptionProvider("v2", inner);
+        var aad = new byte[aadLength];
+        RandomNumberGenerator.Fill(aad);
+
+        var ct = migrating.Encrypt("boundary-test", aad);
+        var plaintext = migrating.Decrypt(ct, aad);
+
+        Assert.Equal("boundary-test", plaintext);
+    }
 }
