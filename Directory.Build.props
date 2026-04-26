@@ -27,7 +27,7 @@
 
     <EnablePackageValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnablePackageValidation>
     <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnableStrictModeForBaselineValidation>
-    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">2.0.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">3.0.0</PackageValidationBaselineVersion>
     <NoWarn>$(NoWarn);RS0016;RS0017;RS0024;RS0025;RS0026;RS0027;RS0036;RS0037;RS0041</NoWarn>
  
     <Authors>Abongile Boja</Authors>
