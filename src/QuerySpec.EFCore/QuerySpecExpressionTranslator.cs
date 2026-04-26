@@ -27,10 +27,20 @@ public class QuerySpecExpressionTranslator
     /// </summary>
     internal const int PropertyCacheCapacity = 4096;
 
-    private static readonly MethodInfo StringContainsMethod = typeof(StringHelper).GetMethod(nameof(StringHelper.Contains))!;
-    private static readonly MethodInfo StringStartsWithMethod = typeof(StringHelper).GetMethod(nameof(StringHelper.StartsWith))!;
-    private static readonly MethodInfo StringEndsWithMethod = typeof(StringHelper).GetMethod(nameof(StringHelper.EndsWith))!;
     private static readonly MethodInfo StringToStringMethod = typeof(object).GetMethod("ToString", Type.EmptyTypes)!;
+
+    private static readonly MethodInfo StringContainsMethod =
+        typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) })!;
+
+    private static readonly MethodInfo StringStartsWithMethod =
+        typeof(string).GetMethod(nameof(string.StartsWith), new[] { typeof(string) })!;
+
+    private static readonly MethodInfo StringEndsWithMethod =
+        typeof(string).GetMethod(nameof(string.EndsWith), new[] { typeof(string) })!;
+
+    private static readonly MethodInfo StringToLowerMethod =
+        typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!;
+
 
     /// <summary>
     /// Cached open-generic <c>Enumerable.Contains&lt;T&gt;(IEnumerable&lt;T&gt;, T)</c>. Resolved
@@ -207,14 +217,14 @@ public class QuerySpecExpressionTranslator
             FilterOperator.LessThan => BuildComparison(property, filter.Value, propertyType, underlyingType, isNullable, ExpressionType.LessThan),
             FilterOperator.LessThanOrEqual => BuildComparison(property, filter.Value, propertyType, underlyingType, isNullable, ExpressionType.LessThanOrEqual),
 
-            FilterOperator.Contains => BuildStringMethod(property, filter.Value, StringContainsMethod, filter.CaseSensitive, isNullable),
-            FilterOperator.NotContains => Expression.Not(BuildStringMethod(property, filter.Value, StringContainsMethod, filter.CaseSensitive, isNullable)),
-            FilterOperator.StartsWith => BuildStringMethod(property, filter.Value, StringStartsWithMethod, filter.CaseSensitive, isNullable),
-            FilterOperator.EndsWith => BuildStringMethod(property, filter.Value, StringEndsWithMethod, filter.CaseSensitive, isNullable),
+            FilterOperator.Contains => BuildStringPredicate(property, filter.Value, StringPredicate.Contains, filter.CaseSensitive, isNullable),
+            FilterOperator.NotContains => Expression.Not(BuildStringPredicate(property, filter.Value, StringPredicate.Contains, filter.CaseSensitive, isNullable)),
+            FilterOperator.StartsWith => BuildStringPredicate(property, filter.Value, StringPredicate.StartsWith, filter.CaseSensitive, isNullable),
+            FilterOperator.EndsWith => BuildStringPredicate(property, filter.Value, StringPredicate.EndsWith, filter.CaseSensitive, isNullable),
             FilterOperator.StringMatchCase => BuildEqual(property, filter.Value, propertyType, isNullable),
-            FilterOperator.StringMatchIgnoreCase => BuildStringMethod(property, filter.Value, StringContainsMethod, false, isNullable),
+            FilterOperator.StringMatchIgnoreCase => BuildStringPredicate(property, filter.Value, StringPredicate.Contains, false, isNullable),
             FilterOperator.Regex => BuildRegexMatch(property, filter.Value, isNullable),
-            FilterOperator.Contains_CaseInsensitive => BuildStringMethod(property, filter.Value, StringContainsMethod, false, isNullable),
+            FilterOperator.Contains_CaseInsensitive => BuildStringPredicate(property, filter.Value, StringPredicate.Contains, false, isNullable),
 
             FilterOperator.In => BuildIn(property, filter.Value, propertyType, underlyingType, isNullable),
             FilterOperator.NotIn => Expression.Not(BuildIn(property, filter.Value, propertyType, underlyingType, isNullable)),
@@ -298,9 +308,11 @@ public class QuerySpecExpressionTranslator
 
     #endregion
 
+    private enum StringPredicate { Contains, StartsWith, EndsWith }
+
     #region String Operators
 
-    private static Expression BuildStringMethod(Expression property, object? value, MethodInfo helperMethod, bool caseSensitive, bool isNullable)
+    private static Expression BuildStringPredicate(Expression property, object? value, StringPredicate predicate, bool caseSensitive, bool isNullable)
     {
         var strValue = value?.ToString() ?? "";
 
@@ -308,7 +320,22 @@ public class QuerySpecExpressionTranslator
             ? property
             : Expression.Call(property, StringToStringMethod);
 
-        Expression call = Expression.Call(helperMethod, stringProperty, Expression.Constant(strValue), Expression.Constant(caseSensitive));
+        var method = predicate switch
+        {
+            StringPredicate.Contains => StringContainsMethod,
+            StringPredicate.StartsWith => StringStartsWithMethod,
+            _ => StringEndsWithMethod,
+        };
+
+        Expression callTarget = caseSensitive
+            ? stringProperty
+            : Expression.Call(stringProperty, StringToLowerMethod);
+
+        var callValue = caseSensitive
+            ? Expression.Constant(strValue)
+            : Expression.Constant(strValue.ToLowerInvariant());
+
+        Expression call = Expression.Call(callTarget, method, callValue);
 
         if (isNullable)
         {
@@ -316,9 +343,14 @@ public class QuerySpecExpressionTranslator
             return Expression.AndAlso(hasValue, call);
         }
 
-        if (property.Type != typeof(string)
-            && property.Type.IsClass
-            && property.Type != typeof(object))
+        if (property.Type == typeof(string))
+        {
+            return Expression.AndAlso(
+                Expression.NotEqual(property, Expression.Constant(null, typeof(string))),
+                call);
+        }
+
+        if (property.Type.IsClass && property.Type != typeof(object))
         {
             return Expression.AndAlso(Expression.NotEqual(property, Expression.Constant(null, property.Type)), call);
         }
@@ -615,37 +647,6 @@ public class QuerySpecExpressionTranslator
     #endregion
 
     #region Helper Types for EF Core-Compatible Expressions
-
-    /// <summary>Helper class for string operations in EF Core-compatible expressions.</summary>
-    public static class StringHelper
-    {
-        /// <summary>Checks if source contains value with optional case sensitivity.</summary>
-        public static bool Contains(string? source, string value, bool caseSensitive)
-        {
-            if (source == null) return false;
-            return caseSensitive
-                ? source.Contains(value)
-                : source.Contains(value, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>Checks if source starts with value with optional case sensitivity.</summary>
-        public static bool StartsWith(string? source, string value, bool caseSensitive)
-        {
-            if (source == null) return false;
-            return caseSensitive
-                ? source.StartsWith(value)
-                : source.StartsWith(value, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>Checks if source ends with value with optional case sensitivity.</summary>
-        public static bool EndsWith(string? source, string value, bool caseSensitive)
-        {
-            if (source == null) return false;
-            return caseSensitive
-                ? source.EndsWith(value)
-                : source.EndsWith(value, StringComparison.OrdinalIgnoreCase);
-        }
-    }
 
     /// <summary>Helper class for regex operations in EF Core-compatible expressions.</summary>
     public static class RegexHelper
