@@ -1,0 +1,136 @@
+name: Perf Regression Gate
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'src/**'
+      - 'benchmarks/**'
+  pull_request:
+    branches:
+      - develop
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      update_baseline:
+        description: 'Overwrite committed baseline with results from this run (approved tradeoffs only)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perf-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Benchmark regression gate
+    if: >
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'perf')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore
+      run: dotnet restore QuerySpec.sln
+
+    - name: Build (Release)
+      run: >
+        dotnet build QuerySpec.sln
+        --no-restore --configuration Release
+        -p:TreatWarningsAsErrors=false
+
+    - name: Run benchmarks (Job.ShortRun)
+      id: bench-run
+      env:
+        QUERYSPEC_BENCH_GATE: '1'
+      run: |
+        set -euo pipefail
+        dotnet run --project benchmarks/QuerySpec.Benchmarks/QuerySpec.Benchmarks.csproj \
+          --configuration Release --no-build \
+          -- --filter "*" \
+          --artifacts BenchmarkDotNet.Artifacts
+
+    - name: Upload run artifacts
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: benchmark-gate-run-${{ github.run_id }}
+        path: BenchmarkDotNet.Artifacts
+        retention-days: 30
+
+    - name: Compare against baseline
+      id: bench-compare
+      if: inputs.update_baseline != 'true'
+      run: |
+        set -euo pipefail
+        chmod +x eng/compare-bench.sh
+        run_results_dir=$(find BenchmarkDotNet.Artifacts -type d -name "results" | head -1)
+        if [[ -z "$run_results_dir" ]]; then
+          echo "::warning::No results directory found — skipping comparison."
+          exit 0
+        fi
+        eng/compare-bench.sh \
+          --run-dir "$run_results_dir" \
+          --baseline-dir benchmarks/baseline/net10.0 \
+          --threshold-pct 15 \
+          --alloc-threshold 200
+
+    - name: Update baseline (workflow_dispatch with update_baseline=true)
+      if: inputs.update_baseline == 'true'
+      run: |
+        set -euo pipefail
+        run_results_dir=$(find BenchmarkDotNet.Artifacts -type d -name "results" | head -1)
+        if [[ -z "$run_results_dir" ]]; then
+          echo "::error::No results directory found — cannot update baseline." >&2
+          exit 1
+        fi
+        mkdir -p benchmarks/baseline/net10.0
+        for f in "$run_results_dir"/*-report-full.json; do
+          [[ -f "$f" ]] || continue
+          class=$(basename "$f" | sed 's/QuerySpec\.Benchmarks\.\([^-]*\)-.*/\1/')
+          cp "$f" "benchmarks/baseline/net10.0/${class}.json"
+          echo "Updated baseline: benchmarks/baseline/net10.0/${class}.json"
+        done
+
+    - name: Open baseline-update PR
+      if: inputs.update_baseline == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        branch="chore/baseline-update-$(date +%Y%m%d-%H%M%S)"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout -b "$branch"
+        git add benchmarks/baseline/
+        git commit -m "chore(benchmarks): update perf baseline $(date +%Y-%m-%d)" \
+          -m "Triggered by workflow_dispatch with update_baseline=true on ${{ github.sha }}."
+        git push origin "$branch"
+        pr_body=$(printf 'Baseline updated from approved workflow_dispatch run.\n\nTrigger commit: ${{ github.sha }}\nRun: ${{ github.run_id }}\n\nReview the attached benchmark artifacts before merging.')
+        gh pr create \
+          --base develop \
+          --head "$branch" \
+          --title "chore(benchmarks): update perf baseline $(date +%Y-%m-%d)" \
+          --body "$pr_body"
