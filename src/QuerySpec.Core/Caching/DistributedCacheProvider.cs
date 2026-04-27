@@ -91,7 +91,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
             {
                 throw;
             }
-            catch (Exception removeEx)
+            catch (Exception removeEx) when (removeEx is not OutOfMemoryException and not StackOverflowException)
             {
                 _logger.LogWarning(removeEx, "Failed to evict corrupt cache entry for key {Key}.", key);
             }
@@ -174,7 +174,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
         {
             _logger.LogWarning(ex, "Distributed cache GET failed for key {Key}; treating as miss.", key);
             _stats.IncrementMisses();
@@ -204,7 +204,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
             {
                 throw;
             }
-            catch (Exception removeEx)
+            catch (Exception removeEx) when (removeEx is not OutOfMemoryException and not StackOverflowException)
             {
                 _logger.LogWarning(removeEx, "Failed to evict corrupt cache entry for key {Key}.", key);
             }

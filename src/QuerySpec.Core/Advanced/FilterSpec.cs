@@ -171,7 +171,7 @@ public sealed record FilterSpec
         }
         if (value is IFormattable f)
             return value.GetType().Name + ":" + f.ToString(null, System.Globalization.CultureInfo.InvariantCulture);
-        return value.GetType().Name + ":" + value.ToString();
+        return value.GetType().Name + ":" + value;
     }
 
     private static void HashString(ref long hash, long prime, string? s)

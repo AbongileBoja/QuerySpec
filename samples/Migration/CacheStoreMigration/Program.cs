@@ -3,7 +3,7 @@
 
 using QuerySpec.Core.Caching;
 
-var provider = new MemoryCacheProvider();
+using var provider = new MemoryCacheProvider();
 
 // Old shape - reference types only; null on miss is indistinguishable from "stored null".
 #pragma warning disable QSPEC0003
@@ -35,7 +35,5 @@ Console.WriteLine($"[new] nullable-zero: HasValue={nullableHit.HasValue}, Value=
 // Get-or-default convenience.
 var fallback = (await store.TryGetAsync<int>("absent")).GetValueOrDefault(99);
 Console.WriteLine($"[new] absent w/ fallback: {fallback}");
-
-provider.Dispose();
 
 internal sealed record UserDto(string Name, int Age);
