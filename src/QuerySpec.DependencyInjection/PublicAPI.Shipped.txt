@@ -1,1 +1,45 @@
 #nullable enable
+QuerySpec.DependencyInjection.AuditingBuilder
+QuerySpec.DependencyInjection.AuditingBuilder.AuditingBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> void
+QuerySpec.DependencyInjection.AuditingBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+QuerySpec.DependencyInjection.CachingBuilder
+QuerySpec.DependencyInjection.CachingBuilder.CachingBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> void
+QuerySpec.DependencyInjection.CachingBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+QuerySpec.DependencyInjection.CachingBuilder.UseDistributedRedis(string! connectionString) -> QuerySpec.DependencyInjection.CachingBuilder!
+QuerySpec.DependencyInjection.CachingBuilder.UseMemoryCache() -> QuerySpec.DependencyInjection.CachingBuilder!
+QuerySpec.DependencyInjection.CachingBuilder.UseMultiLevel() -> QuerySpec.DependencyInjection.CachingBuilder!
+QuerySpec.DependencyInjection.MonitoringBuilder
+QuerySpec.DependencyInjection.MonitoringBuilder.MonitoringBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> void
+QuerySpec.DependencyInjection.MonitoringBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+QuerySpec.DependencyInjection.PerformanceBuilder
+QuerySpec.DependencyInjection.PerformanceBuilder.EnableMetrics() -> QuerySpec.DependencyInjection.PerformanceBuilder!
+QuerySpec.DependencyInjection.PerformanceBuilder.EnableN1Detection() -> QuerySpec.DependencyInjection.PerformanceBuilder!
+QuerySpec.DependencyInjection.PerformanceBuilder.PerformanceBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> void
+QuerySpec.DependencyInjection.PerformanceBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+QuerySpec.DependencyInjection.QuerySpecBuilder
+QuerySpec.DependencyInjection.QuerySpecBuilder.QuerySpecBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> void
+QuerySpec.DependencyInjection.QuerySpecBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+QuerySpec.DependencyInjection.QuerySpecBuilder.WithAuditing(System.Action<QuerySpec.DependencyInjection.AuditingBuilder!>! configure) -> QuerySpec.DependencyInjection.QuerySpecBuilder!
+QuerySpec.DependencyInjection.QuerySpecBuilder.WithCaching(System.Action<QuerySpec.DependencyInjection.CachingBuilder!>! configure) -> QuerySpec.DependencyInjection.QuerySpecBuilder!
+QuerySpec.DependencyInjection.QuerySpecBuilder.WithMonitoring(System.Action<QuerySpec.DependencyInjection.MonitoringBuilder!>! configure) -> QuerySpec.DependencyInjection.QuerySpecBuilder!
+QuerySpec.DependencyInjection.QuerySpecBuilder.WithPerformance(System.Action<QuerySpec.DependencyInjection.PerformanceBuilder!>! configure) -> QuerySpec.DependencyInjection.QuerySpecBuilder!
+QuerySpec.DependencyInjection.QuerySpecBuilder.WithResilience(System.Action<QuerySpec.DependencyInjection.ResilienceBuilder!>! configure) -> QuerySpec.DependencyInjection.QuerySpecBuilder!
+QuerySpec.DependencyInjection.QuerySpecBuilder.WithSecurity(System.Action<QuerySpec.DependencyInjection.SecurityBuilder!>! configure) -> QuerySpec.DependencyInjection.QuerySpecBuilder!
+QuerySpec.DependencyInjection.ResilienceBuilder
+QuerySpec.DependencyInjection.ResilienceBuilder.ResilienceBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> void
+QuerySpec.DependencyInjection.ResilienceBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+QuerySpec.DependencyInjection.ResilienceBuilder.UseBulkhead(int maxConcurrentRequests) -> QuerySpec.DependencyInjection.ResilienceBuilder!
+QuerySpec.DependencyInjection.ResilienceBuilder.UseCircuitBreaker(int failureThreshold, System.TimeSpan openTimeout) -> QuerySpec.DependencyInjection.ResilienceBuilder!
+QuerySpec.DependencyInjection.ResilienceBuilder.UseRateLimiting(int tokensPerSecond, System.TimeSpan? window = null) -> QuerySpec.DependencyInjection.ResilienceBuilder!
+QuerySpec.DependencyInjection.ResilienceBuilder.UseRetryPolicy(int maxRetries, bool exponentialBackoff = true) -> QuerySpec.DependencyInjection.ResilienceBuilder!
+QuerySpec.DependencyInjection.SecurityBuilder
+QuerySpec.DependencyInjection.SecurityBuilder.EnableDataMasking() -> QuerySpec.DependencyInjection.SecurityBuilder!
+QuerySpec.DependencyInjection.SecurityBuilder.EnableDynamicPermissions() -> QuerySpec.DependencyInjection.SecurityBuilder!
+QuerySpec.DependencyInjection.SecurityBuilder.EnableFieldEncryption(string! encryptionKey) -> QuerySpec.DependencyInjection.SecurityBuilder!
+QuerySpec.DependencyInjection.SecurityBuilder.EnableRowLevelSecurity() -> QuerySpec.DependencyInjection.SecurityBuilder!
+QuerySpec.DependencyInjection.SecurityBuilder.SecurityBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> void
+QuerySpec.DependencyInjection.SecurityBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+QuerySpec.DependencyInjection.SecurityBuilder.UseAttributePiiClassifier() -> QuerySpec.DependencyInjection.SecurityBuilder!
+QuerySpec.DependencyInjection.SecurityBuilder.UsePiiClassifier(QuerySpec.Core.Security.IPiiClassifier! classifier) -> QuerySpec.DependencyInjection.SecurityBuilder!
+QuerySpec.DependencyInjection.ServiceCollectionExtensions
+static QuerySpec.DependencyInjection.ServiceCollectionExtensions.AddQuerySpec(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<QuerySpec.DependencyInjection.QuerySpecBuilder!>! configure) -> QuerySpec.DependencyInjection.QuerySpecBuilder!
