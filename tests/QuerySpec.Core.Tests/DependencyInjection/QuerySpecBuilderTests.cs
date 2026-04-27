@@ -158,10 +158,12 @@ public class QuerySpecBuilderTests
     public void WithMonitoring_StubsThrowAtConfigTime()
     {
         var services = new ServiceCollection();
-#pragma warning disable CS0618
-        Assert.Throws<NotImplementedException>(() =>
-            services.AddQuerySpec(q => q.WithMonitoring(m => m.EnableOpenTelemetry())));
-#pragma warning restore CS0618
+        var enableOpenTelemetry = typeof(MonitoringBuilder).GetMethod(nameof(MonitoringBuilder.EnableOpenTelemetry), Type.EmptyTypes)!;
+
+        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() =>
+            services.AddQuerySpec(q => q.WithMonitoring(m => enableOpenTelemetry.Invoke(m, null))));
+
+        Assert.IsType<NotImplementedException>(ex.InnerException);
     }
 
     [Fact]

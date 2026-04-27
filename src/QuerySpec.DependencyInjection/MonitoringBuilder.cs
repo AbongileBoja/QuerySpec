@@ -26,13 +26,13 @@ public class MonitoringBuilder
 
     /// <summary>Enables OpenTelemetry integration.</summary>
     /// <exception cref="NotImplementedException">Always thrown. OpenTelemetry integration is not implemented.</exception>
-    [Obsolete("Not implemented; throws NotImplementedException at configuration time.", error: false)]
+    [Obsolete("Will be removed in 3.0; this method has never been implemented. Call Services.AddOpenTelemetry() directly on the builder's Services property and wire the SDK against your own IAuditLogger / ICacheProvider instances. Tracked in https://github.com/AbongileBoja/QuerySpec/issues/139.", error: true)]
     public MonitoringBuilder EnableOpenTelemetry() =>
         throw new NotImplementedException("MonitoringBuilder.EnableOpenTelemetry is not implemented.");
 
     /// <summary>Enables health checks.</summary>
     /// <exception cref="NotImplementedException">Always thrown. Health-checks integration is not implemented.</exception>
-    [Obsolete("Not implemented; throws NotImplementedException at configuration time.", error: false)]
+    [Obsolete("Will be removed in 3.0; this method has never been implemented. Call Services.AddHealthChecks() directly on the builder's Services property and register the checks against your own dependencies. Tracked in https://github.com/AbongileBoja/QuerySpec/issues/139.", error: true)]
     public MonitoringBuilder EnableHealthChecks() =>
         throw new NotImplementedException("MonitoringBuilder.EnableHealthChecks is not implemented.");
 }
