@@ -35,11 +35,6 @@ jobs:
         QUERYSPEC_SKIP_SIGN: 'true'
       run: dotnet restore QuerySpec.sln
 
-    - name: Build solution
-      env:
-        QUERYSPEC_SKIP_SIGN: 'true'
-      run: dotnet build QuerySpec.sln --configuration Release --no-restore
-
     - name: Run Stryker
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
