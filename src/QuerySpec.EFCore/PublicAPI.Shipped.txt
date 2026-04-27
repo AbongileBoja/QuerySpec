@@ -1,4 +1,10 @@
 #nullable enable
-static QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilter<T>(System.Linq.IQueryable<T>! query, QuerySpec.Core.Advanced.FilterSpec? filter) -> System.Linq.IQueryable<T>!
-static QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilterCached<T>(System.Linq.IQueryable<T>! query, QuerySpec.Core.Advanced.FilterSpec? filter) -> System.Linq.IQueryable<T>!
-static QuerySpec.EFCore.QuerySpecExpressionTranslator.GetOrBuildCachedPredicate<T>(QuerySpec.Core.Advanced.FilterSpec! filter) -> System.Linq.Expressions.Expression<System.Func<T, bool>!>!
+QuerySpec.EFCore.QuerySpecExpressionTranslator
+QuerySpec.EFCore.QuerySpecExpressionTranslator.RegexHelper
+static QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyAggregation<T>(System.Linq.IQueryable<T!>! query, QuerySpec.Core.Advanced.AggregationRequest? aggregation) -> System.Linq.IQueryable<T!>!
+static QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilter<T>(System.Linq.IQueryable<T!>! query, QuerySpec.Core.Advanced.FilterSpec? filter) -> System.Linq.IQueryable<T!>!
+static QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilterCached<T>(System.Linq.IQueryable<T!>! query, QuerySpec.Core.Advanced.FilterSpec? filter) -> System.Linq.IQueryable<T!>!
+static QuerySpec.EFCore.QuerySpecExpressionTranslator.ClearPredicateCache() -> void
+static QuerySpec.EFCore.QuerySpecExpressionTranslator.GetOrBuildCachedPredicate<T>(QuerySpec.Core.Advanced.FilterSpec! filter) -> System.Linq.Expressions.Expression<System.Func<T!, bool>!>!
+static QuerySpec.EFCore.QuerySpecExpressionTranslator.RegexHelper.ClearRegexCache() -> void
+static QuerySpec.EFCore.QuerySpecExpressionTranslator.RegexHelper.IsMatch(string? input, string! pattern) -> bool

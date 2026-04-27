@@ -1,65 +1,687 @@
 #nullable enable
-QuerySpec.Core.Advanced.GeoCoordinate
-QuerySpec.Core.Advanced.GeoCoordinate.GeoCoordinate(double latitude, double longitude) -> void
-QuerySpec.Core.Advanced.GeoCoordinate.Latitude.get -> double
-QuerySpec.Core.Advanced.GeoCoordinate.Longitude.get -> double
-QuerySpec.Core.Advanced.GeoCoordinate.DistanceTo(QuerySpec.Core.Advanced.GeoCoordinate other) -> double
-override QuerySpec.Core.Advanced.GeoCoordinate.ToString() -> string!
-static QuerySpec.Core.Advanced.GeoCoordinate.Parse(string! s) -> QuerySpec.Core.Advanced.GeoCoordinate
-static QuerySpec.Core.Advanced.GeoCoordinate.TryParse(string? s, out QuerySpec.Core.Advanced.GeoCoordinate result) -> bool
+QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.Average = 2 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.Count = 0 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.Distinct = 5 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.GroupBy = 6 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.Max = 4 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.Min = 3 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.Percentile = 9 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.StdDev = 7 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.Sum = 1 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationOperator.Variance = 8 -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationRequest
+QuerySpec.Core.Advanced.AggregationRequest.AggregationRequest() -> void
+QuerySpec.Core.Advanced.AggregationRequest.Alias.get -> string?
+QuerySpec.Core.Advanced.AggregationRequest.Alias.set -> void
+QuerySpec.Core.Advanced.AggregationRequest.Field.get -> string!
+QuerySpec.Core.Advanced.AggregationRequest.Field.set -> void
+QuerySpec.Core.Advanced.AggregationRequest.GroupByField.get -> string?
+QuerySpec.Core.Advanced.AggregationRequest.GroupByField.set -> void
+QuerySpec.Core.Advanced.AggregationRequest.Operator.get -> QuerySpec.Core.Advanced.AggregationOperator
+QuerySpec.Core.Advanced.AggregationRequest.Operator.set -> void
+QuerySpec.Core.Advanced.AggregationRequest.Percentile.get -> int?
+QuerySpec.Core.Advanced.AggregationRequest.Percentile.set -> void
+QuerySpec.Core.Advanced.CustomOperatorRegistry
+QuerySpec.Core.Advanced.CustomOperatorRegistry.CustomOperatorRegistry() -> void
+QuerySpec.Core.Advanced.CustomOperatorRegistry.Get(string! name) -> QuerySpec.Core.Advanced.ICustomOperator?
+QuerySpec.Core.Advanced.CustomOperatorRegistry.GetAll() -> System.Collections.Generic.IEnumerable<QuerySpec.Core.Advanced.ICustomOperator!>!
+QuerySpec.Core.Advanced.CustomOperatorRegistry.Register(QuerySpec.Core.Advanced.ICustomOperator! op) -> void
+QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.AllMatch = 23 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.AnyMatch = 22 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.Between = 30 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.BitwiseAnd = 90 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.BitwiseOr = 91 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.Contains = 10 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.ContainsCaseInsensitive = 52 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.Contains_CaseInsensitive = 52 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.CountGreaterThan = 24 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.CountLessThan = 25 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.Custom = 999 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.DateAfter = 81 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.DateBefore = 82 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.DateEquals = 83 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.DateInRange = 80 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.EndsWith = 13 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.Equal = 0 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.FullTextSearch = 60 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.GeoDistance = 70 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.GeoWithin = 71 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.GreaterThan = 2 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.GreaterThanOrEqual = 3 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.In = 20 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.IsEmpty = 50 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.IsNotEmpty = 51 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.IsNotNull = 41 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.IsNull = 40 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.LessThan = 4 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.LessThanOrEqual = 5 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.NotBetween = 31 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.NotContains = 11 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.NotEqual = 1 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.NotIn = 21 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.Regex = 16 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.RelativeDate = 84 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.StartsWith = 12 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.StringMatchCase = 14 -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterOperator.StringMatchIgnoreCase = 15 -> QuerySpec.Core.Advanced.FilterOperator
 QuerySpec.Core.Advanced.FilterSpec
-QuerySpec.Core.Advanced.FilterSpec.FilterSpec() -> void
-QuerySpec.Core.Advanced.FilterSpec.Field.get -> string!
-QuerySpec.Core.Advanced.FilterSpec.Field.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Operator.get -> QuerySpec.Core.Advanced.FilterOperator
-QuerySpec.Core.Advanced.FilterSpec.Operator.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Value.get -> object?
-QuerySpec.Core.Advanced.FilterSpec.Value.init -> void
-QuerySpec.Core.Advanced.FilterSpec.ValueTo.get -> object?
-QuerySpec.Core.Advanced.FilterSpec.ValueTo.init -> void
+QuerySpec.Core.Advanced.FilterSpec.<Clone>$() -> QuerySpec.Core.Advanced.FilterSpec!
 QuerySpec.Core.Advanced.FilterSpec.CaseSensitive.get -> bool
 QuerySpec.Core.Advanced.FilterSpec.CaseSensitive.init -> void
-QuerySpec.Core.Advanced.FilterSpec.UseRegex.get -> bool
-QuerySpec.Core.Advanced.FilterSpec.UseRegex.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Logic.get -> QuerySpec.Core.Advanced.LogicalOperator
-QuerySpec.Core.Advanced.FilterSpec.Logic.init -> void
+QuerySpec.Core.Advanced.FilterSpec.ComputeStableHash() -> long
+QuerySpec.Core.Advanced.FilterSpec.CustomOperatorName.get -> string?
+QuerySpec.Core.Advanced.FilterSpec.CustomOperatorName.init -> void
+QuerySpec.Core.Advanced.FilterSpec.Equals(QuerySpec.Core.Advanced.FilterSpec? other) -> bool
+QuerySpec.Core.Advanced.FilterSpec.Field.get -> string!
+QuerySpec.Core.Advanced.FilterSpec.Field.init -> void
+QuerySpec.Core.Advanced.FilterSpec.FilterSpec() -> void
 QuerySpec.Core.Advanced.FilterSpec.Filters.get -> System.Collections.Generic.IReadOnlyList<QuerySpec.Core.Advanced.FilterSpec!>!
 QuerySpec.Core.Advanced.FilterSpec.Filters.init -> void
-QuerySpec.Core.Advanced.FilterSpec.TemporalStart.get -> System.DateTime?
-QuerySpec.Core.Advanced.FilterSpec.TemporalStart.init -> void
-QuerySpec.Core.Advanced.FilterSpec.TemporalEnd.get -> System.DateTime?
-QuerySpec.Core.Advanced.FilterSpec.TemporalEnd.init -> void
-QuerySpec.Core.Advanced.FilterSpec.IncludeDeletedRecords.get -> bool
-QuerySpec.Core.Advanced.FilterSpec.IncludeDeletedRecords.init -> void
 QuerySpec.Core.Advanced.FilterSpec.GeoLocation.get -> QuerySpec.Core.Advanced.GeoCoordinate?
 QuerySpec.Core.Advanced.FilterSpec.GeoLocation.init -> void
 QuerySpec.Core.Advanced.FilterSpec.GeoRadius.get -> decimal?
 QuerySpec.Core.Advanced.FilterSpec.GeoRadius.init -> void
-QuerySpec.Core.Advanced.FilterSpec.CustomOperatorName.get -> string?
-QuerySpec.Core.Advanced.FilterSpec.CustomOperatorName.init -> void
+QuerySpec.Core.Advanced.FilterSpec.IncludeDeletedRecords.get -> bool
+QuerySpec.Core.Advanced.FilterSpec.IncludeDeletedRecords.init -> void
+QuerySpec.Core.Advanced.FilterSpec.Logic.get -> QuerySpec.Core.Advanced.LogicalOperator
+QuerySpec.Core.Advanced.FilterSpec.Logic.init -> void
+QuerySpec.Core.Advanced.FilterSpec.Operator.get -> QuerySpec.Core.Advanced.FilterOperator
+QuerySpec.Core.Advanced.FilterSpec.Operator.init -> void
+QuerySpec.Core.Advanced.FilterSpec.TemporalEnd.get -> System.DateTime?
+QuerySpec.Core.Advanced.FilterSpec.TemporalEnd.init -> void
+QuerySpec.Core.Advanced.FilterSpec.TemporalStart.get -> System.DateTime?
+QuerySpec.Core.Advanced.FilterSpec.TemporalStart.init -> void
+QuerySpec.Core.Advanced.FilterSpec.UseRegex.get -> bool
+QuerySpec.Core.Advanced.FilterSpec.UseRegex.init -> void
 QuerySpec.Core.Advanced.FilterSpec.Validate() -> System.Collections.Generic.IEnumerable<string!>!
-QuerySpec.Core.Advanced.FilterSpec.ComputeStableHash() -> long
-QuerySpec.Core.Advanced.FilterSpec.Equals(QuerySpec.Core.Advanced.FilterSpec? other) -> bool
-override QuerySpec.Core.Advanced.FilterSpec.GetHashCode() -> int
+QuerySpec.Core.Advanced.FilterSpec.Value.get -> object?
+QuerySpec.Core.Advanced.FilterSpec.Value.init -> void
+QuerySpec.Core.Advanced.FilterSpec.ValueTo.get -> object?
+QuerySpec.Core.Advanced.FilterSpec.ValueTo.init -> void
+QuerySpec.Core.Advanced.GeoCoordinate
+QuerySpec.Core.Advanced.GeoCoordinate.DistanceTo(QuerySpec.Core.Advanced.GeoCoordinate other) -> double
+QuerySpec.Core.Advanced.GeoCoordinate.Equals(QuerySpec.Core.Advanced.GeoCoordinate other) -> bool
+QuerySpec.Core.Advanced.GeoCoordinate.GeoCoordinate() -> void
+QuerySpec.Core.Advanced.GeoCoordinate.GeoCoordinate(double latitude, double longitude) -> void
+QuerySpec.Core.Advanced.GeoCoordinate.Latitude.get -> double
+QuerySpec.Core.Advanced.GeoCoordinate.Longitude.get -> double
+QuerySpec.Core.Advanced.ICustomOperator
+QuerySpec.Core.Advanced.ICustomOperator.Description.get -> string!
+QuerySpec.Core.Advanced.ICustomOperator.Execute(object! value, object! filterValue) -> object?
+QuerySpec.Core.Advanced.ICustomOperator.Name.get -> string!
+QuerySpec.Core.Advanced.ICustomOperator.SupportedTypes.get -> System.Type![]!
+QuerySpec.Core.Advanced.LogicalOperator
+QuerySpec.Core.Advanced.LogicalOperator.And = 0 -> QuerySpec.Core.Advanced.LogicalOperator
+QuerySpec.Core.Advanced.LogicalOperator.Or = 1 -> QuerySpec.Core.Advanced.LogicalOperator
+QuerySpec.Core.Advanced.LogicalOperator.Xor = 2 -> QuerySpec.Core.Advanced.LogicalOperator
+QuerySpec.Core.Auditing.AuditContext
+QuerySpec.Core.Auditing.AuditContext.AuditContext() -> void
+QuerySpec.Core.Auditing.AuditContext.EnableAuditing.get -> bool
+QuerySpec.Core.Auditing.AuditContext.EnableAuditing.set -> void
+QuerySpec.Core.Auditing.AuditContext.EnableEncryption.get -> bool
+QuerySpec.Core.Auditing.AuditContext.EnableEncryption.set -> void
+QuerySpec.Core.Auditing.AuditContext.EnableFieldLevelTracking.get -> bool
+QuerySpec.Core.Auditing.AuditContext.EnableFieldLevelTracking.set -> void
+QuerySpec.Core.Auditing.AuditContext.EnableMasking.get -> bool
+QuerySpec.Core.Auditing.AuditContext.EnableMasking.set -> void
+QuerySpec.Core.Auditing.AuditContext.Operation.get -> string!
+QuerySpec.Core.Auditing.AuditContext.Operation.set -> void
+QuerySpec.Core.Auditing.AuditContext.RequestId.get -> string!
+QuerySpec.Core.Auditing.AuditContext.RequestId.set -> void
+QuerySpec.Core.Auditing.AuditContext.ResourceType.get -> string!
+QuerySpec.Core.Auditing.AuditContext.ResourceType.set -> void
+QuerySpec.Core.Auditing.AuditContext.SensitiveFields.get -> System.Collections.Generic.List<string!>!
+QuerySpec.Core.Auditing.AuditContext.SensitiveFields.set -> void
+QuerySpec.Core.Auditing.AuditContext.TenantId.get -> string!
+QuerySpec.Core.Auditing.AuditContext.TenantId.set -> void
+QuerySpec.Core.Auditing.AuditContext.UserId.get -> string!
+QuerySpec.Core.Auditing.AuditContext.UserId.set -> void
+QuerySpec.Core.Auditing.AuditLogEntry
+QuerySpec.Core.Auditing.AuditLogEntry.AccessedSensitiveFields.get -> System.Collections.Generic.List<string!>!
+QuerySpec.Core.Auditing.AuditLogEntry.AccessedSensitiveFields.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.AuditLogEntry() -> void
+QuerySpec.Core.Auditing.AuditLogEntry.ComputeHash() -> void
+QuerySpec.Core.Auditing.AuditLogEntry.DeniedFields.get -> System.Collections.Generic.List<string!>!
+QuerySpec.Core.Auditing.AuditLogEntry.DeniedFields.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.ErrorMessage.get -> string?
+QuerySpec.Core.Auditing.AuditLogEntry.ErrorMessage.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.ExecutionTimeMs.get -> long
+QuerySpec.Core.Auditing.AuditLogEntry.ExecutionTimeMs.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.Filters.get -> System.Collections.Generic.Dictionary<string!, object!>!
+QuerySpec.Core.Auditing.AuditLogEntry.Filters.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.Hash.get -> string!
+QuerySpec.Core.Auditing.AuditLogEntry.Id.get -> string!
+QuerySpec.Core.Auditing.AuditLogEntry.Id.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.Operation.get -> string!
+QuerySpec.Core.Auditing.AuditLogEntry.Operation.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.PreviousHash.get -> string?
+QuerySpec.Core.Auditing.AuditLogEntry.ProjectedFields.get -> System.Collections.Generic.List<string!>!
+QuerySpec.Core.Auditing.AuditLogEntry.ProjectedFields.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.RecordsAffected.get -> int
+QuerySpec.Core.Auditing.AuditLogEntry.RecordsAffected.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.RequestId.get -> string!
+QuerySpec.Core.Auditing.AuditLogEntry.RequestId.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.ResourceType.get -> string!
+QuerySpec.Core.Auditing.AuditLogEntry.ResourceType.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.Seal(string? previousHash) -> void
+QuerySpec.Core.Auditing.AuditLogEntry.Success.get -> bool
+QuerySpec.Core.Auditing.AuditLogEntry.Success.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.TenantId.get -> string!
+QuerySpec.Core.Auditing.AuditLogEntry.TenantId.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.Timestamp.get -> System.DateTime
+QuerySpec.Core.Auditing.AuditLogEntry.Timestamp.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.UserId.get -> string!
+QuerySpec.Core.Auditing.AuditLogEntry.UserId.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.Validate() -> void
+QuerySpec.Core.Auditing.AuditLogEntry.VerifyIntegrity(string? expectedPreviousHash) -> bool
+QuerySpec.Core.Auditing.AuditLogEntry.WasEncrypted.get -> bool
+QuerySpec.Core.Auditing.AuditLogEntry.WasEncrypted.init -> void
+QuerySpec.Core.Auditing.AuditLogEntry.WasMasked.get -> bool
+QuerySpec.Core.Auditing.AuditLogEntry.WasMasked.init -> void
+QuerySpec.Core.Auditing.ComplianceExporter
+QuerySpec.Core.Auditing.ComplianceExporter.ComplianceExporter(QuerySpec.Core.Auditing.IAuditReader! auditReader) -> void
+QuerySpec.Core.Auditing.ComplianceExporter.GenerateGDPRExportAsync(string! userId, string! tenantId, System.IO.Stream! outputStream) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.ComplianceExporter.GenerateGDPRExportAsync(string! userId, string! tenantId, System.IO.Stream! outputStream, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.ComplianceExporter.GenerateGdprExportAsync(string! userId, string! tenantId, System.IO.Stream! outputStream) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.ComplianceExporter.GenerateGdprExportAsync(string! userId, string! tenantId, System.IO.Stream! outputStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.ComplianceExporter.GetUserDataAsync(string! userId, string! tenantId) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.ComplianceExporter.UserHasAccessedFieldAsync(string! userId, string! fieldName, System.DateTime since) -> System.Threading.Tasks.Task<bool>!
+QuerySpec.Core.Auditing.EntityAuditTrail
+QuerySpec.Core.Auditing.EntityAuditTrail.Changes.get -> System.Collections.Generic.List<QuerySpec.Core.Auditing.FieldChange!>!
+QuerySpec.Core.Auditing.EntityAuditTrail.Changes.set -> void
+QuerySpec.Core.Auditing.EntityAuditTrail.CreatedAt.get -> System.DateTime
+QuerySpec.Core.Auditing.EntityAuditTrail.CreatedAt.set -> void
+QuerySpec.Core.Auditing.EntityAuditTrail.EntityAuditTrail() -> void
+QuerySpec.Core.Auditing.EntityAuditTrail.EntityId.get -> string!
+QuerySpec.Core.Auditing.EntityAuditTrail.EntityId.set -> void
+QuerySpec.Core.Auditing.EntityAuditTrail.EntityType.get -> string!
+QuerySpec.Core.Auditing.EntityAuditTrail.EntityType.set -> void
+QuerySpec.Core.Auditing.EntityAuditTrail.GetChangesByUser(string! userId) -> System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.FieldChange!>!
+QuerySpec.Core.Auditing.EntityAuditTrail.GetChangesSince(System.DateTime since) -> System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.FieldChange!>!
+QuerySpec.Core.Auditing.FieldChange
+QuerySpec.Core.Auditing.FieldChange.ChangeReason.get -> string!
+QuerySpec.Core.Auditing.FieldChange.ChangeReason.set -> void
+QuerySpec.Core.Auditing.FieldChange.ChangedAt.get -> System.DateTime
+QuerySpec.Core.Auditing.FieldChange.ChangedAt.set -> void
+QuerySpec.Core.Auditing.FieldChange.ChangedBy.get -> string!
+QuerySpec.Core.Auditing.FieldChange.ChangedBy.set -> void
+QuerySpec.Core.Auditing.FieldChange.FieldChange() -> void
+QuerySpec.Core.Auditing.FieldChange.FieldName.get -> string!
+QuerySpec.Core.Auditing.FieldChange.FieldName.set -> void
+QuerySpec.Core.Auditing.FieldChange.NewValue.get -> object?
+QuerySpec.Core.Auditing.FieldChange.NewValue.set -> void
+QuerySpec.Core.Auditing.FieldChange.OldValue.get -> object?
+QuerySpec.Core.Auditing.FieldChange.OldValue.set -> void
+QuerySpec.Core.Auditing.FieldChange.Validate() -> void
+QuerySpec.Core.Auditing.IAuditLogger
+QuerySpec.Core.Auditing.IAuditMaintenance
+QuerySpec.Core.Auditing.IAuditMaintenance.PurgeOldLogsAsync(System.TimeSpan olderThan) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IAuditMaintenance.PurgeOldLogsAsync(System.TimeSpan olderThan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IAuditReader
+QuerySpec.Core.Auditing.IAuditReader.GetAuditAsync(string! id) -> System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditAsync(string! id, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByRequestAsync(string! requestId) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByRequestAsync(string! requestId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByUserAsync(string! userId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByUserAsync(string! userId, System.DateTime? since, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetComplianceReportAsync(System.DateTime from, System.DateTime to) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetComplianceReportAsync(System.DateTime from, System.DateTime to, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditWriter
+QuerySpec.Core.Auditing.IAuditWriter.LogChangeAsync(QuerySpec.Core.Auditing.FieldChange! change) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IAuditWriter.LogChangeAsync(QuerySpec.Core.Auditing.FieldChange! change, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IAuditWriter.LogQueryAsync(QuerySpec.Core.Auditing.AuditLogEntry! entry) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IAuditWriter.LogQueryAsync(QuerySpec.Core.Auditing.AuditLogEntry! entry, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IComplianceExporter
+QuerySpec.Core.Auditing.IComplianceExporter.GenerateGDPRExportAsync(string! userId, string! tenantId, System.IO.Stream! outputStream) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IComplianceExporter.GenerateGDPRExportAsync(string! userId, string! tenantId, System.IO.Stream! outputStream, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IComplianceExporter.GenerateGdprExportAsync(string! userId, string! tenantId, System.IO.Stream! outputStream) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IComplianceExporter.GenerateGdprExportAsync(string! userId, string! tenantId, System.IO.Stream! outputStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.IComplianceExporter.GetUserDataAsync(string! userId, string! tenantId) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IComplianceExporter.GetUserDataAsync(string! userId, string! tenantId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IComplianceExporter.UserHasAccessedFieldAsync(string! userId, string! fieldName, System.DateTime since) -> System.Threading.Tasks.Task<bool>!
+QuerySpec.Core.Auditing.IComplianceExporter.UserHasAccessedFieldAsync(string! userId, string! fieldName, System.DateTime since, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger
+QuerySpec.Core.Auditing.InMemoryAuditLogger.Count.get -> int
+QuerySpec.Core.Auditing.InMemoryAuditLogger.Dispose() -> void
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditAsync(string! id) -> System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByRequestAsync(string! requestId) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByUserAsync(string! userId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetComplianceReportAsync(System.DateTime from, System.DateTime to) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.InMemoryAuditLogger() -> void
+QuerySpec.Core.Auditing.InMemoryAuditLogger.InMemoryAuditLogger(System.TimeProvider! timeProvider) -> void
+QuerySpec.Core.Auditing.InMemoryAuditLogger.LogChangeAsync(QuerySpec.Core.Auditing.FieldChange! change) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.LogQueryAsync(QuerySpec.Core.Auditing.AuditLogEntry! entry) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.PurgeOldLogsAsync(System.TimeSpan olderThan) -> System.Threading.Tasks.Task!
+QuerySpec.Core.Caching.CacheKeyGenerator
+QuerySpec.Core.Caching.CachePolicy
+QuerySpec.Core.Caching.CachePolicy.CacheByPermissions.get -> bool
+QuerySpec.Core.Caching.CachePolicy.CacheByPermissions.set -> void
+QuerySpec.Core.Caching.CachePolicy.CacheByTenant.get -> bool
+QuerySpec.Core.Caching.CachePolicy.CacheByTenant.set -> void
+QuerySpec.Core.Caching.CachePolicy.CacheByUser.get -> bool
+QuerySpec.Core.Caching.CachePolicy.CacheByUser.set -> void
+QuerySpec.Core.Caching.CachePolicy.CacheKeyPrefix.get -> string?
+QuerySpec.Core.Caching.CachePolicy.CacheKeyPrefix.set -> void
+QuerySpec.Core.Caching.CachePolicy.CachePolicy() -> void
+QuerySpec.Core.Caching.CachePolicy.CompressForSize.get -> bool
+QuerySpec.Core.Caching.CachePolicy.CompressForSize.set -> void
+QuerySpec.Core.Caching.CachePolicy.CompressionThresholdBytes.get -> int
+QuerySpec.Core.Caching.CachePolicy.CompressionThresholdBytes.set -> void
+QuerySpec.Core.Caching.CachePolicy.Duration.get -> System.TimeSpan?
+QuerySpec.Core.Caching.CachePolicy.Duration.set -> void
+QuerySpec.Core.Caching.CachePolicy.InvalidationTriggers.get -> System.Collections.Generic.List<string!>!
+QuerySpec.Core.Caching.CachePolicy.InvalidationTriggers.set -> void
 QuerySpec.Core.Caching.CacheResult<T>
-QuerySpec.Core.Caching.CacheResult<T>.HasValue.get -> bool
-QuerySpec.Core.Caching.CacheResult<T>.Value.get -> T
+QuerySpec.Core.Caching.CacheResult<T>.CacheResult() -> void
+QuerySpec.Core.Caching.CacheResult<T>.Equals(QuerySpec.Core.Caching.CacheResult<T> other) -> bool
 QuerySpec.Core.Caching.CacheResult<T>.GetValueOrDefault() -> T
 QuerySpec.Core.Caching.CacheResult<T>.GetValueOrDefault(T fallback) -> T
-QuerySpec.Core.Caching.CacheResult<T>.Equals(QuerySpec.Core.Caching.CacheResult<T> other) -> bool
+QuerySpec.Core.Caching.CacheResult<T>.HasValue.get -> bool
+QuerySpec.Core.Caching.CacheResult<T>.Value.get -> T
+QuerySpec.Core.Caching.CacheStats
+QuerySpec.Core.Caching.CacheStats.CacheStats() -> void
+QuerySpec.Core.Caching.CacheStats.HitRate.get -> double
+QuerySpec.Core.Caching.CacheStats.Hits.get -> long
+QuerySpec.Core.Caching.CacheStats.Hits.set -> void
+QuerySpec.Core.Caching.CacheStats.IncrementHits() -> void
+QuerySpec.Core.Caching.CacheStats.IncrementMisses() -> void
+QuerySpec.Core.Caching.CacheStats.IncrementRemoves() -> void
+QuerySpec.Core.Caching.CacheStats.IncrementSets() -> void
+QuerySpec.Core.Caching.CacheStats.Misses.get -> long
+QuerySpec.Core.Caching.CacheStats.Misses.set -> void
+QuerySpec.Core.Caching.CacheStats.Removes.get -> long
+QuerySpec.Core.Caching.CacheStats.Removes.set -> void
+QuerySpec.Core.Caching.CacheStats.Reset() -> void
+QuerySpec.Core.Caching.CacheStats.Sets.get -> long
+QuerySpec.Core.Caching.CacheStats.Sets.set -> void
+QuerySpec.Core.Caching.CacheStats.Snapshot() -> QuerySpec.Core.Caching.CacheStats!
+QuerySpec.Core.Caching.DistributedCacheProvider
+QuerySpec.Core.Caching.DistributedCacheProvider.DistributedCacheProvider(Microsoft.Extensions.Caching.Distributed.IDistributedCache! cache, Microsoft.Extensions.Logging.ILogger<QuerySpec.Core.Caching.DistributedCacheProvider!>? logger = null) -> void
+QuerySpec.Core.Caching.DistributedCacheProvider.ExistsAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+QuerySpec.Core.Caching.DistributedCacheProvider.FlushAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.DistributedCacheProvider.GetStatsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheStats!>
+QuerySpec.Core.Caching.DistributedCacheProvider.RemoveAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.DistributedCacheProvider.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.DistributedCacheProvider.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
+QuerySpec.Core.Caching.ICacheInvalidationStrategy
+QuerySpec.Core.Caching.ICacheInvalidationStrategy.InvalidateAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.ICacheInvalidationStrategy.InvalidateByTenantAsync(string! tenantId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.ICacheInvalidationStrategy.InvalidateByUserAsync(string! userId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.ICacheInvalidationStrategy.InvalidatePatternAsync(string! pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.ICacheProvider
+QuerySpec.Core.Caching.ICacheProvider.ExistsAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+QuerySpec.Core.Caching.ICacheProvider.FlushAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.ICacheProvider.GetStatsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheStats!>
+QuerySpec.Core.Caching.ICacheProvider.RemoveAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.ICacheStore
+QuerySpec.Core.Caching.ICacheStore.RemoveAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.ICacheStore.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.ICacheStore.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
+QuerySpec.Core.Caching.ICacheWarmer
+QuerySpec.Core.Caching.ICacheWarmer.WarmCacheAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.MemoryCacheProvider
+QuerySpec.Core.Caching.MemoryCacheProvider.Dispose() -> void
+QuerySpec.Core.Caching.MemoryCacheProvider.ExistsAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+QuerySpec.Core.Caching.MemoryCacheProvider.FlushAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.MemoryCacheProvider.GetStatsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheStats!>
+QuerySpec.Core.Caching.MemoryCacheProvider.MemoryCacheProvider() -> void
+QuerySpec.Core.Caching.MemoryCacheProvider.MemoryCacheProvider(Microsoft.Extensions.Caching.Memory.MemoryCacheOptions! options) -> void
+QuerySpec.Core.Caching.MemoryCacheProvider.MemoryCacheProvider(Microsoft.Extensions.Caching.Memory.MemoryCacheOptions! options, System.TimeProvider! timeProvider) -> void
+QuerySpec.Core.Caching.MemoryCacheProvider.RemoveAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.MemoryCacheProvider.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.MemoryCacheProvider.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
+QuerySpec.Core.Caching.MultiLevelCache
+QuerySpec.Core.Caching.MultiLevelCache.ExistsAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<bool>
+QuerySpec.Core.Caching.MultiLevelCache.FlushAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.MultiLevelCache.GetStatsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheStats!>
+QuerySpec.Core.Caching.MultiLevelCache.MultiLevelCache(QuerySpec.Core.Caching.MemoryCacheProvider! l1, QuerySpec.Core.Caching.DistributedCacheProvider! l2) -> void
+QuerySpec.Core.Caching.MultiLevelCache.RemoveAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.MultiLevelCache.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+QuerySpec.Core.Caching.MultiLevelCache.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
+QuerySpec.Core.Monitoring.HealthStatus
+QuerySpec.Core.Monitoring.HealthStatus.Component.get -> string!
+QuerySpec.Core.Monitoring.HealthStatus.Component.set -> void
+QuerySpec.Core.Monitoring.HealthStatus.HealthStatus() -> void
+QuerySpec.Core.Monitoring.HealthStatus.IsHealthy.get -> bool
+QuerySpec.Core.Monitoring.HealthStatus.IsHealthy.set -> void
+QuerySpec.Core.Monitoring.HealthStatus.Message.get -> string?
+QuerySpec.Core.Monitoring.HealthStatus.Message.set -> void
+QuerySpec.Core.Monitoring.HealthStatus.ResponseTimeMs.get -> long
+QuerySpec.Core.Monitoring.HealthStatus.ResponseTimeMs.set -> void
+QuerySpec.Core.Monitoring.IHealthCheckProvider
+QuerySpec.Core.Monitoring.IHealthCheckProvider.CheckAuditAsync() -> System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus!>!
+QuerySpec.Core.Monitoring.IHealthCheckProvider.CheckCacheAsync() -> System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus!>!
+QuerySpec.Core.Monitoring.IHealthCheckProvider.CheckDatabaseAsync() -> System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus!>!
+QuerySpec.Core.Monitoring.IHealthCheckProvider.CheckSecurityAsync() -> System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus!>!
+QuerySpec.Core.Monitoring.MetricsCollector
+QuerySpec.Core.Monitoring.MetricsCollector.GetReport(System.TimeSpan? period = null) -> QuerySpec.Core.Monitoring.QueryMetricsReport!
+QuerySpec.Core.Monitoring.MetricsCollector.MetricsCollector() -> void
+QuerySpec.Core.Monitoring.MetricsCollector.MetricsCollector(int maxRetainedQueries) -> void
+QuerySpec.Core.Monitoring.MetricsCollector.MetricsCollector(int maxRetainedQueries, System.TimeProvider! timeProvider) -> void
+QuerySpec.Core.Monitoring.MetricsCollector.Record(QuerySpec.Core.Monitoring.QueryMetrics! metrics) -> void
+QuerySpec.Core.Monitoring.N1DetectionEngine
+QuerySpec.Core.Monitoring.N1DetectionEngine.GetReport() -> QuerySpec.Core.Monitoring.N1DetectionReport!
+QuerySpec.Core.Monitoring.N1DetectionEngine.MaxStackFrames.get -> int
+QuerySpec.Core.Monitoring.N1DetectionEngine.MaxStackFrames.set -> void
+QuerySpec.Core.Monitoring.N1DetectionEngine.N1DetectionEngine() -> void
+QuerySpec.Core.Monitoring.N1DetectionEngine.RecordQuery(string! sql, long executionTimeMs) -> void
+QuerySpec.Core.Monitoring.N1DetectionEngine.Reset() -> void
+QuerySpec.Core.Monitoring.N1DetectionEngine.StackPreviewChars.get -> int
+QuerySpec.Core.Monitoring.N1DetectionEngine.StackPreviewChars.set -> void
+QuerySpec.Core.Monitoring.N1DetectionEngine.SuspicionThreshold.get -> int
+QuerySpec.Core.Monitoring.N1DetectionEngine.SuspicionThreshold.set -> void
+QuerySpec.Core.Monitoring.N1DetectionReport
+QuerySpec.Core.Monitoring.N1DetectionReport.HasSuspiciousPatterns.get -> bool
+QuerySpec.Core.Monitoring.N1DetectionReport.HasSuspiciousPatterns.set -> void
+QuerySpec.Core.Monitoring.N1DetectionReport.N1DetectionReport() -> void
+QuerySpec.Core.Monitoring.N1DetectionReport.Patterns.get -> System.Collections.Generic.List<QuerySpec.Core.Monitoring.SuspiciousPattern!>!
+QuerySpec.Core.Monitoring.N1DetectionReport.Patterns.set -> void
+QuerySpec.Core.Monitoring.N1DetectionReport.TotalPatterns.get -> int
+QuerySpec.Core.Monitoring.N1DetectionReport.TotalPatterns.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics
+QuerySpec.Core.Monitoring.QueryMetrics.CacheExtractionTimeMs.get -> long?
+QuerySpec.Core.Monitoring.QueryMetrics.CacheExtractionTimeMs.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.CacheHit.get -> bool
+QuerySpec.Core.Monitoring.QueryMetrics.CacheHit.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.ComplexityScore.get -> int
+QuerySpec.Core.Monitoring.QueryMetrics.ComplexityScore.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.DatabaseRoundTrips.get -> long?
+QuerySpec.Core.Monitoring.QueryMetrics.DatabaseRoundTrips.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.DatabaseTimeMs.get -> long?
+QuerySpec.Core.Monitoring.QueryMetrics.DatabaseTimeMs.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.EstimatedComplexity.get -> double
+QuerySpec.Core.Monitoring.QueryMetrics.ExecutedAt.get -> System.DateTime
+QuerySpec.Core.Monitoring.QueryMetrics.ExecutedAt.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.ExecutionTimeMs.get -> long
+QuerySpec.Core.Monitoring.QueryMetrics.ExecutionTimeMs.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.FilterCount.get -> int
+QuerySpec.Core.Monitoring.QueryMetrics.FilterCount.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.OptimizationApplied.get -> System.Collections.Generic.List<string!>!
+QuerySpec.Core.Monitoring.QueryMetrics.OptimizationApplied.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.QueryId.get -> string!
+QuerySpec.Core.Monitoring.QueryMetrics.QueryId.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.QueryMetrics() -> void
+QuerySpec.Core.Monitoring.QueryMetrics.RecordsReturned.get -> int
+QuerySpec.Core.Monitoring.QueryMetrics.RecordsReturned.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.ResourceType.get -> string!
+QuerySpec.Core.Monitoring.QueryMetrics.ResourceType.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.SortCount.get -> int
+QuerySpec.Core.Monitoring.QueryMetrics.SortCount.set -> void
+QuerySpec.Core.Monitoring.QueryMetrics.WasOptimized.get -> bool
+QuerySpec.Core.Monitoring.QueryMetrics.WasOptimized.set -> void
+QuerySpec.Core.Monitoring.QueryMetricsReport
+QuerySpec.Core.Monitoring.QueryMetricsReport.AverageComplexityScore.get -> double
+QuerySpec.Core.Monitoring.QueryMetricsReport.AverageComplexityScore.set -> void
+QuerySpec.Core.Monitoring.QueryMetricsReport.AverageExecutionTimeMs.get -> double
+QuerySpec.Core.Monitoring.QueryMetricsReport.AverageExecutionTimeMs.set -> void
+QuerySpec.Core.Monitoring.QueryMetricsReport.CacheHitRate.get -> double
+QuerySpec.Core.Monitoring.QueryMetricsReport.CacheHitRate.set -> void
+QuerySpec.Core.Monitoring.QueryMetricsReport.MostExpensiveQuery.get -> QuerySpec.Core.Monitoring.QueryMetrics?
+QuerySpec.Core.Monitoring.QueryMetricsReport.MostExpensiveQuery.set -> void
+QuerySpec.Core.Monitoring.QueryMetricsReport.OptimizedQueriesCount.get -> int
+QuerySpec.Core.Monitoring.QueryMetricsReport.OptimizedQueriesCount.set -> void
+QuerySpec.Core.Monitoring.QueryMetricsReport.QueryMetricsReport() -> void
+QuerySpec.Core.Monitoring.QueryMetricsReport.SlowQueries.get -> int
+QuerySpec.Core.Monitoring.QueryMetricsReport.SlowQueries.set -> void
+QuerySpec.Core.Monitoring.QueryMetricsReport.TotalQueries.get -> int
+QuerySpec.Core.Monitoring.QueryMetricsReport.TotalQueries.set -> void
+QuerySpec.Core.Monitoring.SuspiciousPattern
+QuerySpec.Core.Monitoring.SuspiciousPattern.AverageTime.get -> double
+QuerySpec.Core.Monitoring.SuspiciousPattern.AverageTime.set -> void
+QuerySpec.Core.Monitoring.SuspiciousPattern.ExecutionCount.get -> int
+QuerySpec.Core.Monitoring.SuspiciousPattern.ExecutionCount.set -> void
+QuerySpec.Core.Monitoring.SuspiciousPattern.StackTrace.get -> string!
+QuerySpec.Core.Monitoring.SuspiciousPattern.StackTrace.set -> void
+QuerySpec.Core.Monitoring.SuspiciousPattern.SuspiciousPattern() -> void
+QuerySpec.Core.Monitoring.SuspiciousPattern.TotalTime.get -> long
+QuerySpec.Core.Monitoring.SuspiciousPattern.TotalTime.set -> void
+QuerySpec.Core.Resilience.BulkheadException
+QuerySpec.Core.Resilience.BulkheadException.BulkheadException() -> void
+QuerySpec.Core.Resilience.BulkheadException.BulkheadException(string! message) -> void
+QuerySpec.Core.Resilience.BulkheadException.BulkheadException(string! message, System.Exception! innerException) -> void
+QuerySpec.Core.Resilience.BulkheadPolicy
+QuerySpec.Core.Resilience.BulkheadPolicy.BulkheadPolicy(int maxConcurrentRequests) -> void
+QuerySpec.Core.Resilience.BulkheadPolicy.Dispose() -> void
+QuerySpec.Core.Resilience.BulkheadPolicy.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation) -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Resilience.BulkheadPolicy.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Resilience.BulkheadPolicy.MaxConcurrentRequests.get -> int
+QuerySpec.Core.Resilience.CircuitBreaker
+QuerySpec.Core.Resilience.CircuitBreaker.CircuitBreaker(System.TimeProvider? timeProvider = null) -> void
+QuerySpec.Core.Resilience.CircuitBreaker.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation) -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Resilience.CircuitBreaker.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Resilience.CircuitBreaker.FailureThreshold.get -> int
+QuerySpec.Core.Resilience.CircuitBreaker.FailureThreshold.set -> void
+QuerySpec.Core.Resilience.CircuitBreaker.HalfOpenTestInterval.get -> System.TimeSpan
+QuerySpec.Core.Resilience.CircuitBreaker.HalfOpenTestInterval.set -> void
+QuerySpec.Core.Resilience.CircuitBreaker.OpenTimeout.get -> System.TimeSpan
+QuerySpec.Core.Resilience.CircuitBreaker.OpenTimeout.set -> void
+QuerySpec.Core.Resilience.CircuitBreaker.Reset() -> void
+QuerySpec.Core.Resilience.CircuitBreaker.State.get -> QuerySpec.Core.Resilience.CircuitState
+QuerySpec.Core.Resilience.CircuitBreakerOpenException
+QuerySpec.Core.Resilience.CircuitBreakerOpenException.CircuitBreakerOpenException() -> void
+QuerySpec.Core.Resilience.CircuitBreakerOpenException.CircuitBreakerOpenException(string! message) -> void
+QuerySpec.Core.Resilience.CircuitBreakerOpenException.CircuitBreakerOpenException(string! message, System.Exception! innerException) -> void
+QuerySpec.Core.Resilience.CircuitBreakerOpenException.CircuitBreakerOpenException(string! message, int failureCount, int failureThreshold, System.DateTime lastFailureTime, System.TimeSpan retryAfter) -> void
+QuerySpec.Core.Resilience.CircuitBreakerOpenException.FailureCount.get -> int
+QuerySpec.Core.Resilience.CircuitBreakerOpenException.FailureThreshold.get -> int
+QuerySpec.Core.Resilience.CircuitBreakerOpenException.LastFailureTime.get -> System.DateTime
+QuerySpec.Core.Resilience.CircuitBreakerOpenException.RetryAfter.get -> System.TimeSpan
+QuerySpec.Core.Resilience.CircuitState
+QuerySpec.Core.Resilience.CircuitState.Closed = 0 -> QuerySpec.Core.Resilience.CircuitState
+QuerySpec.Core.Resilience.CircuitState.HalfOpen = 2 -> QuerySpec.Core.Resilience.CircuitState
+QuerySpec.Core.Resilience.CircuitState.Open = 1 -> QuerySpec.Core.Resilience.CircuitState
+QuerySpec.Core.Resilience.RateLimitedException
+QuerySpec.Core.Resilience.RateLimitedException.RateLimitedException() -> void
+QuerySpec.Core.Resilience.RateLimitedException.RateLimitedException(string! message) -> void
+QuerySpec.Core.Resilience.RateLimitedException.RateLimitedException(string! message, System.Exception! innerException) -> void
+QuerySpec.Core.Resilience.RateLimiter
+QuerySpec.Core.Resilience.RateLimiter.BurstSize.get -> int
+QuerySpec.Core.Resilience.RateLimiter.BurstSize.set -> void
+QuerySpec.Core.Resilience.RateLimiter.GetRetryAfter(string! key, int tokensRequired = 1) -> System.TimeSpan?
+QuerySpec.Core.Resilience.RateLimiter.RateLimiter(System.TimeProvider? timeProvider = null) -> void
+QuerySpec.Core.Resilience.RateLimiter.TokensPerSecond.get -> int
+QuerySpec.Core.Resilience.RateLimiter.TokensPerSecond.set -> void
+QuerySpec.Core.Resilience.RateLimiter.TryAcquire(string! key, int tokensRequired = 1) -> bool
+QuerySpec.Core.Resilience.ResiliencePolicy
+QuerySpec.Core.Resilience.ResiliencePolicy.Bulkhead.get -> QuerySpec.Core.Resilience.BulkheadPolicy?
+QuerySpec.Core.Resilience.ResiliencePolicy.Bulkhead.set -> void
+QuerySpec.Core.Resilience.ResiliencePolicy.CircuitBreaker.get -> QuerySpec.Core.Resilience.CircuitBreaker?
+QuerySpec.Core.Resilience.ResiliencePolicy.CircuitBreaker.set -> void
+QuerySpec.Core.Resilience.ResiliencePolicy.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation, string! key = "default") -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Resilience.ResiliencePolicy.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation, string! key, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Resilience.ResiliencePolicy.RateLimiter.get -> QuerySpec.Core.Resilience.RateLimiter?
+QuerySpec.Core.Resilience.ResiliencePolicy.RateLimiter.set -> void
+QuerySpec.Core.Resilience.ResiliencePolicy.ResiliencePolicy() -> void
+QuerySpec.Core.Resilience.ResiliencePolicy.RetryPolicy.get -> QuerySpec.Core.Resilience.RetryPolicy?
+QuerySpec.Core.Resilience.ResiliencePolicy.RetryPolicy.set -> void
+QuerySpec.Core.Resilience.RetryPolicy
+QuerySpec.Core.Resilience.RetryPolicy.BackoffMultiplier.get -> double
+QuerySpec.Core.Resilience.RetryPolicy.BackoffMultiplier.set -> void
+QuerySpec.Core.Resilience.RetryPolicy.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation) -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Resilience.RetryPolicy.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Resilience.RetryPolicy.InitialDelay.get -> System.TimeSpan
+QuerySpec.Core.Resilience.RetryPolicy.InitialDelay.set -> void
+QuerySpec.Core.Resilience.RetryPolicy.MaxDelay.get -> System.TimeSpan
+QuerySpec.Core.Resilience.RetryPolicy.MaxDelay.set -> void
+QuerySpec.Core.Resilience.RetryPolicy.MaxRetries.get -> int
+QuerySpec.Core.Resilience.RetryPolicy.MaxRetries.set -> void
+QuerySpec.Core.Resilience.RetryPolicy.RetryPolicy() -> void
+QuerySpec.Core.Resilience.RetryPolicy.UseExponentialBackoff.get -> bool
+QuerySpec.Core.Resilience.RetryPolicy.UseExponentialBackoff.set -> void
+QuerySpec.Core.Security.AesEncryptionProvider
+QuerySpec.Core.Security.AesEncryptionProvider.AesEncryptionProvider(string! keyBase64) -> void
+QuerySpec.Core.Security.AesEncryptionProvider.Decrypt(string! ciphertext) -> string!
+QuerySpec.Core.Security.AesEncryptionProvider.Encrypt(string! plaintext) -> string!
+QuerySpec.Core.Security.AesGcmEncryptionProvider
+QuerySpec.Core.Security.AesGcmEncryptionProvider.AesGcmEncryptionProvider(byte[]! key) -> void
+QuerySpec.Core.Security.AesGcmEncryptionProvider.AesGcmEncryptionProvider(string! keyBase64) -> void
+QuerySpec.Core.Security.AesGcmEncryptionProvider.Decrypt(string! ciphertext) -> string!
+QuerySpec.Core.Security.AesGcmEncryptionProvider.Decrypt(string! ciphertext, System.ReadOnlySpan<byte> associatedData) -> string!
+QuerySpec.Core.Security.AesGcmEncryptionProvider.Encrypt(string! plaintext) -> string!
+QuerySpec.Core.Security.AesGcmEncryptionProvider.Encrypt(string! plaintext, System.ReadOnlySpan<byte> associatedData) -> string!
+QuerySpec.Core.Security.AttributePiiClassifier
+QuerySpec.Core.Security.AttributePiiClassifier.AttributePiiClassifier() -> void
+QuerySpec.Core.Security.AttributePiiClassifier.Classify(System.Type? declaringType, string! fieldName) -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.CompositePiiClassifier
+QuerySpec.Core.Security.CompositePiiClassifier.Classify(System.Type? declaringType, string! fieldName) -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.CompositePiiClassifier.CompositePiiClassifier(System.Collections.Generic.IEnumerable<QuerySpec.Core.Security.IPiiClassifier!>! classifiers) -> void
+QuerySpec.Core.Security.CompositePiiClassifier.CompositePiiClassifier(params QuerySpec.Core.Security.IPiiClassifier![]! classifiers) -> void
+QuerySpec.Core.Security.ConfiguredPiiClassifier
+QuerySpec.Core.Security.ConfiguredPiiClassifier.Classify(System.Type? declaringType, string! fieldName) -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.ConfiguredPiiClassifier.ConfiguredPiiClassifier(System.Collections.Generic.IEnumerable<(System.Type! DeclaringType, string! FieldName, QuerySpec.Core.Security.PiiCategory Category)>! registrations) -> void
+QuerySpec.Core.Security.DataMaskingEngine
+QuerySpec.Core.Security.DataMaskingEngine.Classify(System.Type? declaringType, string! fieldName) -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.DataMaskingEngine.DataMaskingEngine() -> void
+QuerySpec.Core.Security.DataMaskingEngine.DataMaskingEngine(byte[]? hashKey) -> void
+QuerySpec.Core.Security.DataMaskingEngine.DataMaskingEngine(byte[]? hashKey, QuerySpec.Core.Security.IPiiClassifier? classifier) -> void
+QuerySpec.Core.Security.DataMaskingEngine.IsPii(System.Type? declaringType, string! fieldName) -> bool
+QuerySpec.Core.Security.DataMaskingEngine.IsPii(string! fieldName, object? value) -> bool
+QuerySpec.Core.Security.DataMaskingEngine.Mask(System.Type? declaringType, string! fieldName, object? value, string? tenantId = null) -> string!
+QuerySpec.Core.Security.DataMaskingEngine.Mask(string! fieldName, object? value, string? tenantId = null) -> string!
+QuerySpec.Core.Security.DataMaskingEngine.RegisterFieldMask(string! fieldName, QuerySpec.Core.Security.MaskingStrategy strategy) -> void
+QuerySpec.Core.Security.DynamicContext
+QuerySpec.Core.Security.DynamicContext.AccessTime.get -> System.DateTime
+QuerySpec.Core.Security.DynamicContext.AccessTime.set -> void
+QuerySpec.Core.Security.DynamicContext.CustomData.get -> System.Collections.Generic.Dictionary<string!, object!>!
+QuerySpec.Core.Security.DynamicContext.CustomData.set -> void
+QuerySpec.Core.Security.DynamicContext.DynamicContext() -> void
+QuerySpec.Core.Security.DynamicContext.FieldName.get -> string?
+QuerySpec.Core.Security.DynamicContext.FieldName.set -> void
+QuerySpec.Core.Security.DynamicContext.ResourceType.get -> string!
+QuerySpec.Core.Security.DynamicContext.ResourceType.set -> void
+QuerySpec.Core.Security.DynamicContext.Roles.get -> System.Collections.Generic.List<string!>!
+QuerySpec.Core.Security.DynamicContext.Roles.set -> void
+QuerySpec.Core.Security.DynamicContext.UserId.get -> string!
+QuerySpec.Core.Security.DynamicContext.UserId.set -> void
+QuerySpec.Core.Security.DynamicPermissionEvaluator
+QuerySpec.Core.Security.DynamicPermissionEvaluator.DynamicPermissionEvaluator() -> void
+QuerySpec.Core.Security.DynamicPermissionEvaluator.HasPermission(QuerySpec.Core.Security.DynamicContext! context, QuerySpec.Core.Security.PermissionType type) -> bool
+QuerySpec.Core.Security.DynamicPermissionEvaluator.RegisterPermission(string! role, QuerySpec.Core.Security.PermissionType type, System.Func<QuerySpec.Core.Security.DynamicContext!, bool>! evaluator) -> void
+QuerySpec.Core.Security.IAuthenticatedEncryptionProvider
+QuerySpec.Core.Security.IAuthenticatedEncryptionProvider.Decrypt(string! ciphertext, System.ReadOnlySpan<byte> associatedData) -> string!
+QuerySpec.Core.Security.IAuthenticatedEncryptionProvider.Encrypt(string! plaintext, System.ReadOnlySpan<byte> associatedData) -> string!
+QuerySpec.Core.Security.IEncryptionProvider
+QuerySpec.Core.Security.IEncryptionProvider.Decrypt(string! ciphertext) -> string!
+QuerySpec.Core.Security.IEncryptionProvider.Encrypt(string! plaintext) -> string!
+QuerySpec.Core.Security.IPiiClassifier
+QuerySpec.Core.Security.IPiiClassifier.Classify(System.Type? declaringType, string! fieldName) -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.MaskingStrategy
+QuerySpec.Core.Security.MaskingStrategy.EmailMask = 3 -> QuerySpec.Core.Security.MaskingStrategy
+QuerySpec.Core.Security.MaskingStrategy.FullMask = 0 -> QuerySpec.Core.Security.MaskingStrategy
+QuerySpec.Core.Security.MaskingStrategy.HashMask = 4 -> QuerySpec.Core.Security.MaskingStrategy
+QuerySpec.Core.Security.MaskingStrategy.LastFourOnly = 2 -> QuerySpec.Core.Security.MaskingStrategy
+QuerySpec.Core.Security.MaskingStrategy.PartialMask = 1 -> QuerySpec.Core.Security.MaskingStrategy
+QuerySpec.Core.Security.MigratingAuthenticatedEncryptionProvider
+QuerySpec.Core.Security.MigratingAuthenticatedEncryptionProvider.Decrypt(string! ciphertext, System.ReadOnlySpan<byte> associatedData) -> string!
+QuerySpec.Core.Security.MigratingAuthenticatedEncryptionProvider.Encrypt(string! plaintext, System.ReadOnlySpan<byte> associatedData) -> string!
+QuerySpec.Core.Security.MigratingAuthenticatedEncryptionProvider.MigratingAuthenticatedEncryptionProvider(string! writeTag, QuerySpec.Core.Security.IAuthenticatedEncryptionProvider! writer, System.Collections.Generic.IReadOnlyDictionary<string!, QuerySpec.Core.Security.IAuthenticatedEncryptionProvider!>? legacyReaders = null) -> void
+QuerySpec.Core.Security.MigratingAuthenticatedEncryptionProvider.RegisteredTags.get -> System.Collections.Generic.IReadOnlyCollection<string!>!
+QuerySpec.Core.Security.MigratingAuthenticatedEncryptionProvider.WriteTag.get -> string!
+QuerySpec.Core.Security.MigratingEncryptionProvider
+QuerySpec.Core.Security.MigratingEncryptionProvider.Decrypt(string! ciphertext) -> string!
+QuerySpec.Core.Security.MigratingEncryptionProvider.Encrypt(string! plaintext) -> string!
+QuerySpec.Core.Security.MigratingEncryptionProvider.MigratingEncryptionProvider(string! writeTag, QuerySpec.Core.Security.IEncryptionProvider! writer, System.Collections.Generic.IReadOnlyDictionary<string!, QuerySpec.Core.Security.IEncryptionProvider!>? legacyReaders = null) -> void
+QuerySpec.Core.Security.MigratingEncryptionProvider.RegisteredTags.get -> System.Collections.Generic.IReadOnlyCollection<string!>!
+QuerySpec.Core.Security.MigratingEncryptionProvider.WriteTag.get -> string!
+QuerySpec.Core.Security.NameOnlyPiiClassifier
+QuerySpec.Core.Security.NameOnlyPiiClassifier.Classify(System.Type? declaringType, string! fieldName) -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.NameOnlyPiiClassifier.NameOnlyPiiClassifier(System.Collections.Generic.IReadOnlyDictionary<string!, QuerySpec.Core.Security.PiiCategory>! byFieldName) -> void
+QuerySpec.Core.Security.PermissionType
+QuerySpec.Core.Security.PermissionType.Delete = 2 -> QuerySpec.Core.Security.PermissionType
+QuerySpec.Core.Security.PermissionType.Export = 3 -> QuerySpec.Core.Security.PermissionType
+QuerySpec.Core.Security.PermissionType.Read = 0 -> QuerySpec.Core.Security.PermissionType
+QuerySpec.Core.Security.PermissionType.ViewSensitive = 4 -> QuerySpec.Core.Security.PermissionType
+QuerySpec.Core.Security.PermissionType.Write = 1 -> QuerySpec.Core.Security.PermissionType
+QuerySpec.Core.Security.PiiAttribute
+QuerySpec.Core.Security.PiiAttribute.Category.get -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.PiiAttribute.PiiAttribute(QuerySpec.Core.Security.PiiCategory category) -> void
+QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.PiiCategory.Contact = 2 -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.PiiCategory.DirectIdentifier = 1 -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.PiiCategory.Financial = 3 -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.PiiCategory.Health = 4 -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.PiiCategory.Location = 5 -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.PiiCategory.None = 0 -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.PiiCategory.Sensitive = 6 -> QuerySpec.Core.Security.PiiCategory
+QuerySpec.Core.Security.RLSContext
+QuerySpec.Core.Security.RLSContext.AllowedTenants.get -> System.Collections.Generic.List<string!>!
+QuerySpec.Core.Security.RLSContext.AllowedTenants.set -> void
+QuerySpec.Core.Security.RLSContext.CustomAttributes.get -> System.Collections.Generic.Dictionary<string!, object!>!
+QuerySpec.Core.Security.RLSContext.CustomAttributes.set -> void
+QuerySpec.Core.Security.RLSContext.Department.get -> string!
+QuerySpec.Core.Security.RLSContext.Department.set -> void
+QuerySpec.Core.Security.RLSContext.RLSContext() -> void
+QuerySpec.Core.Security.RLSContext.Region.get -> string!
+QuerySpec.Core.Security.RLSContext.Region.set -> void
+QuerySpec.Core.Security.RLSContext.UserId.get -> string!
+QuerySpec.Core.Security.RLSContext.UserId.set -> void
+QuerySpec.Core.Security.RLSDefaultBehavior
+QuerySpec.Core.Security.RLSDefaultBehavior.AllowAll = 2 -> QuerySpec.Core.Security.RLSDefaultBehavior
+QuerySpec.Core.Security.RLSDefaultBehavior.DenyAll = 1 -> QuerySpec.Core.Security.RLSDefaultBehavior
+QuerySpec.Core.Security.RLSDefaultBehavior.Throw = 0 -> QuerySpec.Core.Security.RLSDefaultBehavior
+QuerySpec.Core.Security.RLSFilter
+QuerySpec.Core.Security.RLSFilter.Parameters.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+QuerySpec.Core.Security.RLSFilter.RLSFilter(string! sql, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? parameters = null) -> void
+QuerySpec.Core.Security.RLSFilter.Sql.get -> string!
+QuerySpec.Core.Security.RLSPolicy
+QuerySpec.Core.Security.RLSPolicy.ApplyHierarchically.get -> bool
+QuerySpec.Core.Security.RLSPolicy.ApplyHierarchically.set -> void
+QuerySpec.Core.Security.RLSPolicy.FilterGenerator.get -> System.Func<QuerySpec.Core.Security.RLSContext!, QuerySpec.Core.Security.RLSFilter!>!
+QuerySpec.Core.Security.RLSPolicy.FilterGenerator.set -> void
+QuerySpec.Core.Security.RLSPolicy.PredicateFactory.get -> System.Delegate?
+QuerySpec.Core.Security.RLSPolicy.PredicateFactory.set -> void
+QuerySpec.Core.Security.RLSPolicy.RLSPolicy() -> void
+QuerySpec.Core.Security.RLSPolicy.ResourceType.get -> string!
+QuerySpec.Core.Security.RLSPolicy.ResourceType.set -> void
+QuerySpec.Core.Security.RLSPolicy.SetPredicate<T>(System.Func<QuerySpec.Core.Security.RLSContext!, System.Linq.Expressions.Expression<System.Func<T, bool>!>!>! factory) -> QuerySpec.Core.Security.RLSPolicy!
+QuerySpec.Core.Security.RowLevelSecurityEngine
+QuerySpec.Core.Security.RowLevelSecurityEngine.GenerateFilter(string! resourceType, QuerySpec.Core.Security.RLSContext! context) -> QuerySpec.Core.Security.RLSFilter!
+QuerySpec.Core.Security.RowLevelSecurityEngine.GetPredicate<T>(string! resourceType, QuerySpec.Core.Security.RLSContext! context) -> System.Linq.Expressions.Expression<System.Func<T, bool>!>?
+QuerySpec.Core.Security.RowLevelSecurityEngine.RegisterPolicy(QuerySpec.Core.Security.RLSPolicy! policy) -> void
+QuerySpec.Core.Security.RowLevelSecurityEngine.RegisterUnrestricted<T>(string! resourceType) -> void
+QuerySpec.Core.Security.RowLevelSecurityEngine.RowLevelSecurityEngine(QuerySpec.Core.Security.RLSDefaultBehavior defaultBehavior = QuerySpec.Core.Security.RLSDefaultBehavior.Throw) -> void
+const QuerySpec.Core.Monitoring.MetricsCollector.DefaultMaxRetainedQueries = 10000 -> int
+const QuerySpec.Core.Monitoring.N1DetectionEngine.MaxTrackedPatterns = 1024 -> int
+override QuerySpec.Core.Advanced.FilterSpec.Equals(object? obj) -> bool
+override QuerySpec.Core.Advanced.FilterSpec.GetHashCode() -> int
+override QuerySpec.Core.Advanced.FilterSpec.ToString() -> string!
+override QuerySpec.Core.Advanced.GeoCoordinate.GetHashCode() -> int
+override QuerySpec.Core.Advanced.GeoCoordinate.ToString() -> string!
 override QuerySpec.Core.Caching.CacheResult<T>.Equals(object? obj) -> bool
 override QuerySpec.Core.Caching.CacheResult<T>.GetHashCode() -> int
+override QuerySpec.Core.Caching.CacheStats.ToString() -> string!
+static QuerySpec.Core.Advanced.FilterSpec.operator !=(QuerySpec.Core.Advanced.FilterSpec? left, QuerySpec.Core.Advanced.FilterSpec? right) -> bool
+static QuerySpec.Core.Advanced.FilterSpec.operator ==(QuerySpec.Core.Advanced.FilterSpec? left, QuerySpec.Core.Advanced.FilterSpec? right) -> bool
+static QuerySpec.Core.Advanced.GeoCoordinate.Parse(string! s) -> QuerySpec.Core.Advanced.GeoCoordinate
+static QuerySpec.Core.Advanced.GeoCoordinate.TryParse(string? s, out QuerySpec.Core.Advanced.GeoCoordinate result) -> bool
+static QuerySpec.Core.Advanced.GeoCoordinate.operator !=(QuerySpec.Core.Advanced.GeoCoordinate left, QuerySpec.Core.Advanced.GeoCoordinate right) -> bool
+static QuerySpec.Core.Advanced.GeoCoordinate.operator ==(QuerySpec.Core.Advanced.GeoCoordinate left, QuerySpec.Core.Advanced.GeoCoordinate right) -> bool
+static QuerySpec.Core.Auditing.AuditLogEntry.VerifyChain(System.Collections.Generic.IReadOnlyList<QuerySpec.Core.Auditing.AuditLogEntry!>! entries) -> int
+static QuerySpec.Core.Caching.CacheKeyGenerator.GeneratePermissionCacheKey(string! userId, string! resourceType, string! fieldName) -> string!
+static QuerySpec.Core.Caching.CacheKeyGenerator.GenerateQueryCacheKey(string! tenantId, string! userId, string! queryHash, string! sortHash, int page) -> string!
+static QuerySpec.Core.Caching.CacheKeyGenerator.GenerateSecurityPolicyCacheKey(string! resourceType) -> string!
+static QuerySpec.Core.Caching.CachePolicy.Long.get -> QuerySpec.Core.Caching.CachePolicy!
+static QuerySpec.Core.Caching.CachePolicy.Medium.get -> QuerySpec.Core.Caching.CachePolicy!
+static QuerySpec.Core.Caching.CachePolicy.None.get -> QuerySpec.Core.Caching.CachePolicy!
+static QuerySpec.Core.Caching.CachePolicy.Short.get -> QuerySpec.Core.Caching.CachePolicy!
 static QuerySpec.Core.Caching.CacheResult<T>.Hit(T value) -> QuerySpec.Core.Caching.CacheResult<T>
 static QuerySpec.Core.Caching.CacheResult<T>.Miss.get -> QuerySpec.Core.Caching.CacheResult<T>
-static QuerySpec.Core.Caching.CacheResult<T>.operator ==(QuerySpec.Core.Caching.CacheResult<T> left, QuerySpec.Core.Caching.CacheResult<T> right) -> bool
 static QuerySpec.Core.Caching.CacheResult<T>.operator !=(QuerySpec.Core.Caching.CacheResult<T> left, QuerySpec.Core.Caching.CacheResult<T> right) -> bool
-QuerySpec.Core.Caching.ICacheStore
-QuerySpec.Core.Caching.ICacheStore.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
-QuerySpec.Core.Caching.ICacheStore.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-QuerySpec.Core.Caching.ICacheStore.RemoveAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-QuerySpec.Core.Caching.MemoryCacheProvider.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
-QuerySpec.Core.Caching.MemoryCacheProvider.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-QuerySpec.Core.Caching.DistributedCacheProvider.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
-QuerySpec.Core.Caching.DistributedCacheProvider.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-QuerySpec.Core.Caching.MultiLevelCache.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
-QuerySpec.Core.Caching.MultiLevelCache.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+static QuerySpec.Core.Caching.CacheResult<T>.operator ==(QuerySpec.Core.Caching.CacheResult<T> left, QuerySpec.Core.Caching.CacheResult<T> right) -> bool
+static QuerySpec.Core.Security.AesEncryptionProvider.GenerateKey() -> string!
+static QuerySpec.Core.Security.AesGcmEncryptionProvider.GenerateKey() -> string!
+static QuerySpec.Core.Security.RowLevelSecurityEngine.CreateDepartmentBased(string! deptFieldName) -> QuerySpec.Core.Security.RLSPolicy!
+static QuerySpec.Core.Security.RowLevelSecurityEngine.CreateOwnerBased(string! ownerFieldName) -> QuerySpec.Core.Security.RLSPolicy!
+static QuerySpec.Core.Security.RowLevelSecurityEngine.CreateTenantBased(string! tenantFieldName) -> QuerySpec.Core.Security.RLSPolicy!
+static QuerySpec.Core.Security.RowLevelSecurityEngine.EscapeSqlLiteral(string? value) -> string!
+static QuerySpec.Core.Security.RowLevelSecurityEngine.ValidateIdentifier(string! identifier) -> string!
+static readonly QuerySpec.Core.Security.RLSFilter.AllowAll -> QuerySpec.Core.Security.RLSFilter!
+static readonly QuerySpec.Core.Security.RLSFilter.DenyAll -> QuerySpec.Core.Security.RLSFilter!
+virtual QuerySpec.Core.Auditing.InMemoryAuditLogger.Dispose(bool disposing) -> void
+virtual QuerySpec.Core.Resilience.BulkheadPolicy.Dispose(bool disposing) -> void
+~override QuerySpec.Core.Advanced.GeoCoordinate.Equals(object obj) -> bool

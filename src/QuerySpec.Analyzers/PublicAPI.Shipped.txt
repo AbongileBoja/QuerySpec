@@ -1,1 +1,21 @@
 #nullable enable
+QuerySpec.Analyzers.AdvancedFilterExpressionAnalyzer
+QuerySpec.Analyzers.AdvancedFilterExpressionAnalyzer.AdvancedFilterExpressionAnalyzer() -> void
+QuerySpec.Analyzers.CacheProviderInvocationAnalyzer
+QuerySpec.Analyzers.CacheProviderInvocationAnalyzer.CacheProviderInvocationAnalyzer() -> void
+QuerySpec.Analyzers.DiagnosticDescriptors
+QuerySpec.Analyzers.DiagnosticIds
+QuerySpec.Analyzers.GeoLocationMemberAccessAnalyzer
+QuerySpec.Analyzers.GeoLocationMemberAccessAnalyzer.GeoLocationMemberAccessAnalyzer() -> void
+const QuerySpec.Analyzers.DiagnosticIds.AdvancedFilterExpressionUsage = "QSPEC0002" -> string!
+const QuerySpec.Analyzers.DiagnosticIds.CacheProviderInvocation = "QSPEC0003" -> string!
+const QuerySpec.Analyzers.DiagnosticIds.GeoLocationMemberAccess = "QSPEC0001" -> string!
+override QuerySpec.Analyzers.AdvancedFilterExpressionAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext! context) -> void
+override QuerySpec.Analyzers.AdvancedFilterExpressionAnalyzer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor!>
+override QuerySpec.Analyzers.CacheProviderInvocationAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext! context) -> void
+override QuerySpec.Analyzers.CacheProviderInvocationAnalyzer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor!>
+override QuerySpec.Analyzers.GeoLocationMemberAccessAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext! context) -> void
+override QuerySpec.Analyzers.GeoLocationMemberAccessAnalyzer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor!>
+static readonly QuerySpec.Analyzers.DiagnosticDescriptors.AdvancedFilterExpressionUsage -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly QuerySpec.Analyzers.DiagnosticDescriptors.CacheProviderInvocation -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly QuerySpec.Analyzers.DiagnosticDescriptors.GeoLocationMemberAccess -> Microsoft.CodeAnalysis.DiagnosticDescriptor!

@@ -1,0 +1,16 @@
+#nullable enable
+QuerySpec.Analyzers.AdvancedFilterExpressionCodeFixProvider
+QuerySpec.Analyzers.AdvancedFilterExpressionCodeFixProvider.AdvancedFilterExpressionCodeFixProvider() -> void
+QuerySpec.Analyzers.CacheProviderInvocationCodeFixProvider
+QuerySpec.Analyzers.CacheProviderInvocationCodeFixProvider.CacheProviderInvocationCodeFixProvider() -> void
+QuerySpec.Analyzers.GeoLocationMemberAccessCodeFixProvider
+QuerySpec.Analyzers.GeoLocationMemberAccessCodeFixProvider.GeoLocationMemberAccessCodeFixProvider() -> void
+override QuerySpec.Analyzers.AdvancedFilterExpressionCodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string!>
+override QuerySpec.Analyzers.AdvancedFilterExpressionCodeFixProvider.GetFixAllProvider() -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider!
+override QuerySpec.Analyzers.AdvancedFilterExpressionCodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task!
+override QuerySpec.Analyzers.CacheProviderInvocationCodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string!>
+override QuerySpec.Analyzers.CacheProviderInvocationCodeFixProvider.GetFixAllProvider() -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider!
+override QuerySpec.Analyzers.CacheProviderInvocationCodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task!
+override QuerySpec.Analyzers.GeoLocationMemberAccessCodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string!>
+override QuerySpec.Analyzers.GeoLocationMemberAccessCodeFixProvider.GetFixAllProvider() -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider!
+override QuerySpec.Analyzers.GeoLocationMemberAccessCodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task!
