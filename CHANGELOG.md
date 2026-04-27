@@ -6,10 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/) and this 
 
 ## [Unreleased]
 
+### Added
+
+* **core:** `FilterOperator.ContainsCaseInsensitive` ships alongside the existing snake-case `Contains_CaseInsensitive`. Both members share the underlying value `52` so binary callers passing the integer continue to work; only the symbolic name has changed.
+* **auditing:** `IComplianceExporter.GenerateGdprExportAsync` (with and without `CancellationToken`) ships alongside the existing `GenerateGDPRExportAsync` overloads. Default-interface-method delegation lets either name be called against any 2.x implementation.
+
 ### Deprecations
 
+* **core:** `FilterOperator.Contains_CaseInsensitive` is marked `[Obsolete(error: false)]` in favour of `FilterOperator.ContainsCaseInsensitive`. Snake-case spelling will be **removed in 3.0**. Both members share the same numeric value so binary callers are unaffected; switch tables and source references should migrate to the PascalCase name. Refs [#84](https://github.com/AbongileBoja/QuerySpec/issues/84).
+* **auditing:** `IComplianceExporter.GenerateGDPRExportAsync(string, string, Stream)` and `IComplianceExporter.GenerateGDPRExportAsync(string, string, Stream, CancellationToken)` are marked `[Obsolete(error: false)]` in favour of `GenerateGdprExportAsync`. The all-caps acronym violates the .NET naming guideline that acronyms three or more characters long are PascalCase. Will be **removed in 3.0**. The new overloads delegate to the obsolete ones via default-interface-method, so existing implementations continue to satisfy the interface unchanged. Refs [#84](https://github.com/AbongileBoja/QuerySpec/issues/84).
 * **security:** `IEncryptionProvider.RotateKeyAsync()` and `IEncryptionProvider.RotateKeyAsync(CancellationToken)` are marked `[Obsolete(error: true)]` and will be **removed in 3.0**. Every shipping implementation already throws `NotSupportedException` because the provider does not own the persisted ciphertexts. Implement key rotation at the storage layer instead (Azure Key Vault, AWS KMS, etc.): decrypt with the old provider, re-encrypt with the new provider. Closes [#73](https://github.com/AbongileBoja/QuerySpec/issues/73).
 * **di:** Eleven DI-builder methods that have only ever thrown `NotImplementedException` are marked `[Obsolete(error: true)]` and will be **removed in 3.0**. No implementation is planned. Affected: `AuditingBuilder.LogAllQueries`, `AuditingBuilder.TrackChanges`, `AuditingBuilder.EnableEncryption`, `AuditingBuilder.UseDatabase(string)`, `AuditingBuilder.RetentionDays(int)`, `CachingBuilder.EnableCompressionForLarge(int)`, `MonitoringBuilder.EnableOpenTelemetry`, `MonitoringBuilder.EnableHealthChecks`, `PerformanceBuilder.EnableQueryCaching`, `PerformanceBuilder.OptimizeExpressions`, `SecurityBuilder.RotateKeysEvery(int)`. Each obsolete message names the recommended replacement (composing your own `IAuditLogger`, calling `Services.AddOpenTelemetry()` / `Services.AddHealthChecks()` directly on the builder's `Services` property, decorating `ICacheProvider`, or implementing key rotation at the storage layer). Closes [#77](https://github.com/AbongileBoja/QuerySpec/issues/77); 3.0 removal tracked in [#139](https://github.com/AbongileBoja/QuerySpec/issues/139).
+
+### Notes
+
+* **core:** `GeoLocation.Latitude` and `GeoLocation.Longitude` will change type from `decimal` to `double` in 3.0. `AdvancedFilterExpression` will be reshaped from a mutable POCO into a `record` with `init`-only accessors. The generic constraint `where T : class` on `ICacheProvider.GetAsync<T>` and `SetAsync<T>` will be removed in 3.0 and the read contract reshaped accordingly. None of these can be staged source-compatibly in 2.x; each is documented in `<remarks>` on the affected member. Tracked in [#84](https://github.com/AbongileBoja/QuerySpec/issues/84).
+
+#### Migration table — issue #84 site map
+
+| Old (2.x) | New (2.x source-compat) | 3.0 final |
+|---|---|---|
+| `FilterOperator.Contains_CaseInsensitive` (obsolete) | `FilterOperator.ContainsCaseInsensitive` | snake-case removed |
+| `IComplianceExporter.GenerateGDPRExportAsync(...)` (obsolete) | `IComplianceExporter.GenerateGdprExportAsync(...)` | `GDPR` overloads removed |
+| `GeoLocation.Latitude` / `.Longitude` (`decimal`) — remarks-only | unchanged in 2.x | type changes to `double` |
+| `AdvancedFilterExpression` mutable POCO — remarks-only | unchanged in 2.x | `record` with `init` |
+| `ICacheProvider<T>.GetAsync<T>` / `SetAsync<T>` `where T : class` — remarks-only | unchanged in 2.x | constraint removed, read shape reshaped |
 
 ### [3.0.1-rc1](https://github.com/AbongileBoja/QuerySpec/compare/v3.0.0...v3.0.1-rc1) (2026-04-26)
 

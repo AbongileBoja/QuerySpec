@@ -97,6 +97,23 @@ public class TranslatorOperatorTests
         Assert.Equal("Carol", result[0].Name);
     }
 
+    /// <summary>
+    /// Verifies the renamed <see cref="FilterOperator.ContainsCaseInsensitive"/> behaves identically
+    /// to the obsolete snake-case alias they share an underlying value with — both must continue to
+    /// translate through the same predicate path until <c>Contains_CaseInsensitive</c> is removed in 3.0.
+    /// </summary>
+    [Fact]
+    public void ContainsCaseInsensitive_AliasAndRenamedMember_ProduceSameResults()
+    {
+        var renamed = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.ContainsCaseInsensitive, Value = "ali" });
+#pragma warning disable CS0618
+        var legacy = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Contains_CaseInsensitive, Value = "ali" });
+#pragma warning restore CS0618
+        Assert.Equal(renamed.Select(e => e.Id).OrderBy(x => x), legacy.Select(e => e.Id).OrderBy(x => x));
+        Assert.Single(renamed);
+        Assert.Equal("Alice", renamed[0].Name);
+    }
+
     [Fact]
     public void Contains_CaseSensitive_RespectsFlag()
     {

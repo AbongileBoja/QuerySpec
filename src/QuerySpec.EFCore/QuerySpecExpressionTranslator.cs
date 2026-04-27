@@ -264,7 +264,7 @@ public class QuerySpecExpressionTranslator
             FilterOperator.StringMatchCase => BuildEqual(property, filter.Value, propertyType, isNullable),
             FilterOperator.StringMatchIgnoreCase => BuildStringPredicate(property, filter.Value, StringPredicate.Contains, false, isNullable),
             FilterOperator.Regex => BuildRegexMatch(property, filter.Value, isNullable),
-            FilterOperator.Contains_CaseInsensitive => BuildStringPredicate(property, filter.Value, StringPredicate.Contains, false, isNullable),
+            FilterOperator.ContainsCaseInsensitive => BuildStringPredicate(property, filter.Value, StringPredicate.Contains, false, isNullable),
 
             FilterOperator.In => BuildIn(property, filter.Value, propertyType, underlyingType, isNullable),
             FilterOperator.NotIn => Expression.Not(BuildIn(property, filter.Value, propertyType, underlyingType, isNullable)),

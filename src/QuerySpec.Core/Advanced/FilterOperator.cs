@@ -1,3 +1,5 @@
+using System;
+
 namespace QuerySpec.Core.Advanced;
 
 /// <summary>
@@ -66,8 +68,14 @@ public enum FilterOperator
     IsEmpty = 50,
     /// <summary>Value is not empty.</summary>
     IsNotEmpty = 51,
-    /// <summary>Contains substring case-insensitive.</summary>
+    /// <summary>
+    /// Contains substring case-insensitive. Snake-case spelling retained for source compatibility
+    /// with 2.x consumers; prefer <see cref="ContainsCaseInsensitive"/>. Will be removed in 3.0.
+    /// </summary>
+    [Obsolete("Use ContainsCaseInsensitive. Will be removed in 3.0.", error: false)]
     Contains_CaseInsensitive = 52,
+    /// <summary>Contains substring case-insensitive.</summary>
+    ContainsCaseInsensitive = 52,
     /// <summary>Full-text search.</summary>
     FullTextSearch = 60,
     /// <summary>Geographic distance filter.</summary>

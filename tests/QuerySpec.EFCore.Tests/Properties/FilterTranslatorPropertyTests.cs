@@ -58,7 +58,7 @@ public sealed class FilterTranslatorPropertyTests : IDisposable
         FilterOperator.Contains, FilterOperator.NotContains,
         FilterOperator.StartsWith, FilterOperator.EndsWith,
         FilterOperator.StringMatchCase, FilterOperator.StringMatchIgnoreCase,
-        FilterOperator.Contains_CaseInsensitive,
+        FilterOperator.ContainsCaseInsensitive,
         FilterOperator.IsNull, FilterOperator.IsNotNull,
         FilterOperator.IsEmpty, FilterOperator.IsNotEmpty
     ];

@@ -7,9 +7,23 @@ namespace QuerySpec.Core.Advanced;
 /// </summary>
 public class GeoLocation
 {
-    /// <summary>Latitude coordinate.</summary>
+    /// <summary>Latitude coordinate in decimal degrees.</summary>
+    /// <remarks>
+    /// Typed as <see cref="decimal"/> for historical reasons. The Haversine implementation casts
+    /// to <see cref="double"/>, every JSON serializer maps to <see cref="double"/>, and SQL
+    /// <c>geography</c> / <c>float8</c> use <see cref="double"/>. In 3.0 this property will change
+    /// type from <see cref="decimal"/> to <see cref="double"/>; the change cannot be staged
+    /// source-compatibly. Tracked in <see href="https://github.com/AbongileBoja/QuerySpec/issues/84">#84</see>.
+    /// </remarks>
     public decimal Latitude { get; set; }
-    /// <summary>Longitude coordinate.</summary>
+    /// <summary>Longitude coordinate in decimal degrees.</summary>
+    /// <remarks>
+    /// Typed as <see cref="decimal"/> for historical reasons. The Haversine implementation casts
+    /// to <see cref="double"/>, every JSON serializer maps to <see cref="double"/>, and SQL
+    /// <c>geography</c> / <c>float8</c> use <see cref="double"/>. In 3.0 this property will change
+    /// type from <see cref="decimal"/> to <see cref="double"/>; the change cannot be staged
+    /// source-compatibly. Tracked in <see href="https://github.com/AbongileBoja/QuerySpec/issues/84">#84</see>.
+    /// </remarks>
     public decimal Longitude { get; set; }
 
     /// <summary>Initializes a new geolocation.</summary>

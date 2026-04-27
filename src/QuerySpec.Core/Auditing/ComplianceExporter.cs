@@ -46,18 +46,49 @@ public interface IComplianceExporter
     Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, DateTime since, CancellationToken cancellationToken)
         => UserHasAccessedFieldAsync(userId, fieldName, since);
 
+    /// <summary>
+    /// Generates a GDPR export for a user. Original spelling retained for source compatibility
+    /// with 2.x consumers; prefer <see cref="GenerateGdprExportAsync(string, string, Stream)"/>.
+    /// Will be removed in 3.0.
+    /// </summary>
+    /// <param name="userId">Subject of the export.</param>
+    /// <param name="tenantId">Tenant scope for the export.</param>
+    /// <param name="outputStream">Destination stream the export is serialised to.</param>
+    [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream);
+    /// <summary>
+    /// Generates a GDPR export for a user with cancellation support. Original spelling retained
+    /// for source compatibility with 2.x consumers; prefer
+    /// <see cref="GenerateGdprExportAsync(string, string, Stream, CancellationToken)"/>.
+    /// Will be removed in 3.0.
+    /// </summary>
+    /// <param name="userId">Subject of the export.</param>
+    /// <param name="tenantId">Tenant scope for the export.</param>
+    /// <param name="outputStream">Destination stream the export is serialised to.</param>
+    /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
+    [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
+#pragma warning disable CS0618
+        => GenerateGDPRExportAsync(userId, tenantId, outputStream);
+#pragma warning restore CS0618
+
     /// <summary>Generates a GDPR export for a user.</summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
-    Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream);
+    Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream)
+#pragma warning disable CS0618
+        => GenerateGDPRExportAsync(userId, tenantId, outputStream);
+#pragma warning restore CS0618
     /// <summary>Generates a GDPR export for a user with cancellation support.</summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
-    Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
-        => GenerateGDPRExportAsync(userId, tenantId, outputStream);
+    Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
+#pragma warning disable CS0618
+        => GenerateGDPRExportAsync(userId, tenantId, outputStream, cancellationToken);
+#pragma warning restore CS0618
 }
 
 /// <summary>
@@ -94,19 +125,45 @@ public class ComplianceExporter : IComplianceExporter
         return audits.Any(a => a.AccessedSensitiveFields.Contains(fieldName));
     }
 
+    /// <summary>
+    /// Generates a GDPR export for a user. Original spelling retained for source compatibility
+    /// with 2.x consumers; prefer <see cref="GenerateGdprExportAsync(string, string, Stream)"/>.
+    /// Will be removed in 3.0.
+    /// </summary>
+    /// <param name="userId">Subject of the export.</param>
+    /// <param name="tenantId">Tenant scope for the export.</param>
+    /// <param name="outputStream">Destination stream the export is serialised to.</param>
+    [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream)
+        => GenerateGdprExportAsync(userId, tenantId, outputStream, CancellationToken.None);
+
+    /// <summary>
+    /// Generates a GDPR export for a user with cancellation support. Original spelling retained
+    /// for source compatibility with 2.x consumers; prefer
+    /// <see cref="GenerateGdprExportAsync(string, string, Stream, CancellationToken)"/>.
+    /// Will be removed in 3.0.
+    /// </summary>
+    /// <param name="userId">Subject of the export.</param>
+    /// <param name="tenantId">Tenant scope for the export.</param>
+    /// <param name="outputStream">Destination stream the export is serialised to.</param>
+    /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
+    [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
+        => GenerateGdprExportAsync(userId, tenantId, outputStream, cancellationToken);
+
     /// <summary>Generates a GDPR export for a user.</summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
-    public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream)
-        => GenerateGDPRExportAsync(userId, tenantId, outputStream, CancellationToken.None);
+    public Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream)
+        => GenerateGdprExportAsync(userId, tenantId, outputStream, CancellationToken.None);
 
     /// <summary>Generates a GDPR export for a user with cancellation support.</summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
-    public async Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
+    public async Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
     {
         var audits = await GetUserDataAsync(userId, tenantId).ConfigureAwait(false);
         await JsonSerializer.SerializeAsync(outputStream, audits, new JsonSerializerOptions { WriteIndented = true }, cancellationToken).ConfigureAwait(false);
