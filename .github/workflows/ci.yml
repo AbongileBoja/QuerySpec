@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: write
 
     strategy:
       fail-fast: false
@@ -90,7 +91,8 @@ jobs:
       if: matrix.dotnet-version == '10.0.x'
       shell: bash
       env:
-        MIN_LINE_COVERAGE: '60'
+        MIN_LINE_COVERAGE: '91'
+        MIN_BRANCH_COVERAGE: '81'
       run: |
         set -euo pipefail
         summary="./CoverageReport/Summary.md"
@@ -106,16 +108,31 @@ jobs:
           | head -1 \
           | grep -oE '[0-9]+(\.[0-9]+)?' \
           | head -1 || true)
+        method_cov=$(grep -E 'Method coverage' "$summary" \
+          | head -1 \
+          | grep -oE '[0-9]+(\.[0-9]+)?' \
+          | head -1 || true)
         if [[ -z "${line_cov:-}" ]]; then
           echo "Could not parse line coverage from summary." >&2
           cat "$summary"
           exit 1
         fi
-        echo "Line coverage: ${line_cov}%  (threshold: ${MIN_LINE_COVERAGE}%)"
+        echo "Line coverage:   ${line_cov}%  (threshold: ${MIN_LINE_COVERAGE}%)"
+        echo "Branch coverage: ${branch_cov:-n/a}%  (threshold: ${MIN_BRANCH_COVERAGE}%)"
+        echo "Method coverage: ${method_cov:-n/a}%  (collected, not gated)"
         echo "line_pct=${line_cov}" >> "$GITHUB_OUTPUT"
         echo "branch_pct=${branch_cov:-0}" >> "$GITHUB_OUTPUT"
-        echo "threshold=${MIN_LINE_COVERAGE}" >> "$GITHUB_OUTPUT"
-        awk -v c="$line_cov" -v t="$MIN_LINE_COVERAGE" 'BEGIN { if (c+0 < t+0) exit 1 }'
+        echo "method_pct=${method_cov:-0}" >> "$GITHUB_OUTPUT"
+        echo "line_threshold=${MIN_LINE_COVERAGE}" >> "$GITHUB_OUTPUT"
+        echo "branch_threshold=${MIN_BRANCH_COVERAGE}" >> "$GITHUB_OUTPUT"
+        awk -v lc="$line_cov" -v lt="$MIN_LINE_COVERAGE" \
+            -v bc="${branch_cov:-0}" -v bt="$MIN_BRANCH_COVERAGE" \
+            'BEGIN {
+               fail=0
+               if (lc+0 < lt+0) { print "FAIL: line coverage " lc "% < " lt "%" > "/dev/stderr"; fail=1 }
+               if (bc+0 < bt+0) { print "FAIL: branch coverage " bc "% < " bt "%" > "/dev/stderr"; fail=1 }
+               exit fail
+             }'
 
     - name: Upload coverage report
       if: matrix.dotnet-version == '10.0.x'
@@ -124,6 +141,29 @@ jobs:
         name: coverage-report
         path: ./CoverageReport
         retention-days: 14
+
+    - name: Generate coverage markdown for PR
+      id: coverage-md
+      if: matrix.dotnet-version == '10.0.x' && github.event_name == 'pull_request'
+      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95  # v1.3.0
+      with:
+        filename: ./CoverageReport/Cobertura.xml
+        badge: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: false
+        indicators: true
+        output: file
+        thresholds: '81 91'
+
+    - name: Post coverage summary to PR
+      if: matrix.dotnet-version == '10.0.x' && github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@67d0dec7b07ed060a405f9b2a64b8ab319fdd7db  # v2.9.2
+      with:
+        recreate: true
+        path: code-coverage-results.md
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        header: coverage-summary
 
     - name: Pack
       if: matrix.dotnet-version == '10.0.x'
@@ -195,15 +235,19 @@ jobs:
         if [[ "${{ steps.test.outcome }}" != "success" ]]; then verdict=fail; fi
         line_pct='${{ steps.coverage.outputs.line_pct }}'
         branch_pct='${{ steps.coverage.outputs.branch_pct }}'
-        threshold='${{ steps.coverage.outputs.threshold }}'
+        method_pct='${{ steps.coverage.outputs.method_pct }}'
+        line_threshold='${{ steps.coverage.outputs.line_threshold }}'
+        branch_threshold='${{ steps.coverage.outputs.branch_threshold }}'
         coverage_block=""
         if [[ -n "$line_pct" ]]; then
           coverage_block=$(jq -n \
             --argjson l "${line_pct}" \
             --argjson b "${branch_pct:-0}" \
-            --argjson t "${threshold:-60}" \
-            --argjson meets $([[ $(awk -v c="$line_pct" -v t="$threshold" 'BEGIN { print (c+0 >= t+0) }') == "1" ]] && echo true || echo false) \
-            '{coverage_line_pct:$l, coverage_branch_pct:$b, coverage_threshold_pct:$t, coverage_meets_threshold:$meets}')
+            --argjson m "${method_pct:-0}" \
+            --argjson lt "${line_threshold:-91}" \
+            --argjson bt "${branch_threshold:-81}" \
+            --argjson meets $([[ $(awk -v lc="$line_pct" -v lt="${line_threshold:-91}" -v bc="${branch_pct:-0}" -v bt="${branch_threshold:-81}" 'BEGIN { print (lc+0 >= lt+0 && bc+0 >= bt+0) }') == "1" ]] && echo true || echo false) \
+            '{coverage_line_pct:$l, coverage_branch_pct:$b, coverage_method_pct:$m, coverage_line_threshold_pct:$lt, coverage_branch_threshold_pct:$bt, coverage_meets_threshold:$meets}')
         else
           coverage_block='{}'
         fi

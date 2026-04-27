@@ -128,3 +128,19 @@ your PR. Local validation is strongly recommended to avoid round-trips.
 
 `git commit --no-verify` skips the hook. CI will still reject non-conforming commits on
 PR, so there is no production path that avoids the linter.
+
+## Coverage ratchet
+
+CI enforces minimum line and branch coverage on every push and PR. Thresholds are defined in `.github/workflows/ci.yml`:
+
+| Metric | Current floor | Target |
+|---|---|---|
+| Line coverage | 91% | ≥ 90% |
+| Branch coverage | 81% | ≥ 80% |
+| Method coverage | collected, not gated | — |
+
+Rules:
+- Thresholds only ever move forward — never backward.
+- When a coverage gap is filled, open a PR that raises the floor by the coverage gained (typically 1–5 pp) and link to the issue that closed the gap.
+- A PR that drops coverage below the floor fails CI.
+- Method coverage is reported in the CI log but not gated until line ≥ 90% and branch ≥ 80% are consistently held.
