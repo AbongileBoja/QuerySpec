@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/) and this 
   * `PerformanceBuilder.EnableQueryCaching()` — compose the existing `WithCaching(c => c.UseMemoryCache())` configuration with your query path; QuerySpec does not own a query-result cache.
   * `PerformanceBuilder.OptimizeExpressions()` — no replacement; expression compilation is already handled by EF Core / `IQueryable` providers.
   * `SecurityBuilder.RotateKeysEvery(int)` — implement key rotation at the storage layer following the same pattern as the `RotateKeyAsync` removal in [#138](https://github.com/AbongileBoja/QuerySpec/issues/138). Closes [#139](https://github.com/AbongileBoja/QuerySpec/issues/139).
+* **security:** `IEncryptionProvider.RotateKeyAsync()` and `IEncryptionProvider.RotateKeyAsync(CancellationToken)` removed. Both overloads were `[Obsolete(error: true)]` in 3.x and every shipping implementation (`AesEncryptionProvider`, `AesGcmEncryptionProvider`, `MigratingEncryptionProvider`) threw `NotSupportedException`. ApiCompat reports `CP0001` (member removed) on both. Implement key rotation at the storage layer instead: construct a new provider with the new key, decrypt under the old provider, re-encrypt under the new provider, persist, then cut over reads. For `MigratingEncryptionProvider` specifically, the existing prefix-tag dispatch already supports this pattern — register the previous writer as a legacy reader and promote the new writer. Closes [#138](https://github.com/AbongileBoja/QuerySpec/issues/138).
 
 ### Added
 

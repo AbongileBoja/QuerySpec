@@ -128,20 +128,6 @@ public sealed class MigratingEncryptionProvider : IEncryptionProvider
     /// <summary>The tag stamped on every ciphertext written by this instance.</summary>
     public string WriteTag { get; }
 
-    /// <summary>
-    /// Migration is meaningful only at the storage layer (decrypt under reader, re-encrypt
-    /// under writer). Calling this on the wrapper is almost always a mistake — it would
-    /// rotate the inner writer's key without re-encrypting any persisted ciphertexts and
-    /// would invalidate the readers for tags pointing at the same physical provider.
-    /// Deprecated and will be removed in 3.0.
-    /// </summary>
-    /// <exception cref="NotSupportedException">Always thrown.</exception>
-    [Obsolete("Key rotation is a storage-layer concern; this method will be removed in 3.0. Implement rotation in the storage layer (Azure Key Vault, AWS KMS, etc.) rather than on IEncryptionProvider.", error: true)]
-    public Task RotateKeyAsync() =>
-        throw new NotSupportedException(
-            "MigratingEncryptionProvider does not own the inner providers' keys and cannot rotate. " +
-            "Construct a new instance with the new writer (and the previous writer demoted to a reader) and re-encrypt at the storage layer.");
-
     internal static void ValidateTag(string tag, string paramName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tag, paramName);

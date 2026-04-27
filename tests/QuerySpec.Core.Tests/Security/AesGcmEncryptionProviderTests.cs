@@ -156,16 +156,6 @@ public class AesGcmEncryptionProviderTests
     }
 
     [Fact]
-    public void RotateKeyAsync_Throws_NotSupported()
-    {
-        var p = new AesGcmEncryptionProvider(NewKey());
-
-        var method = typeof(AesGcmEncryptionProvider).GetMethod(nameof(IEncryptionProvider.RotateKeyAsync), Type.EmptyTypes)!;
-        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(p, null));
-        Assert.IsType<NotSupportedException>(ex.InnerException);
-    }
-
-    [Fact]
     public void GenerateKey_Produces_Base64_32Bytes()
     {
         var key = AesGcmEncryptionProvider.GenerateKey();
