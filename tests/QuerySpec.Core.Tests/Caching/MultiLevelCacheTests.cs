@@ -8,47 +8,42 @@ using QuerySpec.Core.Caching;
 namespace QuerySpec.Core.Tests.Caching;
 
 /// <summary>
-/// Unit tests for MultiLevelCache.
+/// Unit tests for <see cref="MultiLevelCache"/>.
 /// </summary>
 public class MultiLevelCacheTests
 {
-    /// <summary>Tests that GetAsync checks the L1 cache first.</summary>
     [Fact]
-    public async Task GetAsync_Should_Check_L1_First()
+    public async Task TryGetAsync_Should_Check_L1_First()
     {
-        // Arrange
         var l1 = new MemoryCacheProvider();
         var l2 = new DistributedCacheProvider(new TestDistributedCache());
         var cache = new MultiLevelCache(l1, l2);
-        await l1.SetAsync("key", "value");
+        await l1.SetValueAsync("key", "value");
 
-        // Act
-        var result = await cache.GetAsync<string>("key");
+        var result = await cache.TryGetAsync<string>("key");
 
-        // Assert
-        Assert.Equal("value", result);
+        Assert.True(result.HasValue);
+        Assert.Equal("value", result.Value);
     }
 
-    /// <summary>Tests that SetAsync sets the value in both cache levels.</summary>
     [Fact]
-    public async Task SetAsync_Should_Set_In_Both_Levels()
+    public async Task SetValueAsync_Should_Set_In_Both_Levels()
     {
-        // Arrange
         var l1 = new MemoryCacheProvider();
         var l2 = new DistributedCacheProvider(new TestDistributedCache());
         var cache = new MultiLevelCache(l1, l2);
 
-        // Act
-        await cache.SetAsync("key", "value");
+        await cache.SetValueAsync("key", "value");
 
-        // Assert
-        var l1Result = await l1.GetAsync<string>("key");
-        var l2Result = await l2.GetAsync<string>("key");
-        Assert.Equal("value", l1Result);
-        Assert.Equal("value", l2Result);
+        var l1Result = await l1.TryGetAsync<string>("key");
+        var l2Result = await l2.TryGetAsync<string>("key");
+        Assert.True(l1Result.HasValue);
+        Assert.Equal("value", l1Result.Value);
+        Assert.True(l2Result.HasValue);
+        Assert.Equal("value", l2Result.Value);
     }
 
-    private class TestDistributedCache : Microsoft.Extensions.Caching.Distributed.IDistributedCache
+    private class TestDistributedCache : IDistributedCache
     {
         private readonly Dictionary<string, byte[]> _cache = new();
 

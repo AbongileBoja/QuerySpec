@@ -6,6 +6,5 @@
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);QSPEC0001;QSPEC0002;QSPEC0003</WarningsNotAsErrors>
   </PropertyGroup>
 </Project>

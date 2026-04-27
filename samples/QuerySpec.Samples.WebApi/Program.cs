@@ -33,9 +33,9 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapPost("/search", async (
-    AdvancedFilterExpression? filter,
+    FilterSpec? filter,
     AppDbContext db,
-    ICacheProvider cache,
+    ICacheStore cache,
     IAuditLogger audit,
     HttpContext http,
     CancellationToken ct) =>
@@ -50,16 +50,18 @@ app.MapPost("/search", async (
         "employees.search",
         filter?.ComputeStableHash() ?? 0);
 
-    var cached = await cache.GetAsync<List<Employee>>(cacheKey);
-    var fromCache = cached is not null;
+    var hit = await cache.TryGetAsync<List<Employee>>(cacheKey, ct);
+    var fromCache = hit.HasValue;
 
     var started = DateTime.UtcNow;
-    var results = cached ?? await QuerySpecExpressionTranslator
-        .ApplyFilterCached(db.Employees.AsQueryable(), filter)
-        .ToListAsync(ct);
+    var results = fromCache
+        ? hit.Value!
+        : await QuerySpecExpressionTranslator
+            .ApplyFilterCached(db.Employees.AsQueryable(), filter)
+            .ToListAsync(ct);
 
     if (!fromCache)
-        await cache.SetAsync(cacheKey, results, TimeSpan.FromMinutes(2));
+        await cache.SetValueAsync(cacheKey, results, TimeSpan.FromMinutes(2), ct);
 
     await audit.LogQueryAsync(new AuditLogEntry
     {

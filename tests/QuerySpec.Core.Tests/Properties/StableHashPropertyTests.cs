@@ -20,21 +20,21 @@ public sealed class StableHashPropertyTests
 
     private static readonly string[] Fields = ["Name", "Age", "IsActive", "Score", "CreatedAt"];
 
-    private static Gen<AdvancedFilterExpression> LeafFilterGen() =>
+    private static Gen<FilterSpec> LeafFilterGen() =>
         Gen.Select(
             Gen.OneOfConst(Fields),
             Gen.OneOfConst(LeafOperators),
             Gen.String,
-            (field, op, value) => new AdvancedFilterExpression
+            (field, op, value) => new FilterSpec
             {
                 Field = field,
                 Operator = op,
                 Value = value
             });
 
-    private static Gen<AdvancedFilterExpression> ComposedFilterGen(int maxDepth = 8)
+    private static Gen<FilterSpec> ComposedFilterGen(int maxDepth = 8)
     {
-        return Gen.Recursive<AdvancedFilterExpression>((depth, inner) =>
+        return Gen.Recursive<FilterSpec>((depth, inner) =>
         {
             if (depth >= maxDepth)
                 return LeafFilterGen();
@@ -45,13 +45,13 @@ public sealed class StableHashPropertyTests
                     inner,
                     inner,
                     Gen.OneOfConst(new[] { LogicalOperator.And, LogicalOperator.Or }),
-                    (left, right, logic) => new AdvancedFilterExpression
+                    (left, right, logic) => new FilterSpec
                     {
                         Field = left.Field,
                         Operator = left.Operator,
                         Value = left.Value,
                         Logic = logic,
-                        Filters = new System.Collections.Generic.List<AdvancedFilterExpression> { left, right }
+                        Filters = new System.Collections.Generic.List<FilterSpec> { left, right }
                     })));
         });
     }

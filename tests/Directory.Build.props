@@ -1,10 +1,6 @@
 <Project>
   <Import Project="..\Directory.Build.props" />
 
-  <PropertyGroup>
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);QSPEC0001;QSPEC0002;QSPEC0003</WarningsNotAsErrors>
-  </PropertyGroup>
-
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
   </ItemGroup>

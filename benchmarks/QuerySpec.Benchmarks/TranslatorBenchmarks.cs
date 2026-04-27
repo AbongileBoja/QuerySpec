@@ -14,15 +14,15 @@ namespace QuerySpec.Benchmarks;
 public class TranslatorBenchmarks
 {
     private IQueryable<Widget> _source = null!;
-    private AdvancedFilterExpression _simpleEqual = null!;
-    private AdvancedFilterExpression _compoundAnd = null!;
-    private AdvancedFilterExpression _deepNested = null!;
-    private AdvancedFilterExpression _inLarge = null!;
+    private FilterSpec _simpleEqual = null!;
+    private FilterSpec _compoundAnd = null!;
+    private FilterSpec _deepNested = null!;
+    private FilterSpec _inLarge = null!;
 
     private IQueryable<WidgetWithNullable> _nullableSource = null!;
-    private AdvancedFilterExpression _nullableGreaterThan = null!;
-    private AdvancedFilterExpression _nullableIsNull = null!;
-    private AdvancedFilterExpression _nullableBetween = null!;
+    private FilterSpec _nullableGreaterThan = null!;
+    private FilterSpec _nullableIsNull = null!;
+    private FilterSpec _nullableBetween = null!;
 
     /// <summary>Seeds fixtures used by all benchmarks in this class.</summary>
     [GlobalSetup]
@@ -32,7 +32,7 @@ public class TranslatorBenchmarks
             .Select(i => new Widget { Id = i, Name = $"w{i}", Price = i * 1.5m, Category = i % 10 == 0 ? "A" : "B" })
             .AsQueryable();
 
-        _simpleEqual = new AdvancedFilterExpression
+        _simpleEqual = new FilterSpec
         {
             Field = "Category",
             Operator = FilterOperator.Equal,
@@ -41,48 +41,48 @@ public class TranslatorBenchmarks
 
         // Validate() requires Field on every node, so the outer carries the first predicate
         // and additional predicates live as children under its Logic.
-        _compoundAnd = new AdvancedFilterExpression
+        _compoundAnd = new FilterSpec
         {
             Field = "Category",
             Operator = FilterOperator.Equal,
             Value = "A",
             Logic = LogicalOperator.And,
-            Filters = new()
+            Filters = new[]
             {
-                new AdvancedFilterExpression { Field = "Price", Operator = FilterOperator.GreaterThan, Value = 100m }
+                new FilterSpec { Field = "Price", Operator = FilterOperator.GreaterThan, Value = 100m }
             }
         };
 
-        _deepNested = new AdvancedFilterExpression
+        _deepNested = new FilterSpec
         {
             Field = "Category",
             Operator = FilterOperator.Equal,
             Value = "A",
             Logic = LogicalOperator.Or,
-            Filters = new()
+            Filters = new[]
             {
-                new AdvancedFilterExpression
+                new FilterSpec
                 {
                     Field = "Category", Operator = FilterOperator.Equal, Value = "A",
                     Logic = LogicalOperator.And,
-                    Filters = new()
+                    Filters = new[]
                     {
-                        new AdvancedFilterExpression { Field = "Price", Operator = FilterOperator.LessThan, Value = 50m }
+                        new FilterSpec { Field = "Price", Operator = FilterOperator.LessThan, Value = 50m }
                     }
                 },
-                new AdvancedFilterExpression
+                new FilterSpec
                 {
                     Field = "Name", Operator = FilterOperator.StartsWith, Value = "w9",
                     Logic = LogicalOperator.And,
-                    Filters = new()
+                    Filters = new[]
                     {
-                        new AdvancedFilterExpression { Field = "Id", Operator = FilterOperator.GreaterThan, Value = 500 }
+                        new FilterSpec { Field = "Id", Operator = FilterOperator.GreaterThan, Value = 500 }
                     }
                 }
             }
         };
 
-        _inLarge = new AdvancedFilterExpression
+        _inLarge = new FilterSpec
         {
             Field = "Id",
             Operator = FilterOperator.In,
@@ -99,20 +99,20 @@ public class TranslatorBenchmarks
             })
             .AsQueryable();
 
-        _nullableGreaterThan = new AdvancedFilterExpression
+        _nullableGreaterThan = new FilterSpec
         {
             Field = "OptionalAge",
             Operator = FilterOperator.GreaterThan,
             Value = 30
         };
 
-        _nullableIsNull = new AdvancedFilterExpression
+        _nullableIsNull = new FilterSpec
         {
             Field = "OptionalAge",
             Operator = FilterOperator.IsNull
         };
 
-        _nullableBetween = new AdvancedFilterExpression
+        _nullableBetween = new FilterSpec
         {
             Field = "OptionalAge",
             Operator = FilterOperator.Between,

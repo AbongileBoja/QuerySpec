@@ -4,18 +4,15 @@ using System.Globalization;
 namespace QuerySpec.Core.Advanced;
 
 /// <summary>
-/// Immutable WGS-84 geographic coordinate (latitude/longitude as <see cref="double"/>) intended
-/// to replace <see cref="GeoLocation"/> in the 4.0 line. Modeled as a <see langword="readonly"/>
-/// <see langword="record"/> <see langword="struct"/> per Framework Design Guidelines: zero-allocation,
-/// value-equality, and naturally thread-safe.
+/// Immutable WGS-84 geographic coordinate (latitude/longitude as <see cref="double"/>). Modeled
+/// as a <see langword="readonly"/> <see langword="record"/> <see langword="struct"/> per
+/// Framework Design Guidelines: zero-allocation, value-equality, and naturally thread-safe.
 /// </summary>
 /// <remarks>
 /// Coordinates are validated at construction. Latitude must be in [-90, 90]; longitude must be in
-/// [-180, 180]; <see cref="double.NaN"/> is rejected for both. The <see cref="GeoLocation"/> -&gt;
-/// <see cref="GeoCoordinate"/> conversion is intentionally <see langword="explicit"/> because it
-/// narrows precision (decimal -&gt; double); call <see cref="GeoLocation.ToGeoCoordinate"/> for an
-/// allocation-free intent-revealing form. <see cref="ToString"/> emits ISO 6709 H-style; round-trip
-/// via <see cref="Parse(string)"/> / <see cref="TryParse(string, out GeoCoordinate)"/>.
+/// [-180, 180]; <see cref="double.NaN"/> is rejected for both. <see cref="ToString"/> emits ISO
+/// 6709 H-style; round-trip via <see cref="Parse(string)"/> /
+/// <see cref="TryParse(string, out GeoCoordinate)"/>.
 /// </remarks>
 public readonly record struct GeoCoordinate
 {
@@ -130,7 +127,6 @@ public readonly record struct GeoCoordinate
         var trimmed = s.EndsWith('/') ? s.AsSpan(0, s.Length - 1) : s.AsSpan();
         if (trimmed.Length < 4) return false;
 
-        // Latitude sign must be at index 0; longitude sign is the next '+' or '-' after index 0.
         if (trimmed[0] != '+' && trimmed[0] != '-') return false;
 
         var sepIdx = -1;
@@ -149,23 +145,5 @@ public readonly record struct GeoCoordinate
 
         return double.TryParse(latSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out latitude)
                && double.TryParse(lonSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out longitude);
-    }
-
-    /// <summary>
-    /// Narrowing conversion from the legacy <see cref="GeoLocation"/> (decimal lat/long) to a
-    /// <see cref="GeoCoordinate"/> (double lat/long). Marked <see langword="explicit"/> because
-    /// the cast loses precision and may throw <see cref="ArgumentOutOfRangeException"/> if the
-    /// legacy values are out of range.
-    /// </summary>
-    /// <param name="legacy">The legacy geolocation. Must not be null.</param>
-    /// <returns>The equivalent <see cref="GeoCoordinate"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="legacy"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the legacy components are out of valid range.</exception>
-    public static explicit operator GeoCoordinate(GeoLocation legacy)
-    {
-        if (legacy is null) throw new ArgumentNullException(nameof(legacy));
-#pragma warning disable QSPEC0001 // intentional: this is the migration path
-        return new GeoCoordinate((double)legacy.Latitude, (double)legacy.Longitude);
-#pragma warning restore QSPEC0001
     }
 }

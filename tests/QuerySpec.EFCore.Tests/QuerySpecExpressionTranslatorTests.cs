@@ -42,7 +42,7 @@ public class QuerySpecExpressionTranslatorTests
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.Equal,
@@ -71,7 +71,7 @@ public class QuerySpecExpressionTranslatorTests
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.GreaterThan,
@@ -100,7 +100,7 @@ public class QuerySpecExpressionTranslatorTests
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.Contains,
@@ -130,7 +130,7 @@ public class QuerySpecExpressionTranslatorTests
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.In,
@@ -161,7 +161,7 @@ public class QuerySpecExpressionTranslatorTests
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.Between,
@@ -192,15 +192,15 @@ public class QuerySpecExpressionTranslatorTests
         );
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.Equal,
             Value = "John",
             Logic = LogicalOperator.And,
-            Filters = new List<AdvancedFilterExpression>
+            Filters = new List<FilterSpec>
             {
-                new AdvancedFilterExpression
+                new FilterSpec
                 {
                     Field = "Age",
                     Operator = FilterOperator.GreaterThan,

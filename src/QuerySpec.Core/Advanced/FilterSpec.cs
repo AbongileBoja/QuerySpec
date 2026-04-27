@@ -1,29 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace QuerySpec.Core.Advanced;
 
 /// <summary>
-/// Immutable, value-equal description of an advanced filter — the 4.0 successor to
-/// <see cref="AdvancedFilterExpression"/>. Modeled as a <see langword="record"/> with
-/// <see langword="init"/>-only accessors so filter graphs are safely shareable across threads
-/// and cache layers without defensive copies.
+/// Immutable, value-equal description of an advanced filter. Modeled as a
+/// <see langword="record"/> with <see langword="init"/>-only accessors so filter graphs are
+/// safely shareable across threads and cache layers without defensive copies.
 /// </summary>
 /// <remarks>
-/// <para>
-/// Round-trips losslessly with <see cref="AdvancedFilterExpression"/> via
-/// <see cref="FromMutable(AdvancedFilterExpression)"/> and <see cref="ToMutable"/>; the EF Core
-/// translator's <c>FilterSpec</c> overload uses <c>ToMutable</c> internally so the deprecation
-/// window can stage adoption with minimal churn in the translator codebase.
-/// </para>
-/// <para>
 /// Children are exposed as <see cref="IReadOnlyList{T}"/> rather than <c>ImmutableArray</c> to
 /// avoid a new dependency on <c>System.Collections.Immutable</c>. Equality and stable-hash both
 /// recurse into children explicitly so structural equality holds across <c>List</c> vs <c>T[]</c>
 /// concrete representations of the same logical tree.
-/// </para>
 /// </remarks>
 public sealed record FilterSpec
 {
@@ -64,8 +54,8 @@ public sealed record FilterSpec
     /// <summary>Whether to include deleted records in temporal queries.</summary>
     public bool IncludeDeletedRecords { get; init; }
 
-    /// <summary>Geographic location for geo queries (legacy decimal-based shape, retained for round-trip parity).</summary>
-    public GeoLocation? GeoLocation { get; init; }
+    /// <summary>Geographic coordinate for geo queries.</summary>
+    public GeoCoordinate? GeoLocation { get; init; }
 
     /// <summary>Geographic radius in kilometres.</summary>
     public decimal? GeoRadius { get; init; }
@@ -74,8 +64,7 @@ public sealed record FilterSpec
     public string? CustomOperatorName { get; init; }
 
     /// <summary>
-    /// Validates the filter tree. Mirrors the legacy <see cref="AdvancedFilterExpression.Validate"/>
-    /// semantics; recurses into <see cref="Filters"/>.
+    /// Validates the filter tree. Recurses into <see cref="Filters"/>.
     /// </summary>
     /// <returns>An enumeration of error messages; empty when the filter is valid.</returns>
     public IEnumerable<string> Validate()
@@ -99,7 +88,7 @@ public sealed record FilterSpec
         if (TemporalStart.HasValue && TemporalEnd.HasValue && TemporalStart > TemporalEnd)
             errors.Add("TemporalStart must be before TemporalEnd");
 
-        if (GeoLocation != null && GeoRadius.HasValue && GeoRadius <= 0)
+        if (GeoLocation.HasValue && GeoRadius.HasValue && GeoRadius <= 0)
             errors.Add("GeoRadius must be positive");
 
         foreach (var child in Filters)
@@ -109,8 +98,6 @@ public sealed record FilterSpec
     /// <summary>
     /// Computes a deterministic 64-bit hash over the entire filter tree. Two structurally-equal
     /// filters produce the same hash; semantically-distinct filters produce different hashes.
-    /// Hash semantics match <see cref="AdvancedFilterExpression.ComputeStableHash"/> so cached
-    /// keys round-trip across the deprecation window.
     /// </summary>
     /// <returns>A deterministic 64-bit hash over the entire filter tree.</returns>
     public long ComputeStableHash()
@@ -138,12 +125,11 @@ public sealed record FilterSpec
         HashLong(ref hash, prime, TemporalStart?.Ticks ?? -1);
         HashLong(ref hash, prime, TemporalEnd?.Ticks ?? -1);
 
-        if (GeoLocation != null)
+        if (GeoLocation.HasValue)
         {
-#pragma warning disable QSPEC0001 // round-trip parity: hash legacy decimal lat/long
-            HashString(ref hash, prime, GeoLocation.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            HashString(ref hash, prime, GeoLocation.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture));
-#pragma warning restore QSPEC0001
+            var coord = GeoLocation.Value;
+            HashString(ref hash, prime, coord.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            HashString(ref hash, prime, coord.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
         if (GeoRadius.HasValue)
         {
@@ -190,73 +176,6 @@ public sealed record FilterSpec
     }
 
     /// <summary>
-    /// Projects a legacy <see cref="AdvancedFilterExpression"/> tree into an immutable
-    /// <see cref="FilterSpec"/>. Field-by-field copy; obsolete <c>MaskResult</c> /
-    /// <c>EncryptValue</c> flags are dropped (they were never honoured) and child trees recurse.
-    /// </summary>
-    /// <param name="legacy">The legacy expression to project. Must not be null.</param>
-    /// <returns>An equivalent <see cref="FilterSpec"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="legacy"/> is null.</exception>
-#pragma warning disable QSPEC0002 // round-trip helpers reference the obsolete type by design
-    public static FilterSpec FromMutable(AdvancedFilterExpression legacy)
-    {
-        if (legacy is null) throw new ArgumentNullException(nameof(legacy));
-        return new FilterSpec
-        {
-            Field = legacy.Field,
-            Operator = legacy.Operator,
-            Value = legacy.Value,
-            ValueTo = legacy.ValueTo,
-            CaseSensitive = legacy.CaseSensitive,
-            UseRegex = legacy.UseRegex,
-            Logic = legacy.Logic,
-            Filters = legacy.Filters is { Count: > 0 } children
-                ? children.Select(FromMutable).ToArray()
-                : Array.Empty<FilterSpec>(),
-            TemporalStart = legacy.TemporalStart,
-            TemporalEnd = legacy.TemporalEnd,
-            IncludeDeletedRecords = legacy.IncludeDeletedRecords,
-            GeoLocation = legacy.GeoLocation,
-            GeoRadius = legacy.GeoRadius,
-            CustomOperatorName = legacy.CustomOperatorName,
-        };
-    }
-
-    /// <summary>
-    /// Projects this <see cref="FilterSpec"/> into a fresh mutable
-    /// <see cref="AdvancedFilterExpression"/> tree. Used by the EF Core translator's
-    /// <c>FilterSpec</c> overload to route through the existing predicate-builder code path.
-    /// </summary>
-    /// <returns>An equivalent <see cref="AdvancedFilterExpression"/>.</returns>
-    public AdvancedFilterExpression ToMutable()
-    {
-        var legacy = new AdvancedFilterExpression
-        {
-            Field = Field,
-            Operator = Operator,
-            Value = Value,
-            ValueTo = ValueTo,
-            CaseSensitive = CaseSensitive,
-            UseRegex = UseRegex,
-            Logic = Logic,
-            TemporalStart = TemporalStart,
-            TemporalEnd = TemporalEnd,
-            IncludeDeletedRecords = IncludeDeletedRecords,
-            GeoLocation = GeoLocation,
-            GeoRadius = GeoRadius,
-            CustomOperatorName = CustomOperatorName,
-        };
-        if (Filters.Count > 0)
-        {
-            legacy.Filters = new List<AdvancedFilterExpression>(Filters.Count);
-            foreach (var child in Filters)
-                legacy.Filters.Add(child.ToMutable());
-        }
-        return legacy;
-#pragma warning restore QSPEC0002
-    }
-
-    /// <summary>
     /// Structural value equality across the entire tree, including <see cref="Filters"/>.
     /// </summary>
     /// <param name="other">The other filter to compare. May be null.</param>
@@ -278,7 +197,7 @@ public sealed record FilterSpec
         if (!string.Equals(CustomOperatorName, other.CustomOperatorName, StringComparison.Ordinal)) return false;
         if (!Equals(Value, other.Value)) return false;
         if (!Equals(ValueTo, other.ValueTo)) return false;
-        if (!GeoLocationEquals(GeoLocation, other.GeoLocation)) return false;
+        if (GeoLocation != other.GeoLocation) return false;
 
         if (Filters.Count != other.Filters.Count) return false;
         for (var i = 0; i < Filters.Count; i++)
@@ -294,14 +213,5 @@ public sealed record FilterSpec
     {
         var h64 = ComputeStableHash();
         return unchecked((int)h64) ^ (int)(h64 >> 32);
-    }
-
-    private static bool GeoLocationEquals(GeoLocation? a, GeoLocation? b)
-    {
-        if (ReferenceEquals(a, b)) return true;
-        if (a is null || b is null) return false;
-#pragma warning disable QSPEC0001 // round-trip parity: compare legacy decimal lat/long
-        return a.Latitude == b.Latitude && a.Longitude == b.Longitude;
-#pragma warning restore QSPEC0001
     }
 }

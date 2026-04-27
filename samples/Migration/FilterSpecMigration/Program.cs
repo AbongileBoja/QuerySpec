@@ -1,30 +1,10 @@
-// QSPEC0002 migration sample: AdvancedFilterExpression (mutable POCO) -> FilterSpec
-// (immutable record with init accessors and value equality).
+// QSPEC0002: FilterSpec replaces the 3.x AdvancedFilterExpression POCO. The legacy mutable
+// type was removed in 4.0; the QuerySpec.Analyzers package emits QSPEC0002 against any
+// remaining 3.x source so callers see the migration target before they upgrade.
 
 using QuerySpec.Core.Advanced;
 
-// Old shape - mutable POCO, requires defensive copying for safe sharing across threads.
-#pragma warning disable QSPEC0002
-var legacy = new AdvancedFilterExpression
-{
-    Field = "Status",
-    Operator = FilterOperator.Equal,
-    Value = "Active",
-    Logic = LogicalOperator.And,
-    Filters = new List<AdvancedFilterExpression>
-    {
-        new() { Field = "CreatedAt", Operator = FilterOperator.GreaterThan, Value = DateTime.UtcNow.AddDays(-30) }
-    }
-};
-Console.WriteLine($"[old] hash = {legacy.ComputeStableHash():X16}");
-#pragma warning restore QSPEC0002
-
-// Migration via FilterSpec.FromMutable - lossless projection.
-var spec = FilterSpec.FromMutable(legacy);
-Console.WriteLine($"[migrated] hash = {spec.ComputeStableHash():X16} (matches: {spec.ComputeStableHash() == legacy.ComputeStableHash()})");
-
-// New shape - immutable construction with init.
-var fresh = new FilterSpec
+var spec = new FilterSpec
 {
     Field = "Status",
     Operator = FilterOperator.Equal,
@@ -35,15 +15,21 @@ var fresh = new FilterSpec
         new FilterSpec { Field = "CreatedAt", Operator = FilterOperator.GreaterThan, Value = DateTime.UtcNow.AddDays(-30) }
     }
 };
+Console.WriteLine($"hash = {spec.ComputeStableHash():X16}");
 
-// Structural value equality: identical trees compare equal regardless of reference identity.
-Console.WriteLine($"[new] structural equality: {spec == fresh || spec.Equals(fresh)} (note: timestamps differ, so this prints False unless seeded identically)");
+var clone = new FilterSpec
+{
+    Field = "Status",
+    Operator = FilterOperator.Equal,
+    Value = "Active",
+    Logic = LogicalOperator.And,
+    Filters = new[]
+    {
+        new FilterSpec { Field = "CreatedAt", Operator = FilterOperator.GreaterThan, Value = DateTime.UtcNow.AddDays(-30) }
+    }
+};
+Console.WriteLine($"structural equality: {spec.Equals(clone)}");
 
-// Round-trip back to legacy when interop is required.
-var roundTrip = fresh.ToMutable();
-Console.WriteLine($"[round-trip] field = {roundTrip.Field}, operator = {roundTrip.Operator}, child count = {roundTrip.Filters?.Count ?? 0}");
-
-// Validation matches the legacy semantics.
 var invalid = new FilterSpec { Field = "" };
 var errors = string.Join(", ", invalid.Validate());
-Console.WriteLine($"[new] validation: {errors}");
+Console.WriteLine($"validation: {errors}");

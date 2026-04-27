@@ -7,16 +7,11 @@ using System.Reflection;
 using System.Text.Json;
 using QuerySpec.Core.Advanced;
 
-// The translator continues to consume AdvancedFilterExpression throughout 3.x as its internal IR;
-// the FilterSpec overload projects into the same shape via ToMutable(). Suppressing QSPEC0002 at
-// file scope keeps the deprecation visible to consumers without polluting the implementation.
-#pragma warning disable QSPEC0002
-
 namespace QuerySpec.EFCore;
 
 /// <summary>
 /// EF Core expression translator for advanced filter expressions.
-/// Translates AdvancedFilterExpression into LINQ expression trees applicable to IQueryable&lt;T&gt;.
+/// Translates <see cref="FilterSpec"/> into LINQ expression trees applicable to <see cref="IQueryable{T}"/>.
 /// Optimized for enterprise use: cached reflection, EF Core SQL-compatible expressions,
 /// null-safe comparisons, and depth-limited recursion.
 /// </summary>
@@ -94,18 +89,18 @@ public class QuerySpecExpressionTranslator
     private static readonly ConcurrentDictionary<(Type, long), LambdaExpression> PredicateCache = new();
 
     /// <summary>
-    /// Translates an advanced filter expression to an EF Core IQueryable.
+    /// Translates an immutable <see cref="FilterSpec"/> to an EF Core <see cref="IQueryable{T}"/>.
     /// </summary>
     /// <typeparam name="T">Entity type the queryable produces. Must be a reference type so it can compose with EF Core entity-framework constraints.</typeparam>
     /// <param name="query">Source queryable to compose the filter onto.</param>
-    /// <param name="filter">Filter expression to apply, or <c>null</c> for a passthrough.</param>
+    /// <param name="filter">Filter specification to apply, or <c>null</c> for a passthrough.</param>
     /// <returns>A new <see cref="IQueryable{T}"/> with the filter appended via <see cref="Queryable.Where{TSource}(IQueryable{TSource}, System.Linq.Expressions.Expression{Func{TSource, bool}})"/>; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="filter"/> fails <see cref="AdvancedFilterExpression.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     public static IQueryable<T> ApplyFilter<T>(
         IQueryable<T> query,
-        AdvancedFilterExpression? filter) where T : class
+        FilterSpec? filter) where T : class
     {
-        if (filter == null)
+        if (filter is null)
             return query;
 
         var errors = filter.Validate();
@@ -117,48 +112,29 @@ public class QuerySpecExpressionTranslator
     }
 
     /// <summary>
-    /// Translates an immutable <see cref="FilterSpec"/> to an EF Core <see cref="IQueryable{T}"/>.
-    /// Internally projects to the legacy <see cref="AdvancedFilterExpression"/> shape and routes
-    /// through the existing predicate-builder so the deprecation window introduces no new code
-    /// path. Callers should prefer this overload over the legacy one for new code.
-    /// </summary>
-    /// <typeparam name="T">Entity type the queryable produces.</typeparam>
-    /// <param name="query">Source queryable to compose the filter onto.</param>
-    /// <param name="filter">Filter specification to apply, or <c>null</c> for a passthrough.</param>
-    /// <returns>A new <see cref="IQueryable{T}"/> with the filter appended; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="filter"/> fails validation or its nesting depth exceeds the configured maximum.</exception>
-    public static IQueryable<T> ApplyFilter<T>(
-        IQueryable<T> query,
-        FilterSpec? filter) where T : class
-    {
-        if (filter is null)
-            return query;
-
-        return ApplyFilter(query, filter.ToMutable());
-    }
-
-    /// <summary>
-    /// Same contract as <see cref="ApplyFilter{T}(IQueryable{T}, AdvancedFilterExpression?)"/>, but memoizes the built predicate by
-    /// <c>(typeof(T), filter.ComputeStableHash())</c>. Subsequent calls with a structurally-
-    /// equivalent filter skip tree construction, reflection, and <c>Validate()</c>, which
-    /// cuts per-call allocation on the hot path by ~99% for repeated filter shapes.
+    /// Same contract as <see cref="ApplyFilter{T}(IQueryable{T}, FilterSpec?)"/>, but memoizes
+    /// the built predicate by <c>(typeof(T), filter.ComputeStableHash())</c>. Subsequent calls
+    /// with a structurally-equivalent filter skip tree construction, reflection, and
+    /// <c>Validate()</c>, which cuts per-call allocation on the hot path by ~99% for repeated
+    /// filter shapes.
     /// </summary>
     /// <remarks>
     /// Use this overload when the same filter shapes are applied repeatedly (typical for
     /// API endpoints that accept a bounded set of query shapes). For one-shot ad-hoc filters,
-    /// prefer <see cref="ApplyFilter{T}(IQueryable{T}, AdvancedFilterExpression?)"/> so the cache doesn't accumulate single-use entries.
-    /// Validation runs on cache miss only — invalid filters still throw on first insertion.
+    /// prefer <see cref="ApplyFilter{T}(IQueryable{T}, FilterSpec?)"/> so the cache doesn't
+    /// accumulate single-use entries. Validation runs on cache miss only — invalid filters
+    /// still throw on first insertion.
     /// </remarks>
     /// <typeparam name="T">Entity type the queryable produces.</typeparam>
     /// <param name="query">Source queryable to compose the filter onto.</param>
-    /// <param name="filter">Filter expression to apply, or <c>null</c> for a passthrough.</param>
+    /// <param name="filter">Filter specification to apply, or <c>null</c> for a passthrough.</param>
     /// <returns>A new <see cref="IQueryable{T}"/> with the cached predicate appended; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
-    /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="AdvancedFilterExpression.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
+    /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     public static IQueryable<T> ApplyFilterCached<T>(
         IQueryable<T> query,
-        AdvancedFilterExpression? filter) where T : class
+        FilterSpec? filter) where T : class
     {
-        if (filter == null)
+        if (filter is null)
             return query;
 
         var predicate = GetOrBuildCachedPredicate<T>(filter);
@@ -170,12 +146,12 @@ public class QuerySpecExpressionTranslator
     /// compose it into larger queries without forcing a <c>.Where(...)</c>.
     /// </summary>
     /// <typeparam name="T">Entity type the predicate applies to.</typeparam>
-    /// <param name="filter">Filter expression to compile or fetch from the cache. Must not be null.</param>
+    /// <param name="filter">Filter specification to compile or fetch from the cache. Must not be null.</param>
     /// <returns>The compiled predicate, retrieved from cache when available.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="filter"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="AdvancedFilterExpression.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
+    /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     public static Expression<Func<T, bool>> GetOrBuildCachedPredicate<T>(
-        AdvancedFilterExpression filter) where T : class
+        FilterSpec filter) where T : class
     {
         if (filter is null) throw new ArgumentNullException(nameof(filter));
 
@@ -191,7 +167,6 @@ public class QuerySpecExpressionTranslator
 
         var predicate = BuildPredicate<T>(filter, 0);
 
-        // Bounded cache with bulk eviction; matches the policy already used for PropertyCache.
         if (PredicateCache.Count >= PredicateCacheCapacity)
             PredicateCache.Clear();
 
@@ -226,7 +201,7 @@ public class QuerySpecExpressionTranslator
             "The previous behaviour was to silently return the unaggregated query, which masked logic errors in callers.");
     }
 
-    private static Expression<Func<T, bool>> BuildPredicate<T>(AdvancedFilterExpression filter, int depth)
+    private static Expression<Func<T, bool>> BuildPredicate<T>(FilterSpec filter, int depth)
     {
         if (depth > MaxFilterDepth)
             throw new ArgumentException($"Filter nesting exceeds maximum depth of {MaxFilterDepth}");
@@ -236,7 +211,7 @@ public class QuerySpecExpressionTranslator
         return Expression.Lambda<Func<T, bool>>(body, param);
     }
 
-    private static Expression BuildBody(ParameterExpression param, AdvancedFilterExpression filter, Type entityType, int depth)
+    private static Expression BuildBody(ParameterExpression param, FilterSpec filter, Type entityType, int depth)
     {
         if (depth > MaxFilterDepth)
             throw new ArgumentException($"Filter nesting exceeds maximum depth of {MaxFilterDepth}");
@@ -248,7 +223,7 @@ public class QuerySpecExpressionTranslator
             body = BuildOperatorExpression(param, filter, entityType);
         }
 
-        if (filter.Filters?.Any() == true)
+        if (filter.Filters.Count > 0)
         {
             foreach (var nested in filter.Filters)
             {
@@ -267,7 +242,7 @@ public class QuerySpecExpressionTranslator
         return body ?? Expression.Constant(true);
     }
 
-    private static Expression BuildOperatorExpression(ParameterExpression param, AdvancedFilterExpression filter, Type entityType)
+    private static Expression BuildOperatorExpression(ParameterExpression param, FilterSpec filter, Type entityType)
     {
         var property = GetPropertyExpression(param, filter.Field, entityType);
         var propertyType = property.Type;
@@ -758,6 +733,11 @@ public class QuerySpecExpressionTranslator
         /// pattern streams. Invalid patterns throw <see cref="ArgumentException"/>; a match timeout
         /// of 500ms is enforced to prevent catastrophic backtracking from freezing the host.
         /// </summary>
+        /// <param name="input">String to test against the pattern; <see langword="null"/> returns <see langword="false"/>.</param>
+        /// <param name="pattern">Regex pattern to compile and match. Must not be empty.</param>
+        /// <returns><see langword="true"/> when the pattern matches; otherwise <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="pattern"/> is empty or invalid.</exception>
+        /// <exception cref="TimeoutException">Thrown when matching exceeds the 500ms safety budget.</exception>
         public static bool IsMatch(string? input, string pattern)
         {
             if (input == null) return false;

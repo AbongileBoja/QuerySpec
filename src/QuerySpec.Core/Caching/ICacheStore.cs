@@ -5,16 +5,15 @@ using System.Threading.Tasks;
 namespace QuerySpec.Core.Caching;
 
 /// <summary>
-/// Pluggable cache abstraction that supersedes <see cref="ICacheProvider"/>. Drops the
-/// <c>where T : class</c> constraint so value types (e.g. <c>int</c>, <c>Guid</c>, custom records)
-/// compose directly without box-and-cast wrappers, and uses <see cref="CacheResult{T}"/> on reads
-/// to disambiguate "hit on <see langword="default"/>" from "miss".
+/// Pluggable cache abstraction. Lifts the <c>where T : class</c> constraint so value types
+/// (e.g. <c>int</c>, <c>Guid</c>, custom records) compose directly without box-and-cast wrappers,
+/// and uses <see cref="CacheResult{T}"/> on reads to disambiguate "hit on <see langword="default"/>"
+/// from "miss".
 /// </summary>
 /// <remarks>
 /// Shipping providers (<see cref="MemoryCacheProvider"/>, <see cref="DistributedCacheProvider"/>,
-/// <see cref="MultiLevelCache"/>) implement both <see cref="ICacheProvider"/> and
-/// <see cref="ICacheStore"/> through the 3.x line. The legacy interface methods remain functional
-/// but are diagnostic-id <c>QSPEC0003</c> and slated for removal in 4.0.
+/// <see cref="MultiLevelCache"/>) implement this contract alongside <see cref="ICacheProvider"/>;
+/// consumers may inject either contract.
 /// </remarks>
 public interface ICacheStore
 {

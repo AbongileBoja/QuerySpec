@@ -24,7 +24,7 @@ public class MemoryCacheFlushStressTests
             var i = 0;
             while (!cts.IsCancellationRequested)
             {
-                await cache.SetAsync($"k{id}-{i}", "value");
+                await cache.SetValueAsync($"k{id}-{i}", "value");
                 i++;
             }
         }
@@ -33,7 +33,7 @@ public class MemoryCacheFlushStressTests
         {
             while (!cts.IsCancellationRequested)
             {
-                _ = await cache.GetAsync<string>($"k{id}-any");
+                _ = await cache.TryGetAsync<string>($"k{id}-any");
             }
         }
 
@@ -53,12 +53,11 @@ public class MemoryCacheFlushStressTests
             Flusher()
         };
 
-        // If any task throws (e.g., ObjectDisposedException from the old broken FlushAsync),
-        // WhenAll will rethrow and the test fails.
         await Task.WhenAll(tasks);
 
-        // Provider remains usable after the storm.
-        await cache.SetAsync("final", "ok");
-        Assert.Equal("ok", await cache.GetAsync<string>("final"));
+        await cache.SetValueAsync("final", "ok");
+        var hit = await cache.TryGetAsync<string>("final");
+        Assert.True(hit.HasValue);
+        Assert.Equal("ok", hit.Value);
     }
 }

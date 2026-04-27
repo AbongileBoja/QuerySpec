@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Time.Testing;
 using Xunit;
@@ -20,27 +19,20 @@ public class MemoryCacheProviderAdditionalTests
     public async Task InvalidKey_Throws(string? key)
     {
         var cache = new MemoryCacheProvider();
-        await Assert.ThrowsAsync<ArgumentException>(async () => await cache.GetAsync<string>(key!));
-        await Assert.ThrowsAsync<ArgumentException>(async () => await cache.SetAsync(key!, "v"));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await cache.TryGetAsync<string>(key!));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await cache.SetValueAsync(key!, "v"));
         await Assert.ThrowsAsync<ArgumentException>(async () => await cache.RemoveAsync(key!));
         await Assert.ThrowsAsync<ArgumentException>(async () => await cache.ExistsAsync(key!));
     }
 
     [Fact]
-    public async Task SetAsync_WithNullValue_Throws()
-    {
-        var cache = new MemoryCacheProvider();
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await cache.SetAsync<string>("k", null!));
-    }
-
-    [Fact]
-    public async Task SetAsync_WithNonPositiveExpiration_Throws()
+    public async Task SetValueAsync_WithNonPositiveExpiration_Throws()
     {
         var cache = new MemoryCacheProvider();
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
-            await cache.SetAsync("k", "v", TimeSpan.Zero));
+            await cache.SetValueAsync("k", "v", TimeSpan.Zero));
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
-            await cache.SetAsync("k", "v", TimeSpan.FromSeconds(-1)));
+            await cache.SetValueAsync("k", "v", TimeSpan.FromSeconds(-1)));
     }
 
     [Fact]
@@ -48,41 +40,45 @@ public class MemoryCacheProviderAdditionalTests
     {
         var clock = new FakeTimeProvider();
         var cache = new MemoryCacheProvider(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions(), clock);
-        await cache.SetAsync("k", "v", TimeSpan.FromSeconds(60));
-        Assert.Equal("v", await cache.GetAsync<string>("k"));
+        await cache.SetValueAsync("k", "v", TimeSpan.FromSeconds(60));
+        var hit = await cache.TryGetAsync<string>("k");
+        Assert.True(hit.HasValue);
+        Assert.Equal("v", hit.Value);
+
         clock.Advance(TimeSpan.FromSeconds(61));
-        Assert.Null(await cache.GetAsync<string>("k"));
+        var miss = await cache.TryGetAsync<string>("k");
+        Assert.False(miss.HasValue);
     }
 
     [Fact]
     public async Task FlushAsync_RetainsUsability_AndResetsStats()
     {
         var cache = new MemoryCacheProvider();
-        await cache.SetAsync("k", "v");
-        _ = await cache.GetAsync<string>("k");
+        await cache.SetValueAsync("k", "v");
+        _ = await cache.TryGetAsync<string>("k");
 
         await cache.FlushAsync();
 
-        // Entries gone.
-        Assert.Null(await cache.GetAsync<string>("k"));
-        // Provider is still usable (the old bug disposed the live MemoryCache).
-        await cache.SetAsync("k2", "v2");
-        Assert.Equal("v2", await cache.GetAsync<string>("k2"));
+        Assert.False((await cache.TryGetAsync<string>("k")).HasValue);
+        await cache.SetValueAsync("k2", "v2");
+        var hit = await cache.TryGetAsync<string>("k2");
+        Assert.True(hit.HasValue);
+        Assert.Equal("v2", hit.Value);
 
         var stats = await cache.GetStatsAsync();
-        Assert.Equal(1, stats.Hits);       // the k2 hit post-flush
-        Assert.Equal(1, stats.Sets);       // the k2 set post-flush
+        Assert.Equal(1, stats.Hits);
+        Assert.Equal(1, stats.Sets);
     }
 
     [Fact]
     public async Task Stats_TrackHitsMissesSetsRemoves()
     {
         var cache = new MemoryCacheProvider();
-        await cache.SetAsync("a", "1");
-        await cache.SetAsync("b", "2");
-        _ = await cache.GetAsync<string>("a"); // hit
-        _ = await cache.GetAsync<string>("b"); // hit
-        _ = await cache.GetAsync<string>("c"); // miss
+        await cache.SetValueAsync("a", "1");
+        await cache.SetValueAsync("b", "2");
+        _ = await cache.TryGetAsync<string>("a");
+        _ = await cache.TryGetAsync<string>("b");
+        _ = await cache.TryGetAsync<string>("c");
         await cache.RemoveAsync("a");
 
         var stats = await cache.GetStatsAsync();
@@ -96,9 +92,9 @@ public class MemoryCacheProviderAdditionalTests
     public async Task Stats_IsSnapshot_NotLiveReference()
     {
         var cache = new MemoryCacheProvider();
-        await cache.SetAsync("a", "1");
+        await cache.SetValueAsync("a", "1");
         var snap1 = await cache.GetStatsAsync();
-        await cache.SetAsync("b", "2");
+        await cache.SetValueAsync("b", "2");
         var snap2 = await cache.GetStatsAsync();
 
         Assert.NotSame(snap1, snap2);
@@ -111,8 +107,8 @@ public class MemoryCacheProviderAdditionalTests
     {
         var cache = new MemoryCacheProvider();
         cache.Dispose();
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache.GetAsync<string>("k"));
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache.SetAsync("k", "v"));
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache.TryGetAsync<string>("k"));
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache.SetValueAsync("k", "v"));
     }
 
     [Fact]
@@ -120,17 +116,16 @@ public class MemoryCacheProviderAdditionalTests
     {
         var cache = new MemoryCacheProvider();
         cache.Dispose();
-        cache.Dispose(); // must not throw
+        cache.Dispose();
     }
 
     [Fact]
-    public async Task TypeMismatch_OnGet_ReturnsNull()
+    public async Task TypeMismatch_OnGet_ReturnsMiss()
     {
         var cache = new MemoryCacheProvider();
-        await cache.SetAsync("k", "string-value");
-        // Retrieving as a wrong class type should be treated as miss, not throw.
-        var result = await cache.GetAsync<Wrapper>("k");
-        Assert.Null(result);
+        await cache.SetValueAsync("k", "string-value");
+        var result = await cache.TryGetAsync<Wrapper>("k");
+        Assert.False(result.HasValue);
     }
 
     private sealed class Wrapper { public string? Value { get; set; } }

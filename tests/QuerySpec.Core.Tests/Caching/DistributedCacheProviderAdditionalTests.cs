@@ -50,27 +50,20 @@ public class DistributedCacheProviderAdditionalTests
     public async Task InvalidKey_Throws(string? key)
     {
         var p = new DistributedCacheProvider(new FakeDistributedCache());
-        await Assert.ThrowsAsync<ArgumentException>(async () => await p.GetAsync<Item>(key!));
-        await Assert.ThrowsAsync<ArgumentException>(async () => await p.SetAsync(key!, new Item()));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await p.TryGetAsync<Item>(key!));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await p.SetValueAsync(key!, new Item()));
         await Assert.ThrowsAsync<ArgumentException>(async () => await p.RemoveAsync(key!));
         await Assert.ThrowsAsync<ArgumentException>(async () => await p.ExistsAsync(key!));
-    }
-
-    [Fact]
-    public async Task NullValue_OnSet_Throws()
-    {
-        var p = new DistributedCacheProvider(new FakeDistributedCache());
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await p.SetAsync<Item>("k", null!));
     }
 
     [Fact]
     public async Task Roundtrip_SerializesAndDeserializes()
     {
         var p = new DistributedCacheProvider(new FakeDistributedCache());
-        await p.SetAsync("k", new Item { N = 42 });
-        var r = await p.GetAsync<Item>("k");
-        Assert.NotNull(r);
-        Assert.Equal(42, r!.N);
+        await p.SetValueAsync("k", new Item { N = 42 });
+        var r = await p.TryGetAsync<Item>("k");
+        Assert.True(r.HasValue);
+        Assert.Equal(42, r.Value!.N);
     }
 
     [Fact]
@@ -86,9 +79,9 @@ public class DistributedCacheProviderAdditionalTests
         var fake = new FakeDistributedCache { GetThrows = new InvalidOperationException("redis down") };
         var p = new DistributedCacheProvider(fake);
 
-        var result = await p.GetAsync<Item>("k");
+        var result = await p.TryGetAsync<Item>("k");
 
-        Assert.Null(result);
+        Assert.False(result.HasValue);
         var stats = await p.GetStatsAsync();
         Assert.Equal(1, stats.Misses);
         Assert.Equal(0, stats.Hits);
@@ -101,9 +94,9 @@ public class DistributedCacheProviderAdditionalTests
         fake.SeedRaw("poison", Encoding.UTF8.GetBytes("this is not valid json {{{"));
         var p = new DistributedCacheProvider(fake);
 
-        var result = await p.GetAsync<Item>("poison");
+        var result = await p.TryGetAsync<Item>("poison");
 
-        Assert.Null(result);
+        Assert.False(result.HasValue);
         Assert.True(fake.RemoveCalls >= 1, "corrupt entry should be evicted");
         var stats = await p.GetStatsAsync();
         Assert.Equal(1, stats.Misses);
@@ -112,21 +105,20 @@ public class DistributedCacheProviderAdditionalTests
     [Fact]
     public async Task SetFailure_BubblesUp_ToCaller()
     {
-        // Using Moq to cleanly cause SetAsync to throw.
         var mock = new Mock<IDistributedCache>(MockBehavior.Strict);
         mock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<DistributedCacheEntryOptions>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("write failed"));
 
         var p = new DistributedCacheProvider(mock.Object);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => p.SetAsync("k", new Item()).AsTask());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => p.SetValueAsync("k", new Item()).AsTask());
     }
 
     [Fact]
     public async Task FlushAsync_ResetsStatsOnly()
     {
         var p = new DistributedCacheProvider(new FakeDistributedCache());
-        await p.SetAsync("k", new Item { N = 1 });
-        _ = await p.GetAsync<Item>("k");
+        await p.SetValueAsync("k", new Item { N = 1 });
+        _ = await p.TryGetAsync<Item>("k");
         await p.FlushAsync();
         var stats = await p.GetStatsAsync();
         Assert.Equal(0, stats.Hits + stats.Misses + stats.Sets + stats.Removes);
