@@ -99,10 +99,20 @@ public class MutationKillerTests
     public async Task GetAuditsByUserAsync_WithSince_ExcludesOlderEntries()
     {
         var logger = new InMemoryAuditLogger();
-        var old = new AuditLogEntry { TenantId = "t", UserId = "alice", Operation = "Q",
-            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
-        var recent = new AuditLogEntry { TenantId = "t", UserId = "alice", Operation = "Q",
-            Timestamp = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc) };
+        var old = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "alice",
+            Operation = "Q",
+            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+        var recent = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "alice",
+            Operation = "Q",
+            Timestamp = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
 
         await logger.LogQueryAsync(old);
         await logger.LogQueryAsync(recent);
@@ -143,10 +153,20 @@ public class MutationKillerTests
     public async Task GetAuditsByTenantAsync_WithSince_FiltersCorrectly()
     {
         var logger = new InMemoryAuditLogger();
-        var old = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Q",
-            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
-        var recent = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Q",
-            Timestamp = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc) };
+        var old = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Q",
+            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+        var recent = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Q",
+            Timestamp = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
         await logger.LogQueryAsync(old);
         await logger.LogQueryAsync(recent);
 
@@ -250,8 +270,13 @@ public class MutationKillerTests
         clock.SetUtcNow(new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero));
         var logger = new InMemoryAuditLogger(clock);
 
-        var old = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Q",
-            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
+        var old = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Q",
+            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
         await logger.LogQueryAsync(old);
 
         await logger.PurgeOldLogsAsync(TimeSpan.FromDays(30));
@@ -265,8 +290,13 @@ public class MutationKillerTests
         clock.SetUtcNow(new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero));
         var logger = new InMemoryAuditLogger(clock);
 
-        var recent = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Q",
-            Timestamp = new DateTime(2025, 5, 31, 0, 0, 0, DateTimeKind.Utc) };
+        var recent = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Q",
+            Timestamp = new DateTime(2025, 5, 31, 0, 0, 0, DateTimeKind.Utc)
+        };
         await logger.LogQueryAsync(recent);
 
         await logger.PurgeOldLogsAsync(TimeSpan.FromDays(1));
@@ -280,10 +310,20 @@ public class MutationKillerTests
         clock.SetUtcNow(new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero));
         var logger = new InMemoryAuditLogger(clock);
 
-        var old = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Q",
-            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
-        var recent = new AuditLogEntry { TenantId = "t", UserId = "u", Operation = "Q",
-            Timestamp = new DateTime(2025, 5, 31, 0, 0, 0, DateTimeKind.Utc) };
+        var old = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Q",
+            Timestamp = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+        var recent = new AuditLogEntry
+        {
+            TenantId = "t",
+            UserId = "u",
+            Operation = "Q",
+            Timestamp = new DateTime(2025, 5, 31, 0, 0, 0, DateTimeKind.Utc)
+        };
         await logger.LogQueryAsync(old);
         await logger.LogQueryAsync(recent);
 
@@ -515,8 +555,12 @@ public class MutationKillerTests
         var boundary = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
         var trail = new EntityAuditTrail();
         trail.Changes.Add(new FieldChange { FieldName = "F", ChangedBy = "u", ChangedAt = boundary });
-        trail.Changes.Add(new FieldChange { FieldName = "F", ChangedBy = "u",
-            ChangedAt = boundary.AddSeconds(-1) });
+        trail.Changes.Add(new FieldChange
+        {
+            FieldName = "F",
+            ChangedBy = "u",
+            ChangedAt = boundary.AddSeconds(-1)
+        });
 
         var result = trail.GetChangesSince(boundary).ToList();
         Assert.Single(result);
@@ -566,7 +610,9 @@ public class MutationKillerTests
         var since = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var e = new AuditLogEntry
         {
-            TenantId = "t", UserId = "alice", Operation = "Q",
+            TenantId = "t",
+            UserId = "alice",
+            Operation = "Q",
             AccessedSensitiveFields = new List<string> { "SSN", "Email" }
         };
         await logger.LogQueryAsync(e);
