@@ -1,35 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-  Intentional API surface changes from v3.0.0 → v4.0.0.
-  All entries below are deliberate major-version breaks documented in CHANGELOG.md.
-  Issue references: #138, #139, #141, #150, #151, #84.
-
-  CP0001 = type missing on one side (removed or newly added types)
-  CP0002 = member missing on one side (removed or newly added members)
-  CP0008 = type does not implement interface on baseline side (new interface implementation)
-
-  Entries are repeated for each TFM (net8.0, net9.0, net10.0) because
-  ApiCompat validates each TFM pair independently.
--->
-<Suppressions>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════════
-       REMOVED TYPES (CP0001) — intentional v4.0 deprecation removals (#150)
-       ═══════════════════════════════════════════════════════════════════════════ -->
-
-  <!-- GeoLocation removed. Replacement: GeoCoordinate. Refs #150 -->
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- https://learn.microsoft.com/dotnet/fundamentals/package-validation/diagnostic-ids -->
+<Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Suppression>
     <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.GeoLocation</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.GeoLocation</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
+    <Target>T:QuerySpec.Core.Advanced.AdvancedFilterExpression</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
@@ -39,11 +15,16 @@
     <Right>lib/net10.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
-
-  <!-- AdvancedFilterExpression removed. Replacement: FilterSpec. Refs #150 -->
   <Suppression>
     <DiagnosticId>CP0001</DiagnosticId>
     <Target>T:QuerySpec.Core.Advanced.AdvancedFilterExpression</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:QuerySpec.Core.Advanced.GeoLocation</Target>
     <Left>lib/net8.0/QuerySpec.Core.dll</Left>
     <Right>lib/net8.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
@@ -57,170 +38,16 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.AdvancedFilterExpression</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════════
-       NEW TYPES (CP0001) — additive v4.0 surface shipped in v3.x deprecation window
-       These are false-positive breaks: types exist on right (new) but not on baseline.
-       ═══════════════════════════════════════════════════════════════════════════ -->
-
-  <!-- FilterSpec added in v3.x as GeoLocation/AdvancedFilterExpression replacement. Refs #84 -->
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.FilterSpec</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.FilterSpec</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.FilterSpec</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- GeoCoordinate added as GeoLocation replacement. Refs #84, #150 -->
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.GeoCoordinate</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.GeoCoordinate</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Advanced.GeoCoordinate</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- CacheResult<T> added as ICacheProvider typed-read replacement. Refs #84, #150 -->
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.CacheResult`1</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.CacheResult`1</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.CacheResult`1</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- ICacheStore added as typed cache contract replacing ICacheProvider<T> methods. Refs #84, #150 -->
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.ICacheStore</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.ICacheStore</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.ICacheStore</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════════
-       REMOVED MEMBERS (CP0002) — intentional v4.0 removals
-       ═══════════════════════════════════════════════════════════════════════════ -->
-
-  <!-- ICacheProvider.GetAsync<T>/SetAsync<T> removed. Replacement: ICacheStore. Refs #150 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.ICacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.ICacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Target>T:QuerySpec.Core.Advanced.GeoLocation</Target>
     <Left>lib/net9.0/QuerySpec.Core.dll</Left>
     <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.ICacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
     <Left>lib/net10.0/QuerySpec.Core.dll</Left>
     <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.ICacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.ICacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.ICacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- DistributedCacheProvider.GetAsync<T>/SetAsync<T> removed. Refs #150 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
@@ -233,8 +60,230 @@
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
     <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.ICacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.ICacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Resilience.CircuitBreaker.#ctor</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Resilience.RateLimiter.#ctor</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.AesEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.AesGcmEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync(System.Threading.CancellationToken)</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.MigratingEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
     <Left>lib/net8.0/QuerySpec.Core.dll</Left>
     <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.ICacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.ICacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Resilience.CircuitBreaker.#ctor</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Resilience.RateLimiter.#ctor</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.AesEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.AesGcmEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync(System.Threading.CancellationToken)</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.MigratingEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
+    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
@@ -246,23 +295,14 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- MemoryCacheProvider.GetAsync<T>/SetAsync<T> removed. Refs #150 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <Target>M:QuerySpec.Core.Caching.ICacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <Target>M:QuerySpec.Core.Caching.ICacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
     <Left>lib/net9.0/QuerySpec.Core.dll</Left>
     <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
@@ -270,15 +310,8 @@
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
     <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
@@ -290,39 +323,9 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- MultiLevelCache.GetAsync<T>/SetAsync<T> removed. Refs #150 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
     <Target>M:QuerySpec.Core.Caching.MultiLevelCache.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
     <Left>lib/net9.0/QuerySpec.Core.dll</Left>
     <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.GetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
@@ -334,156 +337,9 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.SetAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- IEncryptionProvider.RotateKeyAsync() removed. Refs #138 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- IEncryptionProvider.RotateKeyAsync(CancellationToken) removed. Refs #138 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync(System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync(System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync(System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- AesEncryptionProvider.RotateKeyAsync() removed. Refs #138 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.AesEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.AesEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.AesEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- AesGcmEncryptionProvider.RotateKeyAsync() removed. Refs #138 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.AesGcmEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.AesGcmEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.AesGcmEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- MigratingEncryptionProvider.RotateKeyAsync() removed. Refs #138 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.MigratingEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.MigratingEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Security.MigratingEncryptionProvider.RotateKeyAsync</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- CircuitBreaker parameterless constructor removed; TimeProvider-accepting ctor added. Refs #143 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.CircuitBreaker.#ctor</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
     <Target>M:QuerySpec.Core.Resilience.CircuitBreaker.#ctor</Target>
     <Left>lib/net9.0/QuerySpec.Core.dll</Left>
     <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.CircuitBreaker.#ctor</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- RateLimiter parameterless constructor removed; TimeProvider-accepting ctor added. Refs #143 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.RateLimiter.#ctor</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
@@ -495,497 +351,100 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.RateLimiter.#ctor</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
+    <Target>M:QuerySpec.Core.Security.AesEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════════
-       NEW MEMBERS (CP0002) — additive surface shipped during v3.x window
-       Not present in 3.0.0 baseline; added as part of the v3.x deprecation cycle.
-       ═══════════════════════════════════════════════════════════════════════════ -->
-
-  <!-- FilterOperator.ContainsCaseInsensitive added. Refs #84 -->
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
-    <Target>F:QuerySpec.Core.Advanced.FilterOperator.ContainsCaseInsensitive</Target>
+    <Target>M:QuerySpec.Core.Security.AesGcmEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.IEncryptionProvider.RotateKeyAsync(System.Threading.CancellationToken)</Target>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.Core.Security.MigratingEncryptionProvider.RotateKeyAsync</Target>
+    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
+    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
     <Left>lib/net8.0/QuerySpec.Core.dll</Left>
     <Right>lib/net8.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>F:QuerySpec.Core.Advanced.FilterOperator.ContainsCaseInsensitive</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>F:QuerySpec.Core.Advanced.FilterOperator.ContainsCaseInsensitive</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- IComplianceExporter.GenerateGdprExportAsync (camelCase) added. Refs #84 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.IComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream)</Target>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
     <Left>lib/net8.0/QuerySpec.Core.dll</Left>
     <Right>lib/net8.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.IComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.IComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.IComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream,System.Threading.CancellationToken)</Target>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
     <Left>lib/net8.0/QuerySpec.Core.dll</Left>
     <Right>lib/net8.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.IComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream,System.Threading.CancellationToken)</Target>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
     <Left>lib/net9.0/QuerySpec.Core.dll</Left>
     <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.IComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream,System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- ComplianceExporter.GenerateGdprExportAsync / GenerateGDPRExportAsync added. Refs #84 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.ComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.ComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream)</Target>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
     <Left>lib/net9.0/QuerySpec.Core.dll</Left>
     <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.ComplianceExporter.GenerateGdprExportAsync(System.String,System.String,System.IO.Stream)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.ComplianceExporter.GenerateGDPRExportAsync(System.String,System.String,System.IO.Stream,System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.ComplianceExporter.GenerateGDPRExportAsync(System.String,System.String,System.IO.Stream,System.Threading.CancellationToken)</Target>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
     <Left>lib/net9.0/QuerySpec.Core.dll</Left>
     <Right>lib/net9.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.ComplianceExporter.GenerateGDPRExportAsync(System.String,System.String,System.IO.Stream,System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- InMemoryAuditLogger(TimeProvider) constructor added. Refs #143 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.InMemoryAuditLogger.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.InMemoryAuditLogger.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Auditing.InMemoryAuditLogger.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- MemoryCacheProvider(MemoryCacheOptions, TimeProvider) constructor added. Refs #143 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.#ctor(Microsoft.Extensions.Caching.Memory.MemoryCacheOptions,System.TimeProvider)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.#ctor(Microsoft.Extensions.Caching.Memory.MemoryCacheOptions,System.TimeProvider)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.#ctor(Microsoft.Extensions.Caching.Memory.MemoryCacheOptions,System.TimeProvider)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- New ICacheStore members on existing types (TryGetAsync/SetValueAsync). Refs #84, #150 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
     <Left>lib/net10.0/QuerySpec.Core.dll</Left>
     <Right>lib/net10.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.DistributedCacheProvider.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
     <Left>lib/net10.0/QuerySpec.Core.dll</Left>
     <Right>lib/net10.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>QuerySpec.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=2aa0115813e60a0c</Target>
     <Left>lib/net10.0/QuerySpec.Core.dll</Left>
     <Right>lib/net10.0/QuerySpec.Core.dll</Right>
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MemoryCacheProvider.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.TryGetAsync``1(System.String,System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.MultiLevelCache.SetValueAsync``1(System.String,``0,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- MetricsCollector(int, TimeProvider) constructor added. Refs #143 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Monitoring.MetricsCollector.#ctor(System.Int32,System.TimeProvider)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Monitoring.MetricsCollector.#ctor(System.Int32,System.TimeProvider)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Monitoring.MetricsCollector.#ctor(System.Int32,System.TimeProvider)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- CircuitBreaker(TimeProvider?) constructor added. Refs #143 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.CircuitBreaker.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.CircuitBreaker.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.CircuitBreaker.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- RateLimiter(TimeProvider?) constructor added. Refs #143 -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.RateLimiter.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.RateLimiter.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Resilience.RateLimiter.#ctor(System.TimeProvider)</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════════
-       NEW INTERFACE IMPLEMENTATIONS (CP0008)
-       Cache provider types now implement ICacheStore in addition to ICacheProvider.
-       Refs #84, #150
-       ═══════════════════════════════════════════════════════════════════════════ -->
-
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.DistributedCacheProvider</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.DistributedCacheProvider</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.DistributedCacheProvider</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.MemoryCacheProvider</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.MemoryCacheProvider</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.MemoryCacheProvider</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.MultiLevelCache</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.MultiLevelCache</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0008</DiagnosticId>
-    <Target>T:QuerySpec.Core.Caching.MultiLevelCache</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════════
-       INTER-TFM SIGNATURE DIVERGENCE (CP0002)
-       CacheKeyGenerator.GenerateKey uses params ReadOnlySpan<object?> on net9+
-       and params object?[] on net8. ApiCompat flags the inter-TFM mismatch.
-       This is an intentional TFM-specific optimisation to avoid the params array
-       heap allocation on .NET 9+ call sites.
-       ═══════════════════════════════════════════════════════════════════════════ -->
-
-  <!-- net8 has params object?[], net9/10 has params ReadOnlySpan<object?> -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-  </Suppression>
-  <!-- Baseline 3.0.0 also had this same TFM divergence -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
-    <Left>lib/net8.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net8.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.Object[])</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.ReadOnlySpan{System.Object})</Target>
-    <Left>lib/net9.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net9.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:QuerySpec.Core.Caching.CacheKeyGenerator.GenerateKey(System.String,System.ReadOnlySpan{System.Object})</Target>
-    <Left>lib/net10.0/QuerySpec.Core.dll</Left>
-    <Right>lib/net10.0/QuerySpec.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-
 </Suppressions>
