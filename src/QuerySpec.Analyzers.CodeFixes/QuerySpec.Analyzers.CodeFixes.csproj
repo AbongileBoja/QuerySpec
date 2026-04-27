@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Same netstandard2.0 rationale as the analyzer assembly. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks></TargetFrameworks>
+
+    <RootNamespace>QuerySpec.Analyzers</RootNamespace>
+    <AssemblyName>QuerySpec.Analyzers.CodeFixes</AssemblyName>
+
+    <!-- Not directly packable: this assembly ships inside the QuerySpec.Analyzers nupkg. -->
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Skip baseline validation and SBOM (covered by the parent QuerySpec.Analyzers package). -->
+    <EnablePackageValidation>false</EnablePackageValidation>
+    <EnableStrictModeForBaselineValidation>false</EnableStrictModeForBaselineValidation>
+    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
+    <GenerateSBOM>false</GenerateSBOM>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0-beta1.24454.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuerySpec.Analyzers\QuerySpec.Analyzers.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

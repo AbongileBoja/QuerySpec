@@ -1,0 +1,21 @@
+#nullable enable
+QuerySpec.Analyzers.DiagnosticIds
+QuerySpec.Analyzers.DiagnosticDescriptors
+QuerySpec.Analyzers.GeoLocationMemberAccessAnalyzer
+QuerySpec.Analyzers.GeoLocationMemberAccessAnalyzer.GeoLocationMemberAccessAnalyzer() -> void
+override QuerySpec.Analyzers.GeoLocationMemberAccessAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext! context) -> void
+override QuerySpec.Analyzers.GeoLocationMemberAccessAnalyzer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor!>
+QuerySpec.Analyzers.AdvancedFilterExpressionAnalyzer
+QuerySpec.Analyzers.AdvancedFilterExpressionAnalyzer.AdvancedFilterExpressionAnalyzer() -> void
+override QuerySpec.Analyzers.AdvancedFilterExpressionAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext! context) -> void
+override QuerySpec.Analyzers.AdvancedFilterExpressionAnalyzer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor!>
+QuerySpec.Analyzers.CacheProviderInvocationAnalyzer
+QuerySpec.Analyzers.CacheProviderInvocationAnalyzer.CacheProviderInvocationAnalyzer() -> void
+override QuerySpec.Analyzers.CacheProviderInvocationAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext! context) -> void
+override QuerySpec.Analyzers.CacheProviderInvocationAnalyzer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor!>
+const QuerySpec.Analyzers.DiagnosticIds.GeoLocationMemberAccess = "QSPEC0001" -> string!
+const QuerySpec.Analyzers.DiagnosticIds.AdvancedFilterExpressionUsage = "QSPEC0002" -> string!
+const QuerySpec.Analyzers.DiagnosticIds.CacheProviderInvocation = "QSPEC0003" -> string!
+QuerySpec.Analyzers.DiagnosticDescriptors.GeoLocationMemberAccess -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+QuerySpec.Analyzers.DiagnosticDescriptors.AdvancedFilterExpressionUsage -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+QuerySpec.Analyzers.DiagnosticDescriptors.CacheProviderInvocation -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
