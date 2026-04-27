@@ -259,11 +259,13 @@ public class QuerySpecExpressionTranslator
 
             FilterOperator.DateInRange when filter.TemporalStart.HasValue && filter.TemporalEnd.HasValue =>
                 BuildDateInRange(property, filter.TemporalStart.Value, filter.TemporalEnd.Value, isNullable),
+            FilterOperator.DateInRange =>
+                throw new NotSupportedException($"FilterOperator 'DateInRange' requires both TemporalStart and TemporalEnd to be set."),
             FilterOperator.DateAfter => BuildDateComparison(property, filter.Value, ExpressionType.GreaterThan, isNullable),
             FilterOperator.DateBefore => BuildDateComparison(property, filter.Value, ExpressionType.LessThan, isNullable),
             FilterOperator.DateEquals => BuildDateEquals(property, filter.Value, isNullable),
 
-            _ => Expression.Constant(true)
+            var op => throw new NotSupportedException($"FilterOperator '{op}' is not implemented in the EF Core translator.")
         };
     }
 
@@ -481,6 +483,9 @@ public class QuerySpecExpressionTranslator
             var hasValue = Expression.Property(property, hvProp);
             return Expression.Not(hasValue);
         }
+
+        if (property.Type.IsValueType)
+            return Expression.Constant(false);
 
         return Expression.Equal(property, Expression.Constant(null, property.Type));
     }
