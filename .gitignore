@@ -393,3 +393,4 @@ npm-debug.log*
 
 # Stryker mutation testing output
 StrykerOutput/
+stryker-baseline/

@@ -1,8 +1,7 @@
 {
   "stryker-config": {
-    "project": "QuerySpec.Core.csproj",
     "test-projects": [
-      "tests/QuerySpec.Core.Tests/QuerySpec.Core.Tests.csproj"
+      "../../tests/QuerySpec.Core.Tests/QuerySpec.Core.Tests.csproj"
     ],
     "target-framework": "net9.0",
     "mutation-level": "Standard",
@@ -16,8 +15,8 @@
       "EscapeSqlLiteral"
     ],
     "mutate": [
-      "src/QuerySpec.Core/**/*.cs",
-      "!src/QuerySpec.Core/Properties/**"
+      "**/*.cs",
+      "!Properties/**"
     ],
     "thresholds": {
       "high": 90,

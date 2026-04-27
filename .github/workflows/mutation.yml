@@ -1,24 +1,28 @@
-name: Mutation testing (on-demand)
+name: Mutation testing
 
 on:
   workflow_dispatch:
-    inputs:
-      scope:
-        description: 'Comma-separated mutate globs (default: three primary security classes)'
-        required: false
-        default: 'src/QuerySpec.Core/Security/AesGcmEncryptionProvider.cs,src/QuerySpec.Core/Security/DataMaskingEngine.cs,src/QuerySpec.Core/Security/RowLevelSecurityEngine.cs'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+  schedule:
+    - cron: '0 4 * * 1'
 
 permissions: read-all
 
 jobs:
-  stryker:
-    name: Stryker.NET — security paths
+  stryker-core:
+    name: Stryker.NET — QuerySpec.Core (full library)
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     permissions:
       contents: read
 
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      with:
+        fetch-depth: 0
 
     - name: Setup .NET 9
       uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
@@ -28,20 +32,222 @@ jobs:
     - name: Restore tools
       run: dotnet tool restore
 
-    - name: Build solution
+    - name: Restore packages
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      run: dotnet build QuerySpec.sln --configuration Release --no-restore
+      run: dotnet restore QuerySpec.sln
 
-    - name: Run Stryker
+    - name: Run Stryker Core (PR incremental)
+      if: github.event_name == 'pull_request'
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      run: dotnet stryker --config-file stryker-config.json
+      working-directory: src/QuerySpec.Core
+      run: dotnet stryker --since=origin/${{ github.base_ref }}
 
-    - name: Upload HTML report
+    - name: Run Stryker Core (full sweep)
+      if: github.event_name != 'pull_request'
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      working-directory: src/QuerySpec.Core
+      run: dotnet stryker
+
+    - name: Upload Core Stryker HTML report
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
-        name: stryker-report
-        path: StrykerOutput/
-        retention-days: 30
+        name: stryker-report-core
+        path: src/QuerySpec.Core/StrykerOutput/
+        retention-days: 90
+
+    - name: Run Stryker Core Security (full sweep — raises break threshold to 85)
+      if: github.event_name != 'pull_request'
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      working-directory: src/QuerySpec.Core
+      run: dotnet stryker --config-file stryker-config.security.json
+
+    - name: Upload Core Security Stryker report
+      if: always() && github.event_name != 'pull_request'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: stryker-report-core-security
+        path: src/QuerySpec.Core/StrykerOutput/
+        retention-days: 90
+
+    - name: Publish Core report to mutation-reports branch (weekly sweep only)
+      if: github.event_name == 'schedule' && success()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        REPORT_DIR=$(ls -dt src/QuerySpec.Core/StrykerOutput/*/reports 2>/dev/null | head -1)
+        if [ -z "$REPORT_DIR" ]; then
+          echo "No report directory found; skipping publish."
+          exit 0
+        fi
+        git config user.email "actions@github.com"
+        git config user.name "github-actions"
+        git fetch origin mutation-reports 2>/dev/null || true
+        if git show-ref --verify --quiet refs/remotes/origin/mutation-reports; then
+          git checkout -b mutation-reports origin/mutation-reports
+        else
+          git checkout --orphan mutation-reports
+          git rm -rf . --quiet || true
+        fi
+        DATED=$(date -u +%Y-%m-%d)
+        mkdir -p "core/$DATED"
+        cp "$REPORT_DIR/"*.html "core/$DATED/" 2>/dev/null || true
+        cp "$REPORT_DIR/"*.json "core/$DATED/" 2>/dev/null || true
+        cp -r "core/$DATED" "core/latest"
+        git add .
+        git diff --staged --quiet || git commit -m "chore(tests): mutation report core $DATED"
+        git push origin mutation-reports
+
+  stryker-efcore:
+    name: Stryker.NET — QuerySpec.EFCore
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore tools
+      run: dotnet tool restore
+
+    - name: Restore packages
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      run: dotnet restore QuerySpec.sln
+
+    - name: Run Stryker EFCore (PR incremental)
+      if: github.event_name == 'pull_request'
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      working-directory: src/QuerySpec.EFCore
+      run: dotnet stryker --since=origin/${{ github.base_ref }}
+
+    - name: Run Stryker EFCore (full sweep)
+      if: github.event_name != 'pull_request'
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      working-directory: src/QuerySpec.EFCore
+      run: dotnet stryker
+
+    - name: Upload EFCore Stryker HTML report
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: stryker-report-efcore
+        path: src/QuerySpec.EFCore/StrykerOutput/
+        retention-days: 90
+
+    - name: Publish EFCore report to mutation-reports branch (weekly sweep only)
+      if: github.event_name == 'schedule' && success()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        REPORT_DIR=$(ls -dt src/QuerySpec.EFCore/StrykerOutput/*/reports 2>/dev/null | head -1)
+        if [ -z "$REPORT_DIR" ]; then
+          echo "No report directory found; skipping publish."
+          exit 0
+        fi
+        git config user.email "actions@github.com"
+        git config user.name "github-actions"
+        git fetch origin mutation-reports 2>/dev/null || true
+        if git show-ref --verify --quiet refs/remotes/origin/mutation-reports; then
+          git checkout -b mutation-reports origin/mutation-reports
+        else
+          git checkout --orphan mutation-reports
+          git rm -rf . --quiet || true
+        fi
+        DATED=$(date -u +%Y-%m-%d)
+        mkdir -p "efcore/$DATED"
+        cp "$REPORT_DIR/"*.html "efcore/$DATED/" 2>/dev/null || true
+        cp "$REPORT_DIR/"*.json "efcore/$DATED/" 2>/dev/null || true
+        cp -r "efcore/$DATED" "efcore/latest"
+        git add .
+        git diff --staged --quiet || git commit -m "chore(tests): mutation report efcore $DATED"
+        git push origin mutation-reports
+
+  stryker-di:
+    name: Stryker.NET — QuerySpec.DependencyInjection
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore tools
+      run: dotnet tool restore
+
+    - name: Restore packages
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      run: dotnet restore QuerySpec.sln
+
+    - name: Run Stryker DI (PR incremental)
+      if: github.event_name == 'pull_request'
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      working-directory: src/QuerySpec.DependencyInjection
+      run: dotnet stryker --since=origin/${{ github.base_ref }}
+
+    - name: Run Stryker DI (full sweep)
+      if: github.event_name != 'pull_request'
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      working-directory: src/QuerySpec.DependencyInjection
+      run: dotnet stryker
+
+    - name: Upload DI Stryker HTML report
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: stryker-report-di
+        path: src/QuerySpec.DependencyInjection/StrykerOutput/
+        retention-days: 90
+
+    - name: Publish DI report to mutation-reports branch (weekly sweep only)
+      if: github.event_name == 'schedule' && success()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        REPORT_DIR=$(ls -dt src/QuerySpec.DependencyInjection/StrykerOutput/*/reports 2>/dev/null | head -1)
+        if [ -z "$REPORT_DIR" ]; then
+          echo "No report directory found; skipping publish."
+          exit 0
+        fi
+        git config user.email "actions@github.com"
+        git config user.name "github-actions"
+        git fetch origin mutation-reports 2>/dev/null || true
+        if git show-ref --verify --quiet refs/remotes/origin/mutation-reports; then
+          git checkout -b mutation-reports origin/mutation-reports
+        else
+          git checkout --orphan mutation-reports
+          git rm -rf . --quiet || true
+        fi
+        DATED=$(date -u +%Y-%m-%d)
+        mkdir -p "di/$DATED"
+        cp "$REPORT_DIR/"*.html "di/$DATED/" 2>/dev/null || true
+        cp "$REPORT_DIR/"*.json "di/$DATED/" 2>/dev/null || true
+        cp -r "di/$DATED" "di/latest"
+        git add .
+        git diff --staged --quiet || git commit -m "chore(tests): mutation report di $DATED"
+        git push origin mutation-reports
