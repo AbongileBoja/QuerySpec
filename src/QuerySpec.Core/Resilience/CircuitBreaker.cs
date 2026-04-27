@@ -11,8 +11,9 @@ namespace QuerySpec.Core.Resilience;
 public class CircuitBreaker
 {
     private CircuitState _state = CircuitState.Closed;
-    private DateTime _lastFailureTime = DateTime.MinValue;
+    private DateTimeOffset _lastFailureTime = DateTimeOffset.MinValue;
     private int _failureCount;
+    private readonly TimeProvider _timeProvider;
 #if NET9_0_OR_GREATER
     private readonly System.Threading.Lock _lockObj = new();
 #else
@@ -25,6 +26,20 @@ public class CircuitBreaker
     public TimeSpan OpenTimeout { get; set; } = TimeSpan.FromSeconds(30);
     /// <summary>Interval between half-open test attempts.</summary>
     public TimeSpan HalfOpenTestInterval { get; set; } = TimeSpan.FromSeconds(10);
+
+    /// <summary>
+    /// Initializes a new <see cref="CircuitBreaker"/>. An optional <paramref name="timeProvider"/>
+    /// allows tests to drive the open-timeout clock deterministically; production code omits it
+    /// and receives <see cref="TimeProvider.System"/>.
+    /// </summary>
+    /// <param name="timeProvider">
+    /// Clock used for open-timeout calculations. Defaults to <see cref="TimeProvider.System"/>
+    /// when <c>null</c>.
+    /// </param>
+    public CircuitBreaker(TimeProvider? timeProvider = null)
+    {
+        _timeProvider = timeProvider ?? TimeProvider.System;
+    }
 
     /// <summary>
     /// Gets current circuit state. Accessing the state advances the machine from Open
@@ -73,12 +88,12 @@ public class CircuitBreaker
             var current = TransitionIfDueLocked();
             if (current == CircuitState.Open)
             {
-                var retryAfter = OpenTimeout - (DateTime.UtcNow - _lastFailureTime);
+                var retryAfter = OpenTimeout - (_timeProvider.GetUtcNow() - _lastFailureTime);
                 if (retryAfter < TimeSpan.Zero) retryAfter = TimeSpan.Zero;
                 throw new CircuitBreakerOpenException(
                     $"Circuit breaker is OPEN. Failures: {_failureCount}/{FailureThreshold}. " +
                     $"Last failure at {_lastFailureTime:O}. Retry after ~{retryAfter.TotalSeconds:F1}s.",
-                    _failureCount, FailureThreshold, _lastFailureTime, retryAfter);
+                    _failureCount, FailureThreshold, _lastFailureTime.UtcDateTime, retryAfter);
             }
         }
 
@@ -102,7 +117,7 @@ public class CircuitBreaker
             lock (_lockObj)
             {
                 _failureCount++;
-                _lastFailureTime = DateTime.UtcNow;
+                _lastFailureTime = _timeProvider.GetUtcNow();
 
                 if (_state == CircuitState.HalfOpen || _failureCount >= FailureThreshold)
                 {
@@ -123,13 +138,13 @@ public class CircuitBreaker
         {
             _state = CircuitState.Closed;
             _failureCount = 0;
-            _lastFailureTime = DateTime.MinValue;
+            _lastFailureTime = DateTimeOffset.MinValue;
         }
     }
 
     private CircuitState TransitionIfDueLocked()
     {
-        if (_state == CircuitState.Open && DateTime.UtcNow - _lastFailureTime > OpenTimeout)
+        if (_state == CircuitState.Open && _timeProvider.GetUtcNow() - _lastFailureTime > OpenTimeout)
         {
             _state = CircuitState.HalfOpen;
         }
