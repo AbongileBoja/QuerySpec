@@ -52,7 +52,28 @@ public class IndividualBuildersTests
 
         Assert.IsType<CachingBuilder>(result);
         using var sp = services.BuildServiceProvider();
+#pragma warning disable QSPEC0003
         Assert.IsType<MemoryCacheProvider>(sp.GetRequiredService<ICacheProvider>());
+#pragma warning restore QSPEC0003
+    }
+
+    /// <summary>
+    /// Regression: <see cref="CachingBuilder.UseMemoryCache"/> must register a single
+    /// <see cref="MemoryCacheProvider"/> singleton against both <see cref="ICacheProvider"/>
+    /// (legacy) and <see cref="ICacheStore"/> (new) so consumers may inject either contract.
+    /// </summary>
+    [Fact]
+    public void CachingBuilder_UseMemoryCache_RegistersBothProviderAndStoreAgainstSameInstance()
+    {
+        var services = new ServiceCollection();
+        new CachingBuilder(services).UseMemoryCache();
+        using var sp = services.BuildServiceProvider();
+#pragma warning disable QSPEC0003
+        var legacy = sp.GetRequiredService<ICacheProvider>();
+#pragma warning restore QSPEC0003
+        var store = sp.GetRequiredService<ICacheStore>();
+        Assert.Same(legacy, store);
+        Assert.IsType<MemoryCacheProvider>(legacy);
     }
 
     [Fact]
@@ -65,8 +86,37 @@ public class IndividualBuildersTests
 
         Assert.Same(builder, result);
         // We can't actually connect to Redis; assert the registration descriptors exist.
+#pragma warning disable QSPEC0003
         Assert.Contains(services, d => d.ServiceType == typeof(ICacheProvider));
+#pragma warning restore QSPEC0003
+        Assert.Contains(services, d => d.ServiceType == typeof(ICacheStore));
         Assert.Contains(services, d => d.ServiceType == typeof(IDistributedCache));
+    }
+
+    /// <summary>
+    /// Regression: <see cref="CachingBuilder.UseDistributedRedis"/> must register both
+    /// <see cref="ICacheProvider"/> and <see cref="ICacheStore"/> against the same
+    /// <see cref="DistributedCacheProvider"/> singleton.
+    /// </summary>
+    [Fact]
+    public void CachingBuilder_UseDistributedRedis_RegistersBothProviderAndStoreAgainstSameInstance()
+    {
+        var services = new ServiceCollection();
+        services.AddDistributedMemoryCache(); // stand-in for Redis backend
+        new CachingBuilder(services).UseDistributedRedis("localhost:6379");
+
+        // The Redis registration overrides IDistributedCache; substitute the in-memory one back.
+        var redisDescriptor = services.LastOrDefault(d => d.ServiceType == typeof(IDistributedCache));
+        if (redisDescriptor is not null) services.Remove(redisDescriptor);
+        services.AddDistributedMemoryCache();
+
+        using var sp = services.BuildServiceProvider();
+#pragma warning disable QSPEC0003
+        var legacy = sp.GetRequiredService<ICacheProvider>();
+#pragma warning restore QSPEC0003
+        var store = sp.GetRequiredService<ICacheStore>();
+        Assert.Same(legacy, store);
+        Assert.IsType<DistributedCacheProvider>(legacy);
     }
 
     [Fact]
@@ -78,10 +128,32 @@ public class IndividualBuildersTests
         new CachingBuilder(services).UseMultiLevel();
 
         using var sp = services.BuildServiceProvider();
+#pragma warning disable QSPEC0003
         var cache = sp.GetRequiredService<ICacheProvider>();
+#pragma warning restore QSPEC0003
         Assert.IsType<MultiLevelCache>(cache);
         Assert.NotNull(sp.GetRequiredService<MemoryCacheProvider>());
         Assert.NotNull(sp.GetRequiredService<DistributedCacheProvider>());
+    }
+
+    /// <summary>
+    /// Regression: <see cref="CachingBuilder.UseMultiLevel"/> must register both
+    /// <see cref="ICacheProvider"/> and <see cref="ICacheStore"/> against the same
+    /// <see cref="MultiLevelCache"/> singleton.
+    /// </summary>
+    [Fact]
+    public void CachingBuilder_UseMultiLevel_RegistersBothProviderAndStoreAgainstSameInstance()
+    {
+        var services = new ServiceCollection();
+        services.AddDistributedMemoryCache();
+        new CachingBuilder(services).UseMultiLevel();
+        using var sp = services.BuildServiceProvider();
+#pragma warning disable QSPEC0003
+        var legacy = sp.GetRequiredService<ICacheProvider>();
+#pragma warning restore QSPEC0003
+        var store = sp.GetRequiredService<ICacheStore>();
+        Assert.Same(legacy, store);
+        Assert.IsType<MultiLevelCache>(legacy);
     }
 
     [Fact]

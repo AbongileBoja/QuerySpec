@@ -1,8 +1,5 @@
 <Project>
-  <!-- Sample projects: relax the strict package settings inherited from the repo root. -->
-  <!-- Samples are demo apps, not shipping libraries, so no docs / no warnings-as-errors / single TFM. -->
-
-  <PropertyGroup>
+ <PropertyGroup>
     <TargetFrameworks></TargetFrameworks>
     <TargetFramework>net9.0</TargetFramework>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -11,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);QSPEC0001;QSPEC0002;QSPEC0003</WarningsNotAsErrors>
   </PropertyGroup>
 
 </Project>
