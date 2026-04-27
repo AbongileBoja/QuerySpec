@@ -7,6 +7,11 @@ using System.Reflection;
 using System.Text.Json;
 using QuerySpec.Core.Advanced;
 
+// The translator continues to consume AdvancedFilterExpression throughout 3.x as its internal IR;
+// the FilterSpec overload projects into the same shape via ToMutable(). Suppressing QSPEC0002 at
+// file scope keeps the deprecation visible to consumers without polluting the implementation.
+#pragma warning disable QSPEC0002
+
 namespace QuerySpec.EFCore;
 
 /// <summary>
@@ -112,7 +117,28 @@ public class QuerySpecExpressionTranslator
     }
 
     /// <summary>
-    /// Same contract as <see cref="ApplyFilter{T}"/>, but memoizes the built predicate by
+    /// Translates an immutable <see cref="FilterSpec"/> to an EF Core <see cref="IQueryable{T}"/>.
+    /// Internally projects to the legacy <see cref="AdvancedFilterExpression"/> shape and routes
+    /// through the existing predicate-builder so the deprecation window introduces no new code
+    /// path. Callers should prefer this overload over the legacy one for new code.
+    /// </summary>
+    /// <typeparam name="T">Entity type the queryable produces.</typeparam>
+    /// <param name="query">Source queryable to compose the filter onto.</param>
+    /// <param name="filter">Filter specification to apply, or <c>null</c> for a passthrough.</param>
+    /// <returns>A new <see cref="IQueryable{T}"/> with the filter appended; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="filter"/> fails validation or its nesting depth exceeds the configured maximum.</exception>
+    public static IQueryable<T> ApplyFilter<T>(
+        IQueryable<T> query,
+        FilterSpec? filter) where T : class
+    {
+        if (filter is null)
+            return query;
+
+        return ApplyFilter(query, filter.ToMutable());
+    }
+
+    /// <summary>
+    /// Same contract as <see cref="ApplyFilter{T}(IQueryable{T}, AdvancedFilterExpression?)"/>, but memoizes the built predicate by
     /// <c>(typeof(T), filter.ComputeStableHash())</c>. Subsequent calls with a structurally-
     /// equivalent filter skip tree construction, reflection, and <c>Validate()</c>, which
     /// cuts per-call allocation on the hot path by ~99% for repeated filter shapes.
@@ -120,7 +146,7 @@ public class QuerySpecExpressionTranslator
     /// <remarks>
     /// Use this overload when the same filter shapes are applied repeatedly (typical for
     /// API endpoints that accept a bounded set of query shapes). For one-shot ad-hoc filters,
-    /// prefer <see cref="ApplyFilter{T}"/> so the cache doesn't accumulate single-use entries.
+    /// prefer <see cref="ApplyFilter{T}(IQueryable{T}, AdvancedFilterExpression?)"/> so the cache doesn't accumulate single-use entries.
     /// Validation runs on cache miss only — invalid filters still throw on first insertion.
     /// </remarks>
     /// <typeparam name="T">Entity type the queryable produces.</typeparam>

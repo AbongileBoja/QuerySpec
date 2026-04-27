@@ -17,7 +17,7 @@ namespace QuerySpec.Core.Caching;
 /// a cache outage does not take down the caller. Deserialization exceptions indicate a
 /// poison entry: the entry is evicted so the next read will miss and repopulate.
 /// </remarks>
-public class DistributedCacheProvider : ICacheProvider
+public class DistributedCacheProvider : ICacheProvider, ICacheStore
 {
     private readonly IDistributedCache _cache;
     private readonly ILogger<DistributedCacheProvider> _logger;
@@ -47,6 +47,7 @@ public class DistributedCacheProvider : ICacheProvider
     /// <returns>The deserialised value, or <c>null</c> when no entry exists, the transport failed, or the payload was corrupt.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+#pragma warning disable QSPEC0003 // implementing the obsolete ICacheProvider.GetAsync is by design through 3.x
     public async ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
         ValidateKey(key);
@@ -131,6 +132,120 @@ public class DistributedCacheProvider : ICacheProvider
         var options = new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = expiration ?? _defaultExpiration
+        };
+
+        try
+        {
+            await _cache.SetAsync(key, bytes, options, cancellationToken).ConfigureAwait(false);
+            _stats.IncrementSets();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Distributed cache SET failed for key {Key}.", key);
+            throw;
+        }
+    }
+#pragma warning restore QSPEC0003
+
+    /// <summary>
+    /// Gets a value from distributed cache supporting both reference and value types. Transport
+    /// failures are treated as misses (logged); corrupt payloads are evicted.
+    /// </summary>
+    /// <typeparam name="T">Type the cached value deserialises to.</typeparam>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token observed by the underlying transport.</param>
+    /// <returns>A populated <see cref="CacheResult{T}"/> on hit; <see cref="CacheResult{T}.Miss"/> on miss, transport failure, or corrupt payload.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    public async ValueTask<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default)
+    {
+        ValidateKey(key);
+
+        byte[]? bytes;
+        try
+        {
+            bytes = await _cache.GetAsync(key, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Distributed cache GET failed for key {Key}; treating as miss.", key);
+            _stats.IncrementMisses();
+            return CacheResult<T>.Miss;
+        }
+
+        if (bytes is null)
+        {
+            _stats.IncrementMisses();
+            return CacheResult<T>.Miss;
+        }
+
+        try
+        {
+            var result = JsonSerializer.Deserialize<T>(bytes, SerializerOptions);
+            _stats.IncrementHits();
+            return CacheResult<T>.Hit(result!);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Corrupt cache entry for key {Key}; evicting.", key);
+            try
+            {
+                await _cache.RemoveAsync(key, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception removeEx)
+            {
+                _logger.LogWarning(removeEx, "Failed to evict corrupt cache entry for key {Key}.", key);
+            }
+            _stats.IncrementMisses();
+            return CacheResult<T>.Miss;
+        }
+    }
+
+    /// <summary>
+    /// Sets a value in distributed cache supporting both reference and value types.
+    /// </summary>
+    /// <typeparam name="T">Type the value is serialised from.</typeparam>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="value">Value to cache.</param>
+    /// <param name="ttl">Optional positive time-to-live; <see langword="null"/> uses the provider default of one hour.</param>
+    /// <param name="cancellationToken">Token observed by the underlying transport.</param>
+    /// <returns>A completed task on success.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="ttl"/> is non-positive.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when JSON serialisation fails.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    public async ValueTask SetValueAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
+    {
+        ValidateKey(key);
+        if (ttl.HasValue && ttl.Value <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(ttl), "TTL must be positive.");
+
+        byte[] bytes;
+        try
+        {
+            bytes = JsonSerializer.SerializeToUtf8Bytes(value, SerializerOptions);
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to serialize value of type {typeof(T).FullName} for cache key '{key}'.", ex);
+        }
+
+        var options = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = ttl ?? _defaultExpiration
         };
 
         try

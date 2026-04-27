@@ -21,7 +21,7 @@ namespace QuerySpec.Core.Caching;
 /// <c>Microsoft.Extensions.TimeProvider.Testing</c> allows expiration to be advanced
 /// deterministically in tests without wall-clock waits.</para>
 /// </remarks>
-public class MemoryCacheProvider : ICacheProvider, IDisposable
+public class MemoryCacheProvider : ICacheProvider, ICacheStore, IDisposable
 {
     private MemoryCache _cache;
     private readonly MemoryCacheOptions _options;
@@ -67,6 +67,7 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+#pragma warning disable QSPEC0003 // implementing the obsolete ICacheProvider.GetAsync is by design through 3.x
     public ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
         ValidateKey(key);
@@ -106,6 +107,62 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
             cacheOptions.AbsoluteExpiration = _timeProvider.GetUtcNow().Add(expiration.Value);
 
         _cache.Set(key, value, cacheOptions);
+        _stats.IncrementSets();
+        return ValueTask.CompletedTask;
+    }
+#pragma warning restore QSPEC0003
+
+    /// <summary>
+    /// Gets a value from cache, supporting reference types and value types alike. The returned
+    /// <see cref="CacheResult{T}"/> distinguishes a hit on <see langword="default"/> from a miss.
+    /// </summary>
+    /// <typeparam name="T">Value or reference type the cached entry was stored as.</typeparam>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token checked once before the lookup.</param>
+    /// <returns>A populated <see cref="CacheResult{T}"/> on hit; <see cref="CacheResult{T}.Miss"/> otherwise.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    public ValueTask<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default)
+    {
+        ValidateKey(key);
+        EnsureNotDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        if (_cache.TryGetValue(key, out object? raw) && raw is T typed)
+        {
+            _stats.IncrementHits();
+            return new ValueTask<CacheResult<T>>(CacheResult<T>.Hit(typed));
+        }
+        _stats.IncrementMisses();
+        return new ValueTask<CacheResult<T>>(CacheResult<T>.Miss);
+    }
+
+    /// <summary>
+    /// Sets a value in cache, supporting reference types and value types alike.
+    /// </summary>
+    /// <typeparam name="T">Value or reference type the value will be stored as.</typeparam>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="value">Value to cache.</param>
+    /// <param name="ttl">Optional positive time-to-live; <see langword="null"/> uses the underlying <see cref="MemoryCache"/> default.</param>
+    /// <param name="cancellationToken">Token checked once before the write.</param>
+    /// <returns>A completed task on success.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="ttl"/> is non-positive.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    public ValueTask SetValueAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
+    {
+        ValidateKey(key);
+        if (ttl.HasValue && ttl.Value <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(ttl), "TTL must be positive.");
+        EnsureNotDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var cacheOptions = new MemoryCacheEntryOptions();
+        if (ttl.HasValue)
+            cacheOptions.AbsoluteExpiration = _timeProvider.GetUtcNow().Add(ttl.Value);
+
+        _cache.Set(key, (object?)value, cacheOptions);
         _stats.IncrementSets();
         return ValueTask.CompletedTask;
     }
