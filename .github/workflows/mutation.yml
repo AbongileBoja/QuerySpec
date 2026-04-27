@@ -43,12 +43,13 @@ jobs:
     - name: Run Stryker
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      run: dotnet stryker --config-file stryker-config.json
+      working-directory: src/QuerySpec.Core
+      run: dotnet stryker --config-file ../../stryker-config.json
 
     - name: Upload Stryker report
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: stryker-report
-        path: StrykerOutput/
+        path: src/QuerySpec.Core/StrykerOutput/
         retention-days: 30
