@@ -7,6 +7,8 @@ on:
         description: 'Comma-separated mutate globs (default: three primary security classes)'
         required: false
         default: 'src/QuerySpec.Core/Security/AesGcmEncryptionProvider.cs,src/QuerySpec.Core/Security/DataMaskingEngine.cs,src/QuerySpec.Core/Security/RowLevelSecurityEngine.cs'
+  schedule:
+    - cron: '0 4 * * 1'
 
 permissions: read-all
 
@@ -28,6 +30,11 @@ jobs:
     - name: Restore tools
       run: dotnet tool restore
 
+    - name: Restore packages
+      env:
+        QUERYSPEC_SKIP_SIGN: 'true'
+      run: dotnet restore QuerySpec.sln
+
     - name: Build solution
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
@@ -38,7 +45,7 @@ jobs:
         QUERYSPEC_SKIP_SIGN: 'true'
       run: dotnet stryker --config-file stryker-config.json
 
-    - name: Upload HTML report
+    - name: Upload Stryker report
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
