@@ -143,10 +143,13 @@ public class MigratingEncryptionProviderTests
     }
 
     [Fact]
-    public async Task RotateKeyAsync_AlwaysThrows()
+    public void RotateKeyAsync_AlwaysThrows()
     {
         var migrating = new MigratingEncryptionProvider("v2", new AesGcmEncryptionProvider(NewKeyB64()));
-        await Assert.ThrowsAsync<NotSupportedException>(() => migrating.RotateKeyAsync());
+
+        var method = typeof(MigratingEncryptionProvider).GetMethod(nameof(IEncryptionProvider.RotateKeyAsync), Type.EmptyTypes)!;
+        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(migrating, null));
+        Assert.IsType<NotSupportedException>(ex.InnerException);
     }
 
     [Fact]
