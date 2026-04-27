@@ -12,6 +12,7 @@
     <IsPackable>true</IsPackable>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DebugType>embedded</DebugType>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>

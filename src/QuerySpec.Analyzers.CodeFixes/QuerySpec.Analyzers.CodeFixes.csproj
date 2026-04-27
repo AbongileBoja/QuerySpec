@@ -11,6 +11,7 @@
     <!-- Not directly packable: this assembly ships inside the QuerySpec.Analyzers nupkg. -->
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DebugType>embedded</DebugType>
 
     <!-- Skip baseline validation and SBOM (covered by the parent QuerySpec.Analyzers package). -->
     <EnablePackageValidation>false</EnablePackageValidation>
