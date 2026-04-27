@@ -8,7 +8,7 @@
     "target-framework": "net9.0",
     "mutation-level": "Standard",
     "configuration": "Release",
-    "coverage-analysis": "off",
+    "coverage-analysis": "perTest",
     "ignore-mutations": [
       "linq"
     ],
