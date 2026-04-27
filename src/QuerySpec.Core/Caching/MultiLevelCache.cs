@@ -8,7 +8,7 @@ namespace QuerySpec.Core.Caching;
 /// Multi-level cache with memory (L1) + distributed (L2) tier.
 /// Provides best of both worlds: speed and scalability.
 /// </summary>
-public class MultiLevelCache : ICacheProvider
+public class MultiLevelCache : ICacheProvider, ICacheStore
 {
     private readonly MemoryCacheProvider _l1;
     private readonly DistributedCacheProvider _l2;
@@ -31,6 +31,7 @@ public class MultiLevelCache : ICacheProvider
     /// <param name="key">Cache key.</param>
     /// <param name="cancellationToken">Token observed by the L1 and L2 reads.</param>
     /// <returns>The cached value, or <c>null</c> when neither tier holds an entry for <paramref name="key"/>.</returns>
+#pragma warning disable QSPEC0003 // implementing the obsolete ICacheProvider.GetAsync is by design through 3.x
     public async ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
         var result = await _l1.GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
@@ -62,6 +63,51 @@ public class MultiLevelCache : ICacheProvider
     {
         await _l1.SetAsync(key, value, expiration, cancellationToken).ConfigureAwait(false);
         await _l2.SetAsync(key, value, expiration, cancellationToken).ConfigureAwait(false);
+        _stats.IncrementSets();
+    }
+#pragma warning restore QSPEC0003
+
+    /// <summary>
+    /// Gets a value via L1 then L2 (L2 hits are promoted to L1). Supports value and reference types.
+    /// </summary>
+    /// <typeparam name="T">Value or reference type the cached entry was stored as.</typeparam>
+    /// <param name="key">Cache key.</param>
+    /// <param name="cancellationToken">Token observed by the L1 and L2 reads.</param>
+    /// <returns>A populated <see cref="CacheResult{T}"/> on hit in either tier; <see cref="CacheResult{T}.Miss"/> otherwise.</returns>
+    public async ValueTask<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default)
+    {
+        var l1 = await _l1.TryGetAsync<T>(key, cancellationToken).ConfigureAwait(false);
+        if (l1.HasValue)
+        {
+            _stats.IncrementHits();
+            return l1;
+        }
+
+        var l2 = await _l2.TryGetAsync<T>(key, cancellationToken).ConfigureAwait(false);
+        if (l2.HasValue)
+        {
+            _stats.IncrementHits();
+            await _l1.SetValueAsync(key, l2.Value, ttl: null, cancellationToken).ConfigureAwait(false);
+            return l2;
+        }
+
+        _stats.IncrementMisses();
+        return CacheResult<T>.Miss;
+    }
+
+    /// <summary>
+    /// Sets a value in both L1 and L2 caches. Supports value and reference types.
+    /// </summary>
+    /// <typeparam name="T">Value or reference type to store.</typeparam>
+    /// <param name="key">Cache key.</param>
+    /// <param name="value">Value to cache.</param>
+    /// <param name="ttl">Optional time-to-live; <see langword="null"/> uses each tier's default.</param>
+    /// <param name="cancellationToken">Token observed by the L1 and L2 writes.</param>
+    /// <returns>A completed task on success.</returns>
+    public async ValueTask SetValueAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
+    {
+        await _l1.SetValueAsync(key, value, ttl, cancellationToken).ConfigureAwait(false);
+        await _l2.SetValueAsync(key, value, ttl, cancellationToken).ConfigureAwait(false);
         _stats.IncrementSets();
     }
 

@@ -28,31 +28,45 @@ public class CachingBuilder
     }
 
     /// <summary>
-    /// Configures in-memory cache provider.
+    /// Configures in-memory cache provider. Registers a single <see cref="MemoryCacheProvider"/>
+    /// singleton against both the legacy <see cref="ICacheProvider"/> and the new
+    /// <see cref="ICacheStore"/> contracts so consumers may depend on either through 3.x.
     /// </summary>
     /// <returns>The same <see cref="CachingBuilder"/> for fluent chaining.</returns>
     public CachingBuilder UseMemoryCache()
     {
         Services.AddMemoryCache();
-        Services.AddSingleton<ICacheProvider, MemoryCacheProvider>();
+        Services.AddSingleton<MemoryCacheProvider>();
+#pragma warning disable QSPEC0003 // dual-registering the obsolete ICacheProvider is intentional
+        Services.AddSingleton<ICacheProvider>(sp => sp.GetRequiredService<MemoryCacheProvider>());
+#pragma warning restore QSPEC0003
+        Services.AddSingleton<ICacheStore>(sp => sp.GetRequiredService<MemoryCacheProvider>());
         return this;
     }
 
     /// <summary>
-    /// Configures distributed Redis cache provider.
+    /// Configures distributed Redis cache provider. Registers a single
+    /// <see cref="DistributedCacheProvider"/> singleton against both the legacy
+    /// <see cref="ICacheProvider"/> and the new <see cref="ICacheStore"/> contracts.
     /// </summary>
     /// <param name="connectionString">StackExchange.Redis connection string passed through to <c>AddStackExchangeRedisCache</c>.</param>
     /// <returns>The same <see cref="CachingBuilder"/> for fluent chaining.</returns>
     public CachingBuilder UseDistributedRedis(string connectionString)
     {
         Services.AddStackExchangeRedisCache(options => options.Configuration = connectionString);
-        Services.AddSingleton<ICacheProvider>(sp =>
+        Services.AddSingleton<DistributedCacheProvider>(sp =>
             new DistributedCacheProvider(sp.GetRequiredService<IDistributedCache>()));
+#pragma warning disable QSPEC0003 // dual-registering the obsolete ICacheProvider is intentional
+        Services.AddSingleton<ICacheProvider>(sp => sp.GetRequiredService<DistributedCacheProvider>());
+#pragma warning restore QSPEC0003
+        Services.AddSingleton<ICacheStore>(sp => sp.GetRequiredService<DistributedCacheProvider>());
         return this;
     }
 
     /// <summary>
-    /// Configures multi-level cache (memory + distributed).
+    /// Configures multi-level cache (memory + distributed). Registers a single
+    /// <see cref="MultiLevelCache"/> singleton against both the legacy
+    /// <see cref="ICacheProvider"/> and the new <see cref="ICacheStore"/> contracts.
     /// </summary>
     /// <returns>The same <see cref="CachingBuilder"/> for fluent chaining.</returns>
     public CachingBuilder UseMultiLevel()
@@ -60,10 +74,14 @@ public class CachingBuilder
         Services.AddMemoryCache();
         Services.AddSingleton<MemoryCacheProvider>();
         Services.AddSingleton<DistributedCacheProvider>();
-        Services.AddSingleton<ICacheProvider>(sp =>
+        Services.AddSingleton<MultiLevelCache>(sp =>
             new MultiLevelCache(
                 sp.GetRequiredService<MemoryCacheProvider>(),
                 sp.GetRequiredService<DistributedCacheProvider>()));
+#pragma warning disable QSPEC0003 // dual-registering the obsolete ICacheProvider is intentional
+        Services.AddSingleton<ICacheProvider>(sp => sp.GetRequiredService<MultiLevelCache>());
+#pragma warning restore QSPEC0003
+        Services.AddSingleton<ICacheStore>(sp => sp.GetRequiredService<MultiLevelCache>());
         return this;
     }
 

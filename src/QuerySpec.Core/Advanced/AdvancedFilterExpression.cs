@@ -9,12 +9,18 @@ namespace QuerySpec.Core.Advanced;
 /// Advanced filter expression with temporal, geospatial, and custom operator support.
 /// </summary>
 /// <remarks>
-/// In 3.0 this type will be reshaped from a mutable POCO with <c>set;</c> accessors into a
-/// <see langword="record"/> with <see langword="init"/>-only accessors so filter graphs become
-/// safely shareable across threads and cache layers. The change is binary-breaking and cannot be
-/// staged source-compatibly in 2.x. Tracked in
-/// <see href="https://github.com/AbongileBoja/QuerySpec/issues/84">#84</see>.
+/// Replaced by <see cref="FilterSpec"/>: an immutable <see langword="record"/> with
+/// <see langword="init"/>-only accessors and value equality, safely shareable across threads
+/// and cache layers without defensive copies. Round-trip via
+/// <see cref="FilterSpec.FromMutable(AdvancedFilterExpression)"/> /
+/// <see cref="FilterSpec.ToMutable"/>. The mutable POCO is obsolete (diagnostic id
+/// <c>QSPEC0002</c>) and will be removed in 4.0; it remains for binary compatibility through the
+/// 3.x line. Tracked in <see href="https://github.com/AbongileBoja/QuerySpec/issues/84">#84</see>.
 /// </remarks>
+[Obsolete("Use FilterSpec (immutable record). The mutable POCO will be removed in 4.0. See QSPEC0002.",
+    error: false,
+    DiagnosticId = "QSPEC0002",
+    UrlFormat = "https://github.com/AbongileBoja/QuerySpec/blob/main/docs/diagnostics/{0}.md")]
 public class AdvancedFilterExpression
 {
     private static readonly Regex FieldNamePattern = new(

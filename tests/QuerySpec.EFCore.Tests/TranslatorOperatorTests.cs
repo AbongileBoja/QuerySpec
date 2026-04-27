@@ -442,7 +442,7 @@ public class TranslatorOperatorTests
     public void NullFilter_ReturnsSourceUnchanged()
     {
         var source = Seed();
-        var result = QuerySpecExpressionTranslator.ApplyFilter(source, null);
+        var result = QuerySpecExpressionTranslator.ApplyFilter(source, (AdvancedFilterExpression?)null);
         Assert.Same(source, result);
     }
 
