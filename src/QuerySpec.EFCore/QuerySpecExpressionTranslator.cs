@@ -85,6 +85,11 @@ public class QuerySpecExpressionTranslator
     /// <summary>
     /// Translates an advanced filter expression to an EF Core IQueryable.
     /// </summary>
+    /// <typeparam name="T">Entity type the queryable produces. Must be a reference type so it can compose with EF Core entity-framework constraints.</typeparam>
+    /// <param name="query">Source queryable to compose the filter onto.</param>
+    /// <param name="filter">Filter expression to apply, or <c>null</c> for a passthrough.</param>
+    /// <returns>A new <see cref="IQueryable{T}"/> with the filter appended via <see cref="Queryable.Where{TSource}(IQueryable{TSource}, System.Linq.Expressions.Expression{Func{TSource, bool}})"/>; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="filter"/> fails <see cref="AdvancedFilterExpression.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     public static IQueryable<T> ApplyFilter<T>(
         IQueryable<T> query,
         AdvancedFilterExpression? filter) where T : class
@@ -112,6 +117,11 @@ public class QuerySpecExpressionTranslator
     /// prefer <see cref="ApplyFilter{T}"/> so the cache doesn't accumulate single-use entries.
     /// Validation runs on cache miss only — invalid filters still throw on first insertion.
     /// </remarks>
+    /// <typeparam name="T">Entity type the queryable produces.</typeparam>
+    /// <param name="query">Source queryable to compose the filter onto.</param>
+    /// <param name="filter">Filter expression to apply, or <c>null</c> for a passthrough.</param>
+    /// <returns>A new <see cref="IQueryable{T}"/> with the cached predicate appended; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
+    /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="AdvancedFilterExpression.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     public static IQueryable<T> ApplyFilterCached<T>(
         IQueryable<T> query,
         AdvancedFilterExpression? filter) where T : class
@@ -127,6 +137,11 @@ public class QuerySpecExpressionTranslator
     /// Exposes the cached <see cref="Expression{TDelegate}"/> directly so callers can
     /// compose it into larger queries without forcing a <c>.Where(...)</c>.
     /// </summary>
+    /// <typeparam name="T">Entity type the predicate applies to.</typeparam>
+    /// <param name="filter">Filter expression to compile or fetch from the cache. Must not be null.</param>
+    /// <returns>The compiled predicate, retrieved from cache when available.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="filter"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="AdvancedFilterExpression.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     public static Expression<Func<T, bool>> GetOrBuildCachedPredicate<T>(
         AdvancedFilterExpression filter) where T : class
     {

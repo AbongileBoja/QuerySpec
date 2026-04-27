@@ -27,6 +27,8 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// Inject a <c>FakeTimeProvider</c> in tests to control the cutoff used by
     /// <see cref="PurgeOldLogsAsync"/> without wall-clock waits.
     /// </summary>
+    /// <param name="timeProvider">Time source consulted by <see cref="PurgeOldLogsAsync"/>. Must not be null.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="timeProvider"/> is null.</exception>
     public InMemoryAuditLogger(TimeProvider timeProvider)
     {
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
@@ -59,6 +61,10 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// computing its <see cref="AuditLogEntry.Hash"/>. Sealing happens under the write
     /// lock so concurrent appends cannot diverge.
     /// </summary>
+    /// <param name="entry">Entry to seal and append. Must not be null.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="entry"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when sealing <paramref name="entry"/> fails validation.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <paramref name="entry"/> has already been sealed.</exception>
     public Task LogQueryAsync(AuditLogEntry entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
@@ -81,6 +87,7 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// <summary>
     /// Logs a field change.
     /// </summary>
+    /// <param name="change">Field-change record to validate; the in-memory implementation does not retain change records.</param>
     public Task LogChangeAsync(FieldChange change)
     {
         change.Validate();
@@ -90,6 +97,8 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// <summary>
     /// Retrieves an audit entry by ID.
     /// </summary>
+    /// <param name="id">Audit entry identifier.</param>
+    /// <returns>The matching <see cref="AuditLogEntry"/>, or <c>null</c> when no entry has that id.</returns>
     public Task<AuditLogEntry?> GetAuditAsync(string id)
     {
         _lockSlim.EnterReadLock();
@@ -107,6 +116,8 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// Gets all audits for a specific request. Returns a materialised snapshot taken under
     /// the read lock so subsequent enumeration is safe even while writers are appending.
     /// </summary>
+    /// <param name="requestId">Request correlation identifier.</param>
+    /// <returns>A materialised snapshot of audit entries belonging to <paramref name="requestId"/>.</returns>
     public Task<IEnumerable<AuditLogEntry>> GetAuditsByRequestAsync(string requestId)
     {
         _lockSlim.EnterReadLock();
@@ -126,6 +137,9 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// snapshot taken under the read lock so subsequent enumeration is safe even while writers
     /// are appending.
     /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
     public Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since = null)
     {
         _lockSlim.EnterReadLock();
@@ -147,6 +161,9 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// snapshot taken under the read lock so subsequent enumeration is safe even while writers
     /// are appending.
     /// </summary>
+    /// <param name="tenantId">Tenant identifier.</param>
+    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
     public Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since = null)
     {
         _lockSlim.EnterReadLock();
@@ -168,6 +185,9 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// taken under the read lock so subsequent enumeration is safe even while writers are
     /// appending.
     /// </summary>
+    /// <param name="from">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="to">Inclusive upper bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A chronologically-ordered snapshot of audit entries within the requested window.</returns>
     public Task<IEnumerable<AuditLogEntry>> GetComplianceReportAsync(DateTime from, DateTime to)
     {
         _lockSlim.EnterReadLock();
@@ -204,6 +224,7 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// Hosts that need time-windowed retention with chain integrity must use a logger backed
     /// by an append-only store with chain re-anchor support.
     /// </remarks>
+    /// <param name="olderThan">Age threshold; entries with <see cref="AuditLogEntry.Timestamp"/> older than this are eligible for removal.</param>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the requested purge would remove some, but not all, audit entries.
     /// </exception>

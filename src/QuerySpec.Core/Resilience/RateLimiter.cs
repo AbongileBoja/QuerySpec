@@ -44,6 +44,12 @@ public class RateLimiter
     /// Tries to acquire tokens for a key. Returns <c>true</c> if the requested tokens were
     /// consumed; <c>false</c> otherwise. Thread-safe under concurrent access to the same key.
     /// </summary>
+    /// <param name="key">Bucket identifier. Must not be null, empty, or whitespace.</param>
+    /// <param name="tokensRequired">Number of tokens the call is requesting. Must be positive.</param>
+    /// <returns><c>true</c> when the bucket had enough tokens and they were consumed; <c>false</c> otherwise.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tokensRequired"/> is not positive.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <see cref="TokensPerSecond"/> or <see cref="BurstSize"/> is non-positive.</exception>
     public bool TryAcquire(string key, int tokensRequired = 1)
     {
         if (string.IsNullOrWhiteSpace(key))
@@ -91,6 +97,11 @@ public class RateLimiter
     /// Returns the time remaining until enough tokens are available to satisfy the request,
     /// or <c>null</c> if the request can be satisfied immediately. Does not consume tokens.
     /// </summary>
+    /// <param name="key">Bucket identifier. Must not be null, empty, or whitespace.</param>
+    /// <param name="tokensRequired">Number of tokens the inspection is sized for. Must be positive.</param>
+    /// <returns>The time-to-availability for the requested tokens, or <c>null</c> when the bucket already has enough.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tokensRequired"/> is not positive.</exception>
     public TimeSpan? GetRetryAfter(string key, int tokensRequired = 1)
     {
         if (string.IsNullOrWhiteSpace(key))

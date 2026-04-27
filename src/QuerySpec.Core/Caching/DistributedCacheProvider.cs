@@ -27,6 +27,9 @@ public class DistributedCacheProvider : ICacheProvider
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
     /// <summary>Initializes a new distributed cache provider.</summary>
+    /// <param name="cache">Underlying <see cref="IDistributedCache"/> to wrap. Must not be null.</param>
+    /// <param name="logger">Optional logger; defaults to <see cref="NullLogger{T}.Instance"/> when not supplied.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="cache"/> is null.</exception>
     public DistributedCacheProvider(IDistributedCache cache, ILogger<DistributedCacheProvider>? logger = null)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
@@ -38,6 +41,12 @@ public class DistributedCacheProvider : ICacheProvider
     /// Gets a value from distributed cache. Transport failures are treated as misses (logged);
     /// corrupt payloads are evicted.
     /// </summary>
+    /// <typeparam name="T">Reference type the cached value deserialises to.</typeparam>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token observed by the underlying transport.</param>
+    /// <returns>The deserialised value, or <c>null</c> when no entry exists, the transport failed, or the payload was corrupt.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public async ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
         ValidateKey(key);
@@ -91,6 +100,16 @@ public class DistributedCacheProvider : ICacheProvider
     }
 
     /// <summary>Sets a value in distributed cache.</summary>
+    /// <typeparam name="T">Reference type the value is serialised from.</typeparam>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="value">Value to cache. Must not be null.</param>
+    /// <param name="expiration">Optional positive time-to-live; <c>null</c> uses the provider default of one hour.</param>
+    /// <param name="cancellationToken">Token observed by the underlying transport.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="expiration"/> is non-positive.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when JSON serialisation of <paramref name="value"/> fails.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public async ValueTask SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class
     {
         ValidateKey(key);
@@ -131,6 +150,10 @@ public class DistributedCacheProvider : ICacheProvider
     }
 
     /// <summary>Removes a value from distributed cache.</summary>
+    /// <param name="key">Cache key to evict. Must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token observed by the underlying transport.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public async ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -151,6 +174,11 @@ public class DistributedCacheProvider : ICacheProvider
     }
 
     /// <summary>Checks if a key exists in distributed cache.</summary>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token observed by the underlying transport.</param>
+    /// <returns><c>true</c> when the backend reports an entry for <paramref name="key"/>; <c>false</c> when missing or the transport failed.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public async ValueTask<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -174,6 +202,8 @@ public class DistributedCacheProvider : ICacheProvider
     /// Resets local stats. <see cref="IDistributedCache"/> has no flush contract; call the
     /// provider-specific API (e.g. <c>FLUSHDB</c>) if global eviction is required.
     /// </summary>
+    /// <param name="cancellationToken">Token checked once before the local stats reset.</param>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public ValueTask FlushAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -182,6 +212,9 @@ public class DistributedCacheProvider : ICacheProvider
     }
 
     /// <summary>Gets a snapshot of current cache statistics.</summary>
+    /// <param name="cancellationToken">Token checked once before the snapshot is taken.</param>
+    /// <returns>An immutable snapshot of the hit/miss/set/remove counters.</returns>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public ValueTask<CacheStats> GetStatsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

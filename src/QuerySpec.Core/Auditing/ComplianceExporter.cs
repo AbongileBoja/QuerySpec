@@ -19,20 +19,43 @@ namespace QuerySpec.Core.Auditing;
 public interface IComplianceExporter
 {
     /// <summary>Gets all audit data for a user.</summary>
+    /// <param name="userId">User whose audit history is being exported.</param>
+    /// <param name="tenantId">Tenant scope for the export; entries from other tenants are filtered out.</param>
+    /// <returns>Audit entries belonging to <paramref name="userId"/> within <paramref name="tenantId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetUserDataAsync(string userId, string tenantId);
     /// <summary>Gets all audit data for a user with cancellation support.</summary>
+    /// <param name="userId">User whose audit history is being exported.</param>
+    /// <param name="tenantId">Tenant scope for the export; entries from other tenants are filtered out.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>Audit entries belonging to <paramref name="userId"/> within <paramref name="tenantId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetUserDataAsync(string userId, string tenantId, CancellationToken cancellationToken)
         => GetUserDataAsync(userId, tenantId);
 
     /// <summary>Checks if a user has accessed a specific field.</summary>
+    /// <param name="userId">User to check.</param>
+    /// <param name="fieldName">Field name as recorded in <see cref="AuditLogEntry.AccessedSensitiveFields"/>.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns><c>true</c> when at least one matching audit entry contains <paramref name="fieldName"/>; otherwise <c>false</c>.</returns>
     Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, DateTime since);
     /// <summary>Checks if a user has accessed a specific field with cancellation support.</summary>
+    /// <param name="userId">User to check.</param>
+    /// <param name="fieldName">Field name as recorded in <see cref="AuditLogEntry.AccessedSensitiveFields"/>.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns><c>true</c> when at least one matching audit entry contains <paramref name="fieldName"/>; otherwise <c>false</c>.</returns>
     Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, DateTime since, CancellationToken cancellationToken)
         => UserHasAccessedFieldAsync(userId, fieldName, since);
 
     /// <summary>Generates a GDPR export for a user.</summary>
+    /// <param name="userId">Subject of the export.</param>
+    /// <param name="tenantId">Tenant scope for the export.</param>
+    /// <param name="outputStream">Destination stream the export is serialised to.</param>
     Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream);
     /// <summary>Generates a GDPR export for a user with cancellation support.</summary>
+    /// <param name="userId">Subject of the export.</param>
+    /// <param name="tenantId">Tenant scope for the export.</param>
+    /// <param name="outputStream">Destination stream the export is serialised to.</param>
+    /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
     Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
         => GenerateGDPRExportAsync(userId, tenantId, outputStream);
 }
@@ -44,11 +67,16 @@ public class ComplianceExporter : IComplianceExporter
 {
     private readonly IAuditReader _auditReader;
     /// <summary>Initializes a new compliance exporter.</summary>
+    /// <param name="auditReader">Reader used to fetch the audit entries that back every export. Must not be null.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="auditReader"/> is null.</exception>
     public ComplianceExporter(IAuditReader auditReader)
     {
         _auditReader = auditReader ?? throw new ArgumentNullException(nameof(auditReader));
     }
     /// <summary>Gets all audit data for a user.</summary>
+    /// <param name="userId">User whose audit history is being exported.</param>
+    /// <param name="tenantId">Tenant scope for the export; entries from other tenants are filtered out.</param>
+    /// <returns>Audit entries belonging to <paramref name="userId"/> within <paramref name="tenantId"/>.</returns>
     public async Task<IEnumerable<AuditLogEntry>> GetUserDataAsync(string userId, string tenantId)
     {
         var audits = await _auditReader.GetAuditsByUserAsync(userId).ConfigureAwait(false);
@@ -56,6 +84,10 @@ public class ComplianceExporter : IComplianceExporter
     }
 
     /// <summary>Checks if a user has accessed a specific field.</summary>
+    /// <param name="userId">User to check.</param>
+    /// <param name="fieldName">Field name as recorded in <see cref="AuditLogEntry.AccessedSensitiveFields"/>.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns><c>true</c> when at least one matching audit entry contains <paramref name="fieldName"/>; otherwise <c>false</c>.</returns>
     public async Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, DateTime since)
     {
         var audits = await _auditReader.GetAuditsByUserAsync(userId, since).ConfigureAwait(false);
@@ -63,10 +95,17 @@ public class ComplianceExporter : IComplianceExporter
     }
 
     /// <summary>Generates a GDPR export for a user.</summary>
+    /// <param name="userId">Subject of the export.</param>
+    /// <param name="tenantId">Tenant scope for the export.</param>
+    /// <param name="outputStream">Destination stream the export is serialised to.</param>
     public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream)
         => GenerateGDPRExportAsync(userId, tenantId, outputStream, CancellationToken.None);
 
     /// <summary>Generates a GDPR export for a user with cancellation support.</summary>
+    /// <param name="userId">Subject of the export.</param>
+    /// <param name="tenantId">Tenant scope for the export.</param>
+    /// <param name="outputStream">Destination stream the export is serialised to.</param>
+    /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
     public async Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
     {
         var audits = await GetUserDataAsync(userId, tenantId).ConfigureAwait(false);

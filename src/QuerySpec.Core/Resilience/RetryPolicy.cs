@@ -24,8 +24,13 @@ public class RetryPolicy
     public RetryPolicy() { }
 
     /// <summary>
-    /// Executes operation with retry logic.
+    /// Executes operation with retry logic. Equivalent to <see cref="ExecuteAsync{T}(Func{Task{T}}, CancellationToken)"/>
+    /// with <see cref="CancellationToken.None"/>.
     /// </summary>
+    /// <typeparam name="T">Result type the operation produces.</typeparam>
+    /// <param name="operation">The operation to execute. Must not be null.</param>
+    /// <returns>The operation's result on success; the last failure is rethrown after <see cref="MaxRetries"/> attempts.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     public Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
         => ExecuteAsync(operation, CancellationToken.None);
 
@@ -33,8 +38,11 @@ public class RetryPolicy
     /// Executes operation with retry logic and cancellation support. The token is observed
     /// before the first attempt and during each backoff <see cref="Task.Delay(TimeSpan, CancellationToken)"/>.
     /// </summary>
-    /// <param name="operation">The operation to execute.</param>
+    /// <typeparam name="T">Result type the operation produces.</typeparam>
+    /// <param name="operation">The operation to execute. Must not be null.</param>
     /// <param name="cancellationToken">Token to abort retries.</param>
+    /// <returns>The operation's result on success; the last failure is rethrown after <see cref="MaxRetries"/> attempts.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
     {

@@ -31,6 +31,8 @@ public class QuerySpecBuilder
     }
 
     /// <summary>Configure caching layer (memory/redis/multi-level).</summary>
+    /// <param name="configure">Delegate that mutates the inner <see cref="CachingBuilder"/>.</param>
+    /// <returns>The same <see cref="QuerySpecBuilder"/> for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
     public QuerySpecBuilder WithCaching(Action<CachingBuilder> configure)
     {
@@ -46,6 +48,8 @@ public class QuerySpecBuilder
     /// callers can wire up their own <see cref="IAuditLogger"/> inside <paramref name="configure"/>
     /// without it being silently overwritten.
     /// </summary>
+    /// <param name="configure">Delegate that mutates the inner <see cref="AuditingBuilder"/>.</param>
+    /// <returns>The same <see cref="QuerySpecBuilder"/> for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
     public QuerySpecBuilder WithAuditing(Action<AuditingBuilder> configure)
     {
@@ -57,6 +61,8 @@ public class QuerySpecBuilder
     }
 
     /// <summary>Configure security (encryption, masking, RLS).</summary>
+    /// <param name="configure">Delegate that mutates the inner <see cref="SecurityBuilder"/>.</param>
+    /// <returns>The same <see cref="QuerySpecBuilder"/> for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
     public QuerySpecBuilder WithSecurity(Action<SecurityBuilder> configure)
     {
@@ -67,6 +73,8 @@ public class QuerySpecBuilder
     }
 
     /// <summary>Configure performance optimization and detection.</summary>
+    /// <param name="configure">Delegate that mutates the inner <see cref="PerformanceBuilder"/>.</param>
+    /// <returns>The same <see cref="QuerySpecBuilder"/> for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
     public QuerySpecBuilder WithPerformance(Action<PerformanceBuilder> configure)
     {
@@ -77,6 +85,8 @@ public class QuerySpecBuilder
     }
 
     /// <summary>Configure resilience patterns (circuit breaker, retry, rate limiting).</summary>
+    /// <param name="configure">Delegate that mutates the inner <see cref="ResilienceBuilder"/>.</param>
+    /// <returns>The same <see cref="QuerySpecBuilder"/> for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
     public QuerySpecBuilder WithResilience(Action<ResilienceBuilder> configure)
     {
@@ -87,6 +97,8 @@ public class QuerySpecBuilder
     }
 
     /// <summary>Configure monitoring and observability (metrics, health checks, OpenTelemetry).</summary>
+    /// <param name="configure">Delegate that mutates the inner <see cref="MonitoringBuilder"/>.</param>
+    /// <returns>The same <see cref="QuerySpecBuilder"/> for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
     public QuerySpecBuilder WithMonitoring(Action<MonitoringBuilder> configure)
     {

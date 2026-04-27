@@ -55,15 +55,23 @@ public interface ICacheProvider
 public interface ICacheInvalidationStrategy
 {
     /// <summary>Invalidates a specific cache key.</summary>
+    /// <param name="key">Cache key to evict.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     ValueTask InvalidateAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>Invalidates cache keys matching a pattern.</summary>
+    /// <param name="pattern">Glob- or backend-specific pattern matched against stored keys.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     ValueTask InvalidatePatternAsync(string pattern, CancellationToken cancellationToken = default);
 
     /// <summary>Invalidates all cache keys for a tenant.</summary>
+    /// <param name="tenantId">Tenant whose entries should be evicted.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     ValueTask InvalidateByTenantAsync(string tenantId, CancellationToken cancellationToken = default);
 
     /// <summary>Invalidates all cache keys for a user.</summary>
+    /// <param name="userId">User whose entries should be evicted.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     ValueTask InvalidateByUserAsync(string userId, CancellationToken cancellationToken = default);
 }
 
@@ -73,5 +81,6 @@ public interface ICacheInvalidationStrategy
 public interface ICacheWarmer
 {
     /// <summary>Pre-loads frequently accessed data into cache.</summary>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     ValueTask WarmCacheAsync(CancellationToken cancellationToken = default);
 }

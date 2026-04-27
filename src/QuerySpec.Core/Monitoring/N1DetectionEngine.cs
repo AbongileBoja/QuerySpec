@@ -67,6 +67,8 @@ public class N1DetectionEngine
     /// frame and resolves PDB info) is not used because its multi-microsecond per-call cost can
     /// exceed the cost of fast queries it's meant to track.
     /// </remarks>
+    /// <param name="sql">SQL text of the query. Retained only as part of the call-stack key when relevant; not stored verbatim.</param>
+    /// <param name="executionTimeMs">Execution time in milliseconds, accumulated into the per-pattern aggregates.</param>
     public void RecordQuery(string sql, long executionTimeMs)
     {
         var stack = BuildStackPreview();
@@ -112,6 +114,7 @@ public class N1DetectionEngine
     /// <summary>
     /// Gets a detection report for N+1 patterns.
     /// </summary>
+    /// <returns>A snapshot report listing call-stack patterns whose execution count exceeds <see cref="SuspicionThreshold"/>.</returns>
     public N1DetectionReport GetReport()
     {
         lock (_lockObj)
@@ -208,12 +211,16 @@ public class SuspiciousPattern
 public interface IHealthCheckProvider
 {
     /// <summary>Checks database health.</summary>
+    /// <returns>The database component's <see cref="HealthStatus"/>.</returns>
     Task<HealthStatus> CheckDatabaseAsync();
     /// <summary>Checks cache health.</summary>
+    /// <returns>The cache component's <see cref="HealthStatus"/>.</returns>
     Task<HealthStatus> CheckCacheAsync();
     /// <summary>Checks audit system health.</summary>
+    /// <returns>The audit component's <see cref="HealthStatus"/>.</returns>
     Task<HealthStatus> CheckAuditAsync();
     /// <summary>Checks security system health.</summary>
+    /// <returns>The security component's <see cref="HealthStatus"/>.</returns>
     Task<HealthStatus> CheckSecurityAsync();
 }
 

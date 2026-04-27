@@ -24,6 +24,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors>$(WarningsAsErrors);CS1573;CS1572;CS1574;CS1734</WarningsAsErrors>
 
     <EnablePackageValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnablePackageValidation>
     <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnableStrictModeForBaselineValidation>

@@ -20,8 +20,15 @@ public class ResiliencePolicy
 
     /// <summary>
     /// Executes operation with all configured resilience patterns.
-    /// Order: RateLimit -> Bulkhead -> CircuitBreaker -> Retry
+    /// Order: RateLimit -&gt; Bulkhead -&gt; CircuitBreaker -&gt; Retry. Equivalent to
+    /// <see cref="ExecuteAsync{T}(Func{Task{T}}, string, CancellationToken)"/> with <see cref="CancellationToken.None"/>.
     /// </summary>
+    /// <typeparam name="T">Result type the operation produces.</typeparam>
+    /// <param name="operation">The operation to execute. Must not be null.</param>
+    /// <param name="key">Key used for rate-limit bucketing.</param>
+    /// <returns>The operation's result on success.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
+    /// <exception cref="RateLimitedException">Thrown when the configured <see cref="RateLimiter"/> denies the request.</exception>
     public Task<T> ExecuteAsync<T>(Func<Task<T>> operation, string key = "default")
         => ExecuteAsync(operation, key, CancellationToken.None);
 
@@ -30,9 +37,13 @@ public class ResiliencePolicy
     /// The token is threaded into every inner policy that accepts one (Bulkhead, CircuitBreaker,
     /// Retry) so cancellation aborts pending semaphore waits and retry backoffs.
     /// </summary>
-    /// <param name="operation">The operation to execute.</param>
+    /// <typeparam name="T">Result type the operation produces.</typeparam>
+    /// <param name="operation">The operation to execute. Must not be null.</param>
     /// <param name="key">Key used for rate-limit bucketing.</param>
     /// <param name="cancellationToken">Token observed at every policy boundary.</param>
+    /// <returns>The operation's result on success.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
+    /// <exception cref="RateLimitedException">Thrown when the configured <see cref="RateLimiter"/> denies the request.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, string key, CancellationToken cancellationToken)
     {

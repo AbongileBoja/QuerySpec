@@ -33,12 +33,17 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
     public MemoryCacheProvider() : this(new MemoryCacheOptions(), TimeProvider.System) { }
 
     /// <summary>Initializes a new memory cache provider with the supplied options.</summary>
+    /// <param name="options">Backing <see cref="MemoryCache"/> options. Must not be null.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options"/> is null.</exception>
     public MemoryCacheProvider(MemoryCacheOptions options) : this(options, TimeProvider.System) { }
 
     /// <summary>
     /// Initializes a new memory cache provider with the supplied options and time provider.
     /// Inject a <c>FakeTimeProvider</c> in tests to advance time without wall-clock waits.
     /// </summary>
+    /// <param name="options">Backing <see cref="MemoryCache"/> options. Must not be null.</param>
+    /// <param name="timeProvider">Time source consulted for absolute-expiration calculations. Must not be null.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options"/> or <paramref name="timeProvider"/> is null.</exception>
     public MemoryCacheProvider(MemoryCacheOptions options, TimeProvider timeProvider)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -55,6 +60,13 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
     }
 
     /// <summary>Gets a value from cache.</summary>
+    /// <typeparam name="T">Reference type the cached value is stored as.</typeparam>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token checked once before the lookup.</param>
+    /// <returns>The cached value, or <c>null</c> when no entry exists for <paramref name="key"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
         ValidateKey(key);
@@ -70,6 +82,16 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
     }
 
     /// <summary>Sets a value in cache with optional expiration.</summary>
+    /// <typeparam name="T">Reference type the value is stored as.</typeparam>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="value">Value to cache. Must not be null.</param>
+    /// <param name="expiration">Optional positive time-to-live; <c>null</c> uses the underlying <see cref="MemoryCache"/> default.</param>
+    /// <param name="cancellationToken">Token checked once before the write.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="expiration"/> is non-positive.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public ValueTask SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class
     {
         ValidateKey(key);
@@ -89,6 +111,11 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
     }
 
     /// <summary>Removes a value from cache.</summary>
+    /// <param name="key">Cache key to evict. Must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token checked once before the delete.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -100,6 +127,12 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
     }
 
     /// <summary>Checks if a key exists in cache.</summary>
+    /// <param name="key">Cache key. Must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token checked once before the lookup.</param>
+    /// <returns><c>true</c> when an entry exists for <paramref name="key"/>; otherwise <c>false</c>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public ValueTask<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -112,6 +145,9 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
     /// Atomically replaces the cache with a fresh instance, evicting all entries. The
     /// previous cache instance is disposed; the provider remains usable.
     /// </summary>
+    /// <param name="cancellationToken">Token checked once before the swap.</param>
+    /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public ValueTask FlushAsync(CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
@@ -124,6 +160,9 @@ public class MemoryCacheProvider : ICacheProvider, IDisposable
     }
 
     /// <summary>Gets a snapshot of current cache statistics.</summary>
+    /// <param name="cancellationToken">Token checked once before the snapshot is taken.</param>
+    /// <returns>An immutable snapshot of the hit/miss/set/remove counters.</returns>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
     public ValueTask<CacheStats> GetStatsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

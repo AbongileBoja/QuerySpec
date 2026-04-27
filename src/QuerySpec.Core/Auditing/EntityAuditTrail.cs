@@ -21,6 +21,8 @@ public class EntityAuditTrail
     /// <summary>
     /// Gets all changes since specified time.
     /// </summary>
+    /// <param name="since">Inclusive lower bound on <see cref="FieldChange.ChangedAt"/>.</param>
+    /// <returns>Field changes whose timestamp is at or after <paramref name="since"/>.</returns>
     public IEnumerable<FieldChange> GetChangesSince(DateTime since)
     {
         return Changes.Where(c => c.ChangedAt >= since);
@@ -29,6 +31,8 @@ public class EntityAuditTrail
     /// <summary>
     /// Gets all changes made by a specific user.
     /// </summary>
+    /// <param name="userId">User identifier matched against <see cref="FieldChange.ChangedBy"/>.</param>
+    /// <returns>Field changes whose <see cref="FieldChange.ChangedBy"/> equals <paramref name="userId"/>.</returns>
     public IEnumerable<FieldChange> GetChangesByUser(string userId)
     {
         return Changes.Where(c => c.ChangedBy == userId);

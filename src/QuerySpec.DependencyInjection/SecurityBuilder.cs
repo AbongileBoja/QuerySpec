@@ -29,6 +29,7 @@ public class SecurityBuilder
     /// Enables field-level encryption with an authenticated AES-256-GCM provider.
     /// </summary>
     /// <param name="encryptionKey">Base64-encoded 256-bit key.</param>
+    /// <returns>The same <see cref="SecurityBuilder"/> for fluent chaining.</returns>
     public SecurityBuilder EnableFieldEncryption(string encryptionKey)
     {
         var provider = new AesGcmEncryptionProvider(encryptionKey);
@@ -44,6 +45,7 @@ public class SecurityBuilder
     /// before calling this method, otherwise the engine runs without classifier consultation
     /// and explicit <c>RegisterFieldMask</c> calls are the only path to masking.
     /// </summary>
+    /// <returns>The same <see cref="SecurityBuilder"/> for fluent chaining.</returns>
     public SecurityBuilder EnableDataMasking()
     {
         Services.AddSingleton(sp => new DataMaskingEngine(
@@ -56,6 +58,7 @@ public class SecurityBuilder
     /// Registers an attribute-driven <see cref="IPiiClassifier"/> in the container. Must be
     /// called before <see cref="EnableDataMasking"/> to be picked up by the engine.
     /// </summary>
+    /// <returns>The same <see cref="SecurityBuilder"/> for fluent chaining.</returns>
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
         "AttributePiiClassifier reflects over caller-supplied entity types. Under trimming, [Pii]-annotated members may be removed and the classifier will silently return None. Use UsePiiClassifier with a ConfiguredPiiClassifier in trimmed/AOT scenarios.")]
     public SecurityBuilder UseAttributePiiClassifier()
@@ -69,6 +72,7 @@ public class SecurityBuilder
     /// <see cref="IPiiClassifier"/> service. Must be called before <see cref="EnableDataMasking"/>.
     /// </summary>
     /// <param name="classifier">The classifier instance to register as a singleton.</param>
+    /// <returns>The same <see cref="SecurityBuilder"/> for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="classifier"/> is null.</exception>
     public SecurityBuilder UsePiiClassifier(IPiiClassifier classifier)
     {
@@ -80,6 +84,7 @@ public class SecurityBuilder
     /// <summary>
     /// Enables row-level security (RLS).
     /// </summary>
+    /// <returns>The same <see cref="SecurityBuilder"/> for fluent chaining.</returns>
     public SecurityBuilder EnableRowLevelSecurity()
     {
         Services.AddSingleton<RowLevelSecurityEngine>();
@@ -89,6 +94,7 @@ public class SecurityBuilder
     /// <summary>
     /// Enables dynamic permission evaluation.
     /// </summary>
+    /// <returns>The same <see cref="SecurityBuilder"/> for fluent chaining.</returns>
     public SecurityBuilder EnableDynamicPermissions()
     {
         Services.AddSingleton<DynamicPermissionEvaluator>();
