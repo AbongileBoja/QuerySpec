@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace QuerySpec.Core.Resilience;
 
@@ -10,7 +9,7 @@ namespace QuerySpec.Core.Resilience;
 /// refill and consumption are atomic.
 /// </summary>
 /// <remarks>
-/// Uses <see cref="Stopwatch"/> timestamps (monotonic) rather than <see cref="DateTime.UtcNow"/>
+/// Uses <see cref="TimeProvider.GetTimestamp"/> (monotonic) rather than <see cref="DateTime.UtcNow"/>
 /// so that wall-clock adjustments (NTP, DST) cannot cause negative elapsed times or token surges.
 /// Lock-based rather than lock-free: benchmarks showed that a CAS-on-reference design allocated
 /// a state object per successful update and regressed under same-key contention (CAS retries
@@ -33,6 +32,23 @@ public class RateLimiter
 
     private readonly ConcurrentDictionary<string, Bucket> _buckets =
         new(StringComparer.Ordinal);
+
+    private readonly TimeProvider _timeProvider;
+
+    /// <summary>
+    /// Initializes a new <see cref="RateLimiter"/>. An optional <paramref name="timeProvider"/>
+    /// allows tests to drive the refill clock deterministically; production code omits it and
+    /// receives <see cref="TimeProvider.System"/>.
+    /// </summary>
+    /// <param name="timeProvider">
+    /// Clock used for refill-window calculations. Defaults to <see cref="TimeProvider.System"/>
+    /// when <c>null</c>. Inject <c>Microsoft.Extensions.TimeProvider.Testing.FakeTimeProvider</c>
+    /// in tests to avoid wall-clock races.
+    /// </param>
+    public RateLimiter(TimeProvider? timeProvider = null)
+    {
+        _timeProvider = timeProvider ?? TimeProvider.System;
+    }
 
     /// <summary>Number of tokens to add per second. Must be positive.</summary>
     public int TokensPerSecond { get; set; } = 100;
@@ -67,7 +83,7 @@ public class RateLimiter
 
         lock (bucket.Sync)
         {
-            var now = Stopwatch.GetTimestamp();
+            var now = _timeProvider.GetTimestamp();
             if (bucket.LastRefillTicks == 0)
             {
                 bucket.LastRefillTicks = now;
@@ -75,7 +91,8 @@ public class RateLimiter
             }
             else
             {
-                var elapsedSeconds = (now - bucket.LastRefillTicks) / (double)Stopwatch.Frequency;
+                var elapsed = _timeProvider.GetElapsedTime(bucket.LastRefillTicks, now);
+                var elapsedSeconds = elapsed.TotalSeconds;
                 if (elapsedSeconds > 0)
                 {
                     bucket.Tokens = Math.Min(BurstSize, bucket.Tokens + elapsedSeconds * TokensPerSecond);
@@ -113,7 +130,7 @@ public class RateLimiter
 
         lock (bucket.Sync)
         {
-            var now = Stopwatch.GetTimestamp();
+            var now = _timeProvider.GetTimestamp();
             double tokens;
             if (bucket.LastRefillTicks == 0)
             {
@@ -121,8 +138,8 @@ public class RateLimiter
             }
             else
             {
-                var elapsedSeconds = (now - bucket.LastRefillTicks) / (double)Stopwatch.Frequency;
-                tokens = Math.Min(BurstSize, bucket.Tokens + Math.Max(0, elapsedSeconds) * TokensPerSecond);
+                var elapsed = _timeProvider.GetElapsedTime(bucket.LastRefillTicks, now);
+                tokens = Math.Min(BurstSize, bucket.Tokens + Math.Max(0, elapsed.TotalSeconds) * TokensPerSecond);
             }
 
             if (tokens >= tokensRequired)
