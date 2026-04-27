@@ -56,9 +56,9 @@ namespace QuerySpec.Core.Tests.Auditing
             Assert.True(result);
         }
 
-        /// <summary>Tests that GenerateGDPRExportAsync writes valid JSON to the stream.</summary>
+        /// <summary>Tests that GenerateGdprExportAsync writes valid JSON to the stream.</summary>
         [Fact]
-        public async Task GenerateGDPRExportAsync_WritesJsonToStream()
+        public async Task GenerateGdprExportAsync_WritesJsonToStream()
         {
             var logs = new List<AuditLogEntry>
             {
@@ -70,7 +70,7 @@ namespace QuerySpec.Core.Tests.Auditing
             var exporter = new ComplianceExporter(reader.Object);
 
             using var ms = new MemoryStream();
-            await exporter.GenerateGDPRExportAsync("u1", "t1", ms);
+            await exporter.GenerateGdprExportAsync("u1", "t1", ms);
             ms.Position = 0;
             var json = Encoding.UTF8.GetString(ms.ToArray());
 
@@ -80,11 +80,11 @@ namespace QuerySpec.Core.Tests.Auditing
         }
 
         /// <summary>
-        /// Tests that GenerateGDPRExportAsync streaming output is byte-for-byte equivalent
+        /// Tests that GenerateGdprExportAsync streaming output is byte-for-byte equivalent
         /// to the synchronous Serialize path with the same options.
         /// </summary>
         [Fact]
-        public async Task GenerateGDPRExportAsync_MatchesSynchronousSerializeOutput()
+        public async Task GenerateGdprExportAsync_MatchesSynchronousSerializeOutput()
         {
             var logs = new List<AuditLogEntry>
             {
@@ -102,7 +102,7 @@ namespace QuerySpec.Core.Tests.Auditing
             var expectedBytes = JsonSerializer.SerializeToUtf8Bytes(logs.Where(x => x.TenantId == "t1"), options);
 
             using var ms = new MemoryStream();
-            await exporter.GenerateGDPRExportAsync("u1", "t1", ms);
+            await exporter.GenerateGdprExportAsync("u1", "t1", ms);
 
             Assert.Equal(expectedBytes, ms.ToArray());
         }
@@ -112,7 +112,7 @@ namespace QuerySpec.Core.Tests.Auditing
         /// rather than completing the export.
         /// </summary>
         [Fact]
-        public async Task GenerateGDPRExportAsync_CancelledToken_ThrowsOperationCanceledException()
+        public async Task GenerateGdprExportAsync_CancelledToken_ThrowsOperationCanceledException()
         {
             var logs = Enumerable.Range(0, 100)
                 .Select(i => new AuditLogEntry { UserId = "u1", TenantId = "t1" })
@@ -127,7 +127,33 @@ namespace QuerySpec.Core.Tests.Auditing
 
             using var ms = new MemoryStream();
             await Assert.ThrowsAnyAsync<OperationCanceledException>(
-                () => exporter.GenerateGDPRExportAsync("u1", "t1", ms, cts.Token));
+                () => exporter.GenerateGdprExportAsync("u1", "t1", ms, cts.Token));
+        }
+
+        /// <summary>
+        /// Verifies the obsolete <c>GenerateGDPRExportAsync</c> overloads still produce identical
+        /// output to <c>GenerateGdprExportAsync</c> until they are removed in 3.0.
+        /// </summary>
+        [Fact]
+        public async Task ObsoleteGenerateGDPRExportAsync_DelegatesToRenamedMethod()
+        {
+            var logs = new List<AuditLogEntry>
+            {
+                new AuditLogEntry { UserId="u1", TenantId="t1" },
+            };
+            var reader = new Mock<IAuditReader>();
+            reader.Setup(r => r.GetAuditsByUserAsync("u1", null))
+                  .ReturnsAsync(logs);
+            var exporter = new ComplianceExporter(reader.Object);
+
+            using var msNew = new MemoryStream();
+            using var msOld = new MemoryStream();
+            await exporter.GenerateGdprExportAsync("u1", "t1", msNew);
+#pragma warning disable CS0618
+            await exporter.GenerateGDPRExportAsync("u1", "t1", msOld);
+#pragma warning restore CS0618
+
+            Assert.Equal(msNew.ToArray(), msOld.ToArray());
         }
     }
 }

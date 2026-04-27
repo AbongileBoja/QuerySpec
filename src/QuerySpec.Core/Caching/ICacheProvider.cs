@@ -20,6 +20,14 @@ public interface ICacheProvider
     /// <summary>Gets a value from cache by key.</summary>
     /// <param name="key">Cache key.</param>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <remarks>
+    /// The <c>where T : class</c> constraint excludes value types so the shipped providers can
+    /// return <see langword="null"/> on miss and round-trip JSON to a reference type. In 3.0 the
+    /// constraint will be removed and the contract reshaped to return <c>(bool found, T value)</c>
+    /// or rely on <c>default(T)</c>; the change is binary-breaking and cannot be staged source-
+    /// compatibly in 2.x. Tracked in
+    /// <see href="https://github.com/AbongileBoja/QuerySpec/issues/84">#84</see>.
+    /// </remarks>
     ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class;
 
     /// <summary>Sets a value in cache with optional expiration.</summary>
@@ -27,6 +35,11 @@ public interface ICacheProvider
     /// <param name="value">Value to cache.</param>
     /// <param name="expiration">Optional time-to-live; <c>null</c> uses the implementation default.</param>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <remarks>
+    /// Constrained to reference types for the same reason as <see cref="GetAsync{T}(string, CancellationToken)"/>.
+    /// The constraint will be removed in 3.0 alongside the matching <c>GetAsync</c> reshape.
+    /// Tracked in <see href="https://github.com/AbongileBoja/QuerySpec/issues/84">#84</see>.
+    /// </remarks>
     ValueTask SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class;
 
     /// <summary>Removes a value from cache by key.</summary>
