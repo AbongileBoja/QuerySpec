@@ -15,6 +15,8 @@ public class GeoLocation
     /// <summary>Initializes a new geolocation.</summary>
     public GeoLocation() { }
     /// <summary>Initializes a new geolocation with coordinates.</summary>
+    /// <param name="latitude">Latitude in decimal degrees.</param>
+    /// <param name="longitude">Longitude in decimal degrees.</param>
     public GeoLocation(decimal latitude, decimal longitude)
     {
         Latitude = latitude;
@@ -22,8 +24,10 @@ public class GeoLocation
     }
 
     /// <summary>
-    /// Calculates distance to another location in kilometers.
+    /// Calculates distance to another location in kilometers using the Haversine formula.
     /// </summary>
+    /// <param name="other">The other location to measure to.</param>
+    /// <returns>Great-circle distance in kilometres.</returns>
     public double DistanceTo(GeoLocation other)
     {
         const double R = 6371; // Earth radius in km

@@ -23,14 +23,20 @@ public interface IAuditLogger : IAuditWriter, IAuditReader, IAuditMaintenance { 
 public interface IAuditWriter
 {
     /// <summary>Logs a query audit entry.</summary>
+    /// <param name="entry">Entry to seal and append. Must not be null.</param>
     Task LogQueryAsync(AuditLogEntry entry);
     /// <summary>Logs a query audit entry with cancellation support.</summary>
+    /// <param name="entry">Entry to seal and append. Must not be null.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     Task LogQueryAsync(AuditLogEntry entry, CancellationToken cancellationToken)
         => LogQueryAsync(entry);
 
     /// <summary>Logs a field change audit entry.</summary>
+    /// <param name="change">Field-change record to log.</param>
     Task LogChangeAsync(FieldChange change);
     /// <summary>Logs a field change audit entry with cancellation support.</summary>
+    /// <param name="change">Field-change record to log.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     Task LogChangeAsync(FieldChange change, CancellationToken cancellationToken)
         => LogChangeAsync(change);
 }
@@ -41,32 +47,63 @@ public interface IAuditWriter
 public interface IAuditReader
 {
     /// <summary>Retrieves an audit entry by ID.</summary>
+    /// <param name="id">Audit entry identifier.</param>
+    /// <returns>The matching <see cref="AuditLogEntry"/>, or <c>null</c> when no entry has that id.</returns>
     Task<AuditLogEntry?> GetAuditAsync(string id);
     /// <summary>Retrieves an audit entry by ID with cancellation support.</summary>
+    /// <param name="id">Audit entry identifier.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>The matching <see cref="AuditLogEntry"/>, or <c>null</c> when no entry has that id.</returns>
     Task<AuditLogEntry?> GetAuditAsync(string id, CancellationToken cancellationToken)
         => GetAuditAsync(id);
 
     /// <summary>Gets all audits for a specific request.</summary>
+    /// <param name="requestId">Request correlation identifier.</param>
+    /// <returns>A materialised snapshot of audit entries belonging to <paramref name="requestId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetAuditsByRequestAsync(string requestId);
     /// <summary>Gets all audits for a specific request with cancellation support.</summary>
+    /// <param name="requestId">Request correlation identifier.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>A materialised snapshot of audit entries belonging to <paramref name="requestId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetAuditsByRequestAsync(string requestId, CancellationToken cancellationToken)
         => GetAuditsByRequestAsync(requestId);
 
     /// <summary>Gets all audits for a specific user, optionally filtered by date.</summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since = null);
     /// <summary>Gets all audits for a specific user, optionally filtered by date, with cancellation support.</summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since, CancellationToken cancellationToken)
         => GetAuditsByUserAsync(userId, since);
 
     /// <summary>Gets all audits for a specific tenant, optionally filtered by date.</summary>
+    /// <param name="tenantId">Tenant identifier.</param>
+    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since = null);
     /// <summary>Gets all audits for a specific tenant, optionally filtered by date, with cancellation support.</summary>
+    /// <param name="tenantId">Tenant identifier.</param>
+    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since, CancellationToken cancellationToken)
         => GetAuditsByTenantAsync(tenantId, since);
 
     /// <summary>Gets compliance report for audits within date range.</summary>
+    /// <param name="from">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="to">Inclusive upper bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A chronologically-ordered snapshot of audit entries within the requested window.</returns>
     Task<IEnumerable<AuditLogEntry>> GetComplianceReportAsync(DateTime from, DateTime to);
     /// <summary>Gets compliance report for audits within date range with cancellation support.</summary>
+    /// <param name="from">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="to">Inclusive upper bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>A chronologically-ordered snapshot of audit entries within the requested window.</returns>
     Task<IEnumerable<AuditLogEntry>> GetComplianceReportAsync(DateTime from, DateTime to, CancellationToken cancellationToken)
         => GetComplianceReportAsync(from, to);
 }
@@ -77,8 +114,11 @@ public interface IAuditReader
 public interface IAuditMaintenance
 {
     /// <summary>Purges logs older than specified timespan.</summary>
+    /// <param name="olderThan">Age threshold; entries with <see cref="AuditLogEntry.Timestamp"/> older than this are eligible for removal.</param>
     Task PurgeOldLogsAsync(TimeSpan olderThan);
     /// <summary>Purges logs older than specified timespan with cancellation support.</summary>
+    /// <param name="olderThan">Age threshold; entries with <see cref="AuditLogEntry.Timestamp"/> older than this are eligible for removal.</param>
+    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     Task PurgeOldLogsAsync(TimeSpan olderThan, CancellationToken cancellationToken)
         => PurgeOldLogsAsync(olderThan);
 }

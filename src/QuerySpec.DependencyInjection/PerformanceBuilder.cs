@@ -28,6 +28,7 @@ public class PerformanceBuilder
     /// <summary>
     /// Enables N+1 query detection.
     /// </summary>
+    /// <returns>The same <see cref="PerformanceBuilder"/> for fluent chaining.</returns>
     public PerformanceBuilder EnableN1Detection()
     {
         Services.AddSingleton<N1DetectionEngine>();
@@ -41,6 +42,7 @@ public class PerformanceBuilder
         throw new NotImplementedException("PerformanceBuilder.EnableQueryCaching is not implemented.");
 
     /// <summary>Enables metrics collection.</summary>
+    /// <returns>The same <see cref="PerformanceBuilder"/> for fluent chaining.</returns>
     public PerformanceBuilder EnableMetrics()
     {
         Services.AddSingleton<MetricsCollector>();

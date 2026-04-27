@@ -30,6 +30,7 @@ public class CachingBuilder
     /// <summary>
     /// Configures in-memory cache provider.
     /// </summary>
+    /// <returns>The same <see cref="CachingBuilder"/> for fluent chaining.</returns>
     public CachingBuilder UseMemoryCache()
     {
         Services.AddMemoryCache();
@@ -40,6 +41,8 @@ public class CachingBuilder
     /// <summary>
     /// Configures distributed Redis cache provider.
     /// </summary>
+    /// <param name="connectionString">StackExchange.Redis connection string passed through to <c>AddStackExchangeRedisCache</c>.</param>
+    /// <returns>The same <see cref="CachingBuilder"/> for fluent chaining.</returns>
     public CachingBuilder UseDistributedRedis(string connectionString)
     {
         Services.AddStackExchangeRedisCache(options => options.Configuration = connectionString);
@@ -51,6 +54,7 @@ public class CachingBuilder
     /// <summary>
     /// Configures multi-level cache (memory + distributed).
     /// </summary>
+    /// <returns>The same <see cref="CachingBuilder"/> for fluent chaining.</returns>
     public CachingBuilder UseMultiLevel()
     {
         Services.AddMemoryCache();

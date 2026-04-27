@@ -31,6 +31,9 @@ public class ResilienceBuilder
     /// <summary>
     /// Configures circuit breaker pattern.
     /// </summary>
+    /// <param name="failureThreshold">Failure count after which the circuit opens.</param>
+    /// <param name="openTimeout">Time the circuit remains open before transitioning to half-open.</param>
+    /// <returns>The same <see cref="ResilienceBuilder"/> for fluent chaining.</returns>
     public ResilienceBuilder UseCircuitBreaker(int failureThreshold, TimeSpan openTimeout)
     {
         _policy.CircuitBreaker = new CircuitBreaker
@@ -44,6 +47,9 @@ public class ResilienceBuilder
     /// <summary>
     /// Configures retry policy with optional exponential backoff.
     /// </summary>
+    /// <param name="maxRetries">Maximum number of retry attempts after the initial call.</param>
+    /// <param name="exponentialBackoff"><c>true</c> to grow the backoff between attempts; <c>false</c> for a fixed delay.</param>
+    /// <returns>The same <see cref="ResilienceBuilder"/> for fluent chaining.</returns>
     public ResilienceBuilder UseRetryPolicy(int maxRetries, bool exponentialBackoff = true)
     {
         _policy.RetryPolicy = new RetryPolicy
@@ -63,6 +69,7 @@ public class ResilienceBuilder
     /// </summary>
     /// <param name="tokensPerSecond">Steady-state refill rate. Must be positive.</param>
     /// <param name="window">Optional burst window; the bucket holds at most one window of tokens.</param>
+    /// <returns>The same <see cref="ResilienceBuilder"/> for fluent chaining.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tokensPerSecond"/> is not positive or <paramref name="window"/> is not positive.</exception>
     public ResilienceBuilder UseRateLimiting(int tokensPerSecond, TimeSpan? window = null)
     {
@@ -84,6 +91,8 @@ public class ResilienceBuilder
     /// <summary>
     /// Configures bulkhead pattern for concurrency control.
     /// </summary>
+    /// <param name="maxConcurrentRequests">Maximum number of operations allowed to execute concurrently. Must be positive.</param>
+    /// <returns>The same <see cref="ResilienceBuilder"/> for fluent chaining.</returns>
     public ResilienceBuilder UseBulkhead(int maxConcurrentRequests)
     {
         _policy.Bulkhead = new BulkheadPolicy(maxConcurrentRequests);

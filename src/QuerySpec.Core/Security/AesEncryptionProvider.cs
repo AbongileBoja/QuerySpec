@@ -40,6 +40,9 @@ public class AesEncryptionProvider : IEncryptionProvider
     private const int IvSize = 16; // AES-CBC block size in bytes
 
     /// <summary>Initializes the AES encryption provider with a base64-encoded key.</summary>
+    /// <param name="keyBase64">Base64-encoded 256-bit (32-byte) AES key.</param>
+    /// <exception cref="ArgumentException">Thrown when the decoded key is not exactly 32 bytes.</exception>
+    /// <exception cref="FormatException">Thrown when <paramref name="keyBase64"/> is not valid base64.</exception>
     public AesEncryptionProvider(string keyBase64)
     {
         _key = Convert.FromBase64String(keyBase64);
@@ -51,6 +54,9 @@ public class AesEncryptionProvider : IEncryptionProvider
     /// Encrypts plaintext using AES-256-CBC with a random IV. The IV is prepended to the
     /// ciphertext (standard CBC convention) so <see cref="Decrypt"/> can recover it.
     /// </summary>
+    /// <param name="plaintext">UTF-8 plaintext to encrypt. Must not be null.</param>
+    /// <returns>Base64-encoded payload of <c>IV || ciphertext</c>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="plaintext"/> is null.</exception>
     public string Encrypt(string plaintext)
     {
         if (plaintext is null) throw new ArgumentNullException(nameof(plaintext));
@@ -77,6 +83,12 @@ public class AesEncryptionProvider : IEncryptionProvider
     /// Decrypts ciphertext produced by <see cref="Encrypt"/>. Expects the IV in the first
     /// <see cref="IvSize"/> bytes.
     /// </summary>
+    /// <param name="ciphertext">Base64-encoded <c>IV || ciphertext</c> as produced by <see cref="Encrypt"/>.</param>
+    /// <returns>The recovered UTF-8 plaintext.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="ciphertext"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="ciphertext"/> is shorter than the IV.</exception>
+    /// <exception cref="FormatException">Thrown when <paramref name="ciphertext"/> is not valid base64.</exception>
+    /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown when the payload fails to decrypt (wrong key or corrupt input).</exception>
     public string Decrypt(string ciphertext)
     {
         if (ciphertext is null) throw new ArgumentNullException(nameof(ciphertext));
@@ -111,6 +123,7 @@ public class AesEncryptionProvider : IEncryptionProvider
             "Prefer AesGcmEncryptionProvider for new ciphertexts.");
 
     /// <summary>Generates a new 256-bit encryption key.</summary>
+    /// <returns>A base64-encoded 32-byte AES key suitable for the <see cref="AesEncryptionProvider(string)"/> constructor.</returns>
     public static string GenerateKey()
     {
         using (var aes = Aes.Create())

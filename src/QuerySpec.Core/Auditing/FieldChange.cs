@@ -23,6 +23,7 @@ public class FieldChange
     /// <summary>
     /// Validates that required fields are populated.
     /// </summary>
+    /// <exception cref="ArgumentException">Thrown when <see cref="FieldName"/> or <see cref="ChangedBy"/> is null or whitespace.</exception>
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(FieldName))

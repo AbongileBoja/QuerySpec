@@ -85,6 +85,9 @@ public class RowLevelSecurityEngine
     /// Registers an RLS policy. Replaces any previously registered policy for the same
     /// <see cref="RLSPolicy.ResourceType"/>.
     /// </summary>
+    /// <param name="policy">Policy to register. Must not be null and must specify a non-empty <see cref="RLSPolicy.ResourceType"/>.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="policy"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="policy"/>.<see cref="RLSPolicy.ResourceType"/> is null, empty, or whitespace.</exception>
     public void RegisterPolicy(RLSPolicy policy)
     {
         if (policy is null) throw new ArgumentNullException(nameof(policy));
@@ -101,6 +104,7 @@ public class RowLevelSecurityEngine
     /// </summary>
     /// <typeparam name="T">Entity type the predicate applies to.</typeparam>
     /// <param name="resourceType">Resource type identifier.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="resourceType"/> is null, empty, or whitespace.</exception>
     public void RegisterUnrestricted<T>(string resourceType)
     {
         if (string.IsNullOrWhiteSpace(resourceType))
@@ -132,6 +136,12 @@ public class RowLevelSecurityEngine
     /// To allow a specific resource without changing the default, call
     /// <see cref="RegisterUnrestricted{T}(string)"/>.
     /// </remarks>
+    /// <param name="resourceType">Resource type the filter is being requested for.</param>
+    /// <param name="context">Caller context consulted by the policy's <see cref="RLSPolicy.FilterGenerator"/>.</param>
+    /// <returns>An <see cref="RLSFilter"/> describing the SQL fragment and parameters to apply, never null.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="resourceType"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when no policy is registered and the engine was constructed with <see cref="RLSDefaultBehavior.Throw"/>.</exception>
     public RLSFilter GenerateFilter(string resourceType, RLSContext context)
     {
         if (string.IsNullOrWhiteSpace(resourceType))
@@ -167,6 +177,13 @@ public class RowLevelSecurityEngine
     ///   <item><description><see cref="RLSDefaultBehavior.AllowAll"/> — returns <c>null</c>, signalling "no predicate to apply"; opt-in only.</description></item>
     /// </list>
     /// </remarks>
+    /// <typeparam name="T">Entity type the predicate applies to.</typeparam>
+    /// <param name="resourceType">Resource type the predicate is being requested for.</param>
+    /// <param name="context">Caller context consulted by the policy's <see cref="RLSPolicy.PredicateFactory"/>.</param>
+    /// <returns>A LINQ predicate, or <c>null</c> when no predicate should be applied (only under <see cref="RLSDefaultBehavior.AllowAll"/>).</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="resourceType"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when no policy is registered and the engine was constructed with <see cref="RLSDefaultBehavior.Throw"/>, or when the registered <see cref="RLSPolicy.PredicateFactory"/> is incompatible with <typeparamref name="T"/>.</exception>
     public Expression<Func<T, bool>>? GetPredicate<T>(string resourceType, RLSContext context)
     {
         if (string.IsNullOrWhiteSpace(resourceType))
@@ -204,6 +221,9 @@ public class RowLevelSecurityEngine
     /// (letters, digits, underscores; optionally a single dotted qualifier). Throws otherwise.
     /// Use this before interpolating any identifier into a SQL fragment.
     /// </summary>
+    /// <param name="identifier">Candidate identifier. Must match <c>[A-Za-z_][A-Za-z0-9_]*</c> with an optional single dotted qualifier and be at most 128 characters.</param>
+    /// <returns>The identifier unchanged when valid; suitable for direct interpolation.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="identifier"/> is empty, exceeds 128 characters, or fails the identifier pattern.</exception>
     public static string ValidateIdentifier(string identifier)
     {
         if (string.IsNullOrWhiteSpace(identifier))
@@ -222,6 +242,9 @@ public class RowLevelSecurityEngine
     /// Rejects null characters which terminate strings on some drivers. Prefer parameterized
     /// placeholders in <see cref="RLSFilter.Parameters"/> over literal escaping.
     /// </summary>
+    /// <param name="value">The value to escape. <c>null</c> produces the literal <c>NULL</c>.</param>
+    /// <returns>The single-quoted, single-quote-doubled SQL string literal, or <c>NULL</c> when <paramref name="value"/> is <c>null</c>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> contains a null character.</exception>
     public static string EscapeSqlLiteral(string? value)
     {
         if (value is null) return "NULL";
@@ -242,6 +265,9 @@ public class RowLevelSecurityEngine
     /// Creates a department-based RLS policy. The department column name is validated; the
     /// runtime department value is passed as a parameter to prevent injection.
     /// </summary>
+    /// <param name="deptFieldName">SQL column name holding the department value. Must pass <see cref="ValidateIdentifier"/>.</param>
+    /// <returns>A policy whose filter restricts rows to <c>RLSContext.Department</c>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="deptFieldName"/> is not a valid identifier.</exception>
     public static RLSPolicy CreateDepartmentBased(string deptFieldName)
     {
         var column = ValidateIdentifier(deptFieldName);
@@ -257,6 +283,9 @@ public class RowLevelSecurityEngine
     /// Creates a tenant-based RLS policy. The column is validated; tenant ids are passed as
     /// parameters (one per allowed tenant) to prevent injection. Empty allow-lists fail closed.
     /// </summary>
+    /// <param name="tenantFieldName">SQL column name holding the tenant identifier. Must pass <see cref="ValidateIdentifier"/>.</param>
+    /// <returns>A policy whose filter restricts rows to <c>RLSContext.AllowedTenants</c>; produces <see cref="RLSFilter.DenyAll"/> when the allow-list is empty.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="tenantFieldName"/> is not a valid identifier.</exception>
     public static RLSPolicy CreateTenantBased(string tenantFieldName)
     {
         var column = ValidateIdentifier(tenantFieldName);
@@ -284,6 +313,9 @@ public class RowLevelSecurityEngine
     /// Creates an owner-based RLS policy. The owner column is validated; the user id is
     /// parameterized.
     /// </summary>
+    /// <param name="ownerFieldName">SQL column name holding the owning user identifier. Must pass <see cref="ValidateIdentifier"/>.</param>
+    /// <returns>A policy whose filter restricts rows to <c>RLSContext.UserId</c>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="ownerFieldName"/> is not a valid identifier.</exception>
     public static RLSPolicy CreateOwnerBased(string ownerFieldName)
     {
         var column = ValidateIdentifier(ownerFieldName);

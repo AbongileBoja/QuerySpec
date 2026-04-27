@@ -105,6 +105,10 @@ public class MetricsCollector
     /// Inject a <c>FakeTimeProvider</c> in tests to control the cutoff used by
     /// <see cref="GetReport"/> without wall-clock waits.
     /// </summary>
+    /// <param name="maxRetainedQueries">Maximum number of recorded entries retained. Must be positive.</param>
+    /// <param name="timeProvider">Time source consulted by <see cref="GetReport"/>. Must not be null.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxRetainedQueries"/> is non-positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="timeProvider"/> is null.</exception>
     public MetricsCollector(int maxRetainedQueries, TimeProvider timeProvider)
     {
         if (maxRetainedQueries <= 0)
@@ -116,6 +120,8 @@ public class MetricsCollector
     /// <summary>
     /// Records a query metric. Drops the oldest entry when the retention cap is reached.
     /// </summary>
+    /// <param name="metrics">Metric to record. Must not be null.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="metrics"/> is null.</exception>
     public void Record(QueryMetrics metrics)
     {
         ArgumentNullException.ThrowIfNull(metrics);
@@ -134,6 +140,7 @@ public class MetricsCollector
     /// when no entries match — never throws on empty input.
     /// </summary>
     /// <param name="period">Optional time window measured back from <see cref="DateTime.UtcNow"/>. <c>null</c> covers all retained entries.</param>
+    /// <returns>An aggregated <see cref="QueryMetricsReport"/>; a zero-valued report when no entries match.</returns>
     public QueryMetricsReport GetReport(TimeSpan? period = null)
     {
         QueryMetrics[] snapshot;

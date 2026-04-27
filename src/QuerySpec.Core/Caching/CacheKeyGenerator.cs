@@ -24,6 +24,9 @@ public class CacheKeyGenerator
     /// Value-type arguments still box individually; use the strongly-typed overloads on
     /// high-frequency call sites to eliminate that residual boxing.
     /// </summary>
+    /// <param name="prefix">Namespace prefix appended at the head of the key (e.g. <c>"query"</c>, <c>"policy"</c>).</param>
+    /// <param name="components">Ordered components joined by <c>:</c> after the prefix. Null and empty entries are skipped.</param>
+    /// <returns>The composed key, or its base64-encoded SHA-256 digest when the composed length exceeds 256 characters.</returns>
 #if NET9_0_OR_GREATER
     public static string GenerateKey(string prefix, params ReadOnlySpan<object?> components)
 #else
@@ -51,6 +54,12 @@ public class CacheKeyGenerator
     /// This is the high-frequency path and accounts for the majority of <c>GenerateKey</c>
     /// call volume under normal application load.
     /// </summary>
+    /// <param name="tenantId">Tenant scope; appended only when non-empty.</param>
+    /// <param name="userId">User scope; appended only when non-empty.</param>
+    /// <param name="queryHash">Stable hash of the query expression.</param>
+    /// <param name="sortHash">Stable hash of the sort specification.</param>
+    /// <param name="page">Zero-based page index. Always appended.</param>
+    /// <returns>The composed query cache key, or its base64-encoded SHA-256 digest when the composed length exceeds 256 characters.</returns>
     public static string GenerateQueryCacheKey(string tenantId, string userId, string queryHash, string sortHash, int page)
     {
         var sb = new StringBuilder(64);
@@ -64,12 +73,18 @@ public class CacheKeyGenerator
     }
 
     /// <summary>Generates a security policy cache key.</summary>
+    /// <param name="resourceType">Resource type identifier the policy applies to.</param>
+    /// <returns>The cache key under the <c>policy</c> namespace.</returns>
     public static string GenerateSecurityPolicyCacheKey(string resourceType)
     {
         return GenerateKey("policy", resourceType);
     }
 
     /// <summary>Generates a permission cache key.</summary>
+    /// <param name="userId">User the permission is being evaluated for.</param>
+    /// <param name="resourceType">Resource type the permission targets.</param>
+    /// <param name="fieldName">Field the permission protects.</param>
+    /// <returns>The cache key under the <c>permission</c> namespace.</returns>
     public static string GeneratePermissionCacheKey(string userId, string resourceType, string fieldName)
     {
         return GenerateKey("permission", userId, resourceType, fieldName);
