@@ -101,10 +101,4 @@ public class SecurityBuilder
         return this;
     }
 
-    /// <summary>Configures key rotation interval.</summary>
-    /// <param name="days">Rotation interval in days.</param>
-    /// <exception cref="NotImplementedException">Always thrown. Automatic key rotation is not implemented.</exception>
-    [Obsolete("Will be removed in 3.0; this method has never been implemented. Implement key rotation at the storage layer (decrypt with old provider, re-encrypt with new), as documented in https://github.com/AbongileBoja/QuerySpec/issues/138, or remove the call site. Tracked in https://github.com/AbongileBoja/QuerySpec/issues/139.", error: true)]
-    public SecurityBuilder RotateKeysEvery(int days) =>
-        throw new NotImplementedException("SecurityBuilder.RotateKeysEvery is not implemented.");
 }

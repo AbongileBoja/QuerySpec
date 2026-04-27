@@ -144,15 +144,6 @@ public class IndividualBuildersTests
         Assert.IsType<MultiLevelCache>(legacy);
     }
 
-    [Fact]
-    public void CachingBuilder_EnableCompressionForLarge_Throws_NotImplemented()
-    {
-        var builder = new CachingBuilder(new ServiceCollection());
-        var method = typeof(CachingBuilder).GetMethod(nameof(CachingBuilder.EnableCompressionForLarge), new[] { typeof(int) })!;
-        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(builder, new object[] { 4096 }));
-        Assert.IsType<NotImplementedException>(ex.InnerException);
-    }
-
     // ---------- ResilienceBuilder ----------
 
     [Fact]
@@ -221,24 +212,6 @@ public class IndividualBuildersTests
         Assert.Same(a, b);
     }
 
-    [Fact]
-    public void PerformanceBuilder_EnableQueryCaching_Throws_NotImplemented()
-    {
-        var builder = new PerformanceBuilder(new ServiceCollection());
-        var method = typeof(PerformanceBuilder).GetMethod(nameof(PerformanceBuilder.EnableQueryCaching), Type.EmptyTypes)!;
-        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(builder, null));
-        Assert.IsType<NotImplementedException>(ex.InnerException);
-    }
-
-    [Fact]
-    public void PerformanceBuilder_OptimizeExpressions_Throws_NotImplemented()
-    {
-        var builder = new PerformanceBuilder(new ServiceCollection());
-        var method = typeof(PerformanceBuilder).GetMethod(nameof(PerformanceBuilder.OptimizeExpressions), Type.EmptyTypes)!;
-        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(builder, null));
-        Assert.IsType<NotImplementedException>(ex.InnerException);
-    }
-
     // ---------- SecurityBuilder ----------
 
     [Fact]
@@ -282,35 +255,7 @@ public class IndividualBuildersTests
         Assert.NotNull(sp.GetRequiredService<DynamicPermissionEvaluator>());
     }
 
-    [Fact]
-    public void SecurityBuilder_RotateKeysEvery_Throws_NotImplemented()
-    {
-        var builder = new SecurityBuilder(new ServiceCollection());
-        var method = typeof(SecurityBuilder).GetMethod(nameof(SecurityBuilder.RotateKeysEvery), new[] { typeof(int) })!;
-        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(builder, new object[] { 30 }));
-        Assert.IsType<NotImplementedException>(ex.InnerException);
-    }
-
     // ---------- AuditingBuilder ----------
-
-    [Fact]
-    public void AuditingBuilder_AllStubs_Throw_NotImplemented()
-    {
-        var builder = new AuditingBuilder(new ServiceCollection());
-
-        AssertReflectiveThrows(typeof(AuditingBuilder), nameof(AuditingBuilder.LogAllQueries), Type.EmptyTypes, builder, null);
-        AssertReflectiveThrows(typeof(AuditingBuilder), nameof(AuditingBuilder.TrackChanges), Type.EmptyTypes, builder, null);
-        AssertReflectiveThrows(typeof(AuditingBuilder), nameof(AuditingBuilder.EnableEncryption), Type.EmptyTypes, builder, null);
-        AssertReflectiveThrows(typeof(AuditingBuilder), nameof(AuditingBuilder.UseDatabase), new[] { typeof(string) }, builder, new object[] { "Server=." });
-        AssertReflectiveThrows(typeof(AuditingBuilder), nameof(AuditingBuilder.RetentionDays), new[] { typeof(int) }, builder, new object[] { 60 });
-    }
-
-    private static void AssertReflectiveThrows(Type type, string name, Type[] argTypes, object instance, object?[]? args)
-    {
-        var method = type.GetMethod(name, argTypes)!;
-        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(instance, args));
-        Assert.IsType<NotImplementedException>(ex.InnerException);
-    }
 
     [Fact]
     public void AuditingBuilder_AloneDoesNotRegisterLogger()
@@ -319,20 +264,6 @@ public class IndividualBuildersTests
         _ = new AuditingBuilder(services);
 
         Assert.DoesNotContain(services, d => d.ServiceType == typeof(IAuditLogger));
-    }
-
-    // ---------- MonitoringBuilder ----------
-
-    [Fact]
-    public void MonitoringBuilder_AllStubs_Throw_NotImplemented()
-    {
-        var services = new ServiceCollection();
-        var builder = new MonitoringBuilder(services);
-
-        AssertReflectiveThrows(typeof(MonitoringBuilder), nameof(MonitoringBuilder.EnableOpenTelemetry), Type.EmptyTypes, builder, null);
-        AssertReflectiveThrows(typeof(MonitoringBuilder), nameof(MonitoringBuilder.EnableHealthChecks), Type.EmptyTypes, builder, null);
-
-        Assert.Empty(services);
     }
 
     // ---------- ServiceCollectionExtensions ----------

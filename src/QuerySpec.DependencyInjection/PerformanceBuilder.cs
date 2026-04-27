@@ -35,12 +35,6 @@ public class PerformanceBuilder
         return this;
     }
 
-    /// <summary>Enables query result caching.</summary>
-    /// <exception cref="NotImplementedException">Always thrown.</exception>
-    [Obsolete("Will be removed in 3.0; this method has never been implemented. Use WithCaching(c => c.UseMemoryCache()) and compose your query path with the resulting ICacheProvider instead. Tracked in https://github.com/AbongileBoja/QuerySpec/issues/139.", error: true)]
-    public PerformanceBuilder EnableQueryCaching() =>
-        throw new NotImplementedException("PerformanceBuilder.EnableQueryCaching is not implemented.");
-
     /// <summary>Enables metrics collection.</summary>
     /// <returns>The same <see cref="PerformanceBuilder"/> for fluent chaining.</returns>
     public PerformanceBuilder EnableMetrics()
@@ -48,10 +42,4 @@ public class PerformanceBuilder
         Services.AddSingleton<MetricsCollector>();
         return this;
     }
-
-    /// <summary>Enables expression tree caching and optimization.</summary>
-    /// <exception cref="NotImplementedException">Always thrown.</exception>
-    [Obsolete("Will be removed in 3.0; this method has never been implemented. Expression compilation is already handled by EF Core / IQueryable providers; remove the call site. Tracked in https://github.com/AbongileBoja/QuerySpec/issues/139.", error: true)]
-    public PerformanceBuilder OptimizeExpressions() =>
-        throw new NotImplementedException("PerformanceBuilder.OptimizeExpressions is not implemented.");
 }

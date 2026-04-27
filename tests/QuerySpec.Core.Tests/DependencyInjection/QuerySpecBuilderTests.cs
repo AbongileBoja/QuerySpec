@@ -155,18 +155,6 @@ public class QuerySpecBuilderTests
     }
 
     [Fact]
-    public void WithMonitoring_StubsThrowAtConfigTime()
-    {
-        var services = new ServiceCollection();
-        var enableOpenTelemetry = typeof(MonitoringBuilder).GetMethod(nameof(MonitoringBuilder.EnableOpenTelemetry), Type.EmptyTypes)!;
-
-        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() =>
-            services.AddQuerySpec(q => q.WithMonitoring(m => enableOpenTelemetry.Invoke(m, null))));
-
-        Assert.IsType<NotImplementedException>(ex.InnerException);
-    }
-
-    [Fact]
     public void ChainedConfiguration_DoesNotConflict()
     {
         var services = new ServiceCollection();
