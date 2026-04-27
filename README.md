@@ -24,6 +24,16 @@ dotnet add package QuerySpec.DependencyInjection
 
 Most apps want all three. Core alone is fine if you're not using EF Core or DI.
 
+## Supported frameworks
+
+QuerySpec targets `net8.0` (LTS, supported through November 2026), `net9.0` (STS, supported through May 2026), and `net10.0` (LTS). These are the only supported TFMs. `netstandard2.0` is not targeted.
+
+The library relies on APIs that are unavailable on `netstandard2.0`: `System.Threading.Lock`, `params ReadOnlySpan<T>`, `TimeProvider`, async `JsonSerializer` overloads, and related BCL surface. Adding a `netstandard2.0` target would require either reverting those improvements or shipping a parallel conditional-compilation codebase — a cost that does not make sense for an enterprise data-access library targeting modern .NET.
+
+Consumers on .NET Framework 4.x or older runtimes should use [Ardalis.Specification](https://github.com/ardalis/Specification) or another `netstandard2.0`-compatible alternative.
+
+For the .NET support lifecycle see https://dotnet.microsoft.com/platform/support/policy/dotnet-core.
+
 ## Applying a filter to an EF Core query
 
 ```csharp
