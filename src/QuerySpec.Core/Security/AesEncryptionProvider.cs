@@ -113,9 +113,11 @@ public class AesEncryptionProvider : IEncryptionProvider
     /// <summary>
     /// Key rotation requires re-encrypting every ciphertext under the new key. This provider
     /// does not own the persisted ciphertexts. The method previously returned silently which
-    /// gave callers a false belief that rotation had happened.
+    /// gave callers a false belief that rotation had happened. Deprecated and will be removed
+    /// in 3.0; implement rotation at the storage layer.
     /// </summary>
     /// <exception cref="NotSupportedException">Always thrown.</exception>
+    [Obsolete("Key rotation is a storage-layer concern; this method will be removed in 3.0. Implement rotation in the storage layer (Azure Key Vault, AWS KMS, etc.) rather than on IEncryptionProvider.", error: true)]
     public Task RotateKeyAsync() =>
         throw new NotSupportedException(
             "AesEncryptionProvider does not own the persisted ciphertexts and cannot rotate. " +

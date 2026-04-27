@@ -107,9 +107,10 @@ public class AesGcmEncryptionProvider : IAuthenticatedEncryptionProvider, IEncry
     /// holds a single immutable key and does not own the persisted ciphertexts; callers must
     /// implement rotation at their storage layer (decrypt under old key, re-encrypt under new
     /// key). The method is implemented as a throwing stub so callers cannot mistake a no-op
-    /// for a real rotation.
+    /// for a real rotation. Deprecated and will be removed in 3.0.
     /// </summary>
     /// <exception cref="NotSupportedException">Always thrown.</exception>
+    [Obsolete("Key rotation is a storage-layer concern; this method will be removed in 3.0. Implement rotation in the storage layer (Azure Key Vault, AWS KMS, etc.) rather than on IEncryptionProvider.", error: true)]
     public Task RotateKeyAsync() =>
         throw new NotSupportedException(
             "AesGcmEncryptionProvider does not own the persisted ciphertexts and therefore cannot rotate. " +

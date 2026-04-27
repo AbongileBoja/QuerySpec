@@ -156,11 +156,13 @@ public class AesGcmEncryptionProviderTests
     }
 
     [Fact]
-    public async Task RotateKeyAsync_Throws_NotSupported()
+    public void RotateKeyAsync_Throws_NotSupported()
     {
         var p = new AesGcmEncryptionProvider(NewKey());
 
-        await Assert.ThrowsAsync<NotSupportedException>(() => p.RotateKeyAsync());
+        var method = typeof(AesGcmEncryptionProvider).GetMethod(nameof(IEncryptionProvider.RotateKeyAsync), Type.EmptyTypes)!;
+        var ex = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(p, null));
+        Assert.IsType<NotSupportedException>(ex.InnerException);
     }
 
     [Fact]

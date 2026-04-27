@@ -4,6 +4,12 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Deprecations
+
+* **security:** `IEncryptionProvider.RotateKeyAsync()` and `IEncryptionProvider.RotateKeyAsync(CancellationToken)` are marked `[Obsolete(error: true)]` and will be **removed in 3.0**. Every shipping implementation already throws `NotSupportedException` because the provider does not own the persisted ciphertexts. Implement key rotation at the storage layer instead (Azure Key Vault, AWS KMS, etc.): decrypt with the old provider, re-encrypt with the new provider. Closes [#73](https://github.com/AbongileBoja/QuerySpec/issues/73).
+
 ### [3.0.1-rc1](https://github.com/AbongileBoja/QuerySpec/compare/v3.0.0...v3.0.1-rc1) (2026-04-26)
 
 
