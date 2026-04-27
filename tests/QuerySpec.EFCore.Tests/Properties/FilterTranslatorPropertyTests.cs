@@ -85,11 +85,11 @@ public sealed class FilterTranslatorPropertyTests : IDisposable
         FilterOperator.Custom
     ];
 
-    private static Gen<AdvancedFilterExpression> StringFieldFilterGen() =>
+    private static Gen<FilterSpec> StringFieldFilterGen() =>
         Gen.Select(
             Gen.OneOfConst(ImplementedStringOperators),
             Gen.String,
-            (op, value) => new AdvancedFilterExpression
+            (op, value) => new FilterSpec
             {
                 Field = "Name",
                 Operator = op,
@@ -97,38 +97,38 @@ public sealed class FilterTranslatorPropertyTests : IDisposable
                 CaseSensitive = false
             });
 
-    private static Gen<AdvancedFilterExpression> IntFieldFilterGen() =>
+    private static Gen<FilterSpec> IntFieldFilterGen() =>
         Gen.Select(
             Gen.OneOfConst(ImplementedIntOperators),
             Gen.Int,
-            (op, value) => new AdvancedFilterExpression
+            (op, value) => new FilterSpec
             {
                 Field = "Age",
                 Operator = op,
                 Value = value
             });
 
-    private static Gen<AdvancedFilterExpression> BoolFieldFilterGen() =>
+    private static Gen<FilterSpec> BoolFieldFilterGen() =>
         Gen.Select(
             Gen.OneOfConst(ImplementedBoolOperators),
             Gen.Bool,
-            (op, value) => new AdvancedFilterExpression
+            (op, value) => new FilterSpec
             {
                 Field = "IsActive",
                 Operator = op,
                 Value = value
             });
 
-    private static Gen<AdvancedFilterExpression> ValidFilterGen() =>
-        Gen.OneOf<AdvancedFilterExpression>(
+    private static Gen<FilterSpec> ValidFilterGen() =>
+        Gen.OneOf<FilterSpec>(
             StringFieldFilterGen(),
             IntFieldFilterGen(),
             BoolFieldFilterGen());
 
-    private static Gen<AdvancedFilterExpression> UnhandledOperatorFilterGen() =>
+    private static Gen<FilterSpec> UnhandledOperatorFilterGen() =>
         Gen.Select(
             Gen.OneOfConst(UnimplementedOperators),
-            op => new AdvancedFilterExpression
+            op => new FilterSpec
             {
                 Field = "Name",
                 Operator = op,

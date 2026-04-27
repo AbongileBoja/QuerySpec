@@ -37,7 +37,7 @@ public class TranslatorCoverageGapsTests
             CreatedAt = new DateTime(2024, 9, 1), DeletedAt = null, IsActive = true },
     }.AsQueryable();
 
-    private static List<Entity> Run(AdvancedFilterExpression filter) =>
+    private static List<Entity> Run(FilterSpec filter) =>
         QuerySpecExpressionTranslator.ApplyFilter(Source(), filter).ToList();
 
     private static JsonElement Json(string text) => JsonDocument.Parse(text).RootElement;
@@ -47,7 +47,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void Normalize_JsonNumber_CoercesToInt()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.Equal,
@@ -61,7 +61,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void Normalize_JsonNumber_CoercesToDecimal()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Salary",
             Operator = FilterOperator.Equal,
@@ -75,7 +75,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void Normalize_JsonNumber_CoercesToLong()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "AccountBalance",
             Operator = FilterOperator.Equal,
@@ -89,7 +89,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void Normalize_JsonString_ParsesDateTime()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "CreatedAt",
             Operator = FilterOperator.Equal,
@@ -103,7 +103,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void Normalize_JsonBool_TrueFalse()
     {
-        var trueFilter = new AdvancedFilterExpression
+        var trueFilter = new FilterSpec
         {
             Field = "IsActive",
             Operator = FilterOperator.Equal,
@@ -111,7 +111,7 @@ public class TranslatorCoverageGapsTests
         };
         Assert.Equal(2, Run(trueFilter).Count);
 
-        var falseFilter = new AdvancedFilterExpression
+        var falseFilter = new FilterSpec
         {
             Field = "IsActive",
             Operator = FilterOperator.Equal,
@@ -125,7 +125,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void Normalize_StringNumber_CoercesViaConvert()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.Equal,
@@ -139,7 +139,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void Normalize_NumericOverflow_ThrowsArgumentException()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.Equal,
@@ -153,7 +153,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void Normalize_InvalidStringCoercion_ThrowsArgumentException()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.Equal,
@@ -169,7 +169,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void ExtractArrayValues_FromIEnumerable_NotJsonArray_BuildsIn()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.In,
@@ -182,7 +182,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void ExtractArrayValues_FromJsonArray_BuildsIn()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.In,
@@ -195,7 +195,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void ExtractArrayValues_FromScalar_WrapsToSingleItem()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.In,
@@ -211,7 +211,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void NullableDecimal_Equal_MatchesValue()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Salary",
             Operator = FilterOperator.Equal,
@@ -225,7 +225,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void NullableDecimal_GreaterThan_ExcludesNullAndLowerValues()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Salary",
             Operator = FilterOperator.GreaterThan,
@@ -239,7 +239,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void NullableLong_LessThanOrEqual_ExcludesNull()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "AccountBalance",
             Operator = FilterOperator.LessThanOrEqual,
@@ -254,7 +254,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void NullableDateTime_DateAfter_ExcludesNull()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "DeletedAt",
             Operator = FilterOperator.DateAfter,
@@ -271,7 +271,7 @@ public class TranslatorCoverageGapsTests
         // DateInRange consults TemporalStart/TemporalEnd, not Value/ValueTo. When those are
         // unset the operator silently falls through to Constant(true) (audit-flagged at #78);
         // this test exercises the supported shape.
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "DeletedAt",
             Operator = FilterOperator.DateInRange,
@@ -286,7 +286,7 @@ public class TranslatorCoverageGapsTests
     [Fact]
     public void NullableDecimal_Between_ExcludesNullAndOutOfRange()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Salary",
             Operator = FilterOperator.Between,
@@ -312,7 +312,7 @@ public class TranslatorCoverageGapsTests
         // Generate 1100 distinct filter shapes (>capacity of 1024) so the bulk-clear fires.
         for (var i = 0; i < 1100; i++)
         {
-            var filter = new AdvancedFilterExpression
+            var filter = new FilterSpec
             {
                 Field = "Id",
                 Operator = FilterOperator.Equal,
@@ -323,7 +323,7 @@ public class TranslatorCoverageGapsTests
 
         // After eviction churn, a fresh filter must still produce the right rows.
         var verification = QuerySpecExpressionTranslator
-            .ApplyFilterCached(Source(), new AdvancedFilterExpression
+            .ApplyFilterCached(Source(), new FilterSpec
             {
                 Field = "Id",
                 Operator = FilterOperator.Equal,

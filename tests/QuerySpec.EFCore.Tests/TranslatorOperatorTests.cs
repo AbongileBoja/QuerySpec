@@ -44,7 +44,7 @@ public class TranslatorOperatorTests
             CreatedAt = new DateTime(2024, 6, 5), Address = new Address { City = "cape town" } },
     }.AsQueryable();
 
-    private static List<Entity> Run(AdvancedFilterExpression filter) =>
+    private static List<Entity> Run(FilterSpec filter) =>
         QuerySpecExpressionTranslator.ApplyFilter(Seed(), filter).ToList();
 
     // ── equality / inequality ─────────────────────────────────────────────────
@@ -52,7 +52,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void Equal_MatchesExactValue()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Equal, Value = "Alice" });
+        var result = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.Equal, Value = "Alice" });
         Assert.Single(result);
         Assert.Equal(1, result[0].Id);
     }
@@ -60,7 +60,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void NotEqual_ExcludesMatchingValue()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.NotEqual, Value = "Alice" });
+        var result = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.NotEqual, Value = "Alice" });
         Assert.Equal(3, result.Count);
         Assert.DoesNotContain(result, e => e.Name == "Alice");
     }
@@ -74,7 +74,7 @@ public class TranslatorOperatorTests
     [InlineData(FilterOperator.LessThanOrEqual, 30, new[] { 1, 2 })]
     public void NumericComparisons_ReturnExpectedIds(FilterOperator op, int pivot, int[] expected)
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Age", Operator = op, Value = pivot });
+        var result = Run(new FilterSpec { Field = "Age", Operator = op, Value = pivot });
         Assert.Equal(expected.OrderBy(x => x), result.Select(r => r.Id).OrderBy(x => x));
     }
 
@@ -82,7 +82,7 @@ public class TranslatorOperatorTests
     public void GreaterThan_OnNullableValueType_SkipsNullValues()
     {
         // Bob has Salary == null; must not pass a >= 0 comparison.
-        var result = Run(new AdvancedFilterExpression { Field = "Salary", Operator = FilterOperator.GreaterThanOrEqual, Value = 0m });
+        var result = Run(new FilterSpec { Field = "Salary", Operator = FilterOperator.GreaterThanOrEqual, Value = 0m });
         Assert.DoesNotContain(result, e => e.Id == 2);
         Assert.Equal(3, result.Count);
     }
@@ -92,7 +92,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void Contains_CaseInsensitiveByDefault()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Contains, Value = "ar" });
+        var result = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.Contains, Value = "ar" });
         Assert.Single(result);
         Assert.Equal("Carol", result[0].Name);
     }
@@ -105,9 +105,9 @@ public class TranslatorOperatorTests
     [Fact]
     public void ContainsCaseInsensitive_AliasAndRenamedMember_ProduceSameResults()
     {
-        var renamed = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.ContainsCaseInsensitive, Value = "ali" });
+        var renamed = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.ContainsCaseInsensitive, Value = "ali" });
 #pragma warning disable CS0618
-        var legacy = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Contains_CaseInsensitive, Value = "ali" });
+        var legacy = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.Contains_CaseInsensitive, Value = "ali" });
 #pragma warning restore CS0618
         Assert.Equal(renamed.Select(e => e.Id).OrderBy(x => x), legacy.Select(e => e.Id).OrderBy(x => x));
         Assert.Single(renamed);
@@ -117,8 +117,8 @@ public class TranslatorOperatorTests
     [Fact]
     public void Contains_CaseSensitive_RespectsFlag()
     {
-        var insensitive = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Contains, Value = "a", CaseSensitive = false });
-        var sensitive = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Contains, Value = "A", CaseSensitive = true });
+        var insensitive = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.Contains, Value = "a", CaseSensitive = false });
+        var sensitive = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.Contains, Value = "A", CaseSensitive = true });
         // Alice, Carol, Dave contain 'a'/'A'; Bob does not.
         Assert.Equal(3, insensitive.Count);
         Assert.DoesNotContain(insensitive, e => e.Name == "Bob");
@@ -130,7 +130,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void NotContains_Inverts()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.NotContains, Value = "ar" });
+        var result = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.NotContains, Value = "ar" });
         Assert.Equal(3, result.Count);
         Assert.DoesNotContain(result, e => e.Name == "Carol");
     }
@@ -138,7 +138,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void StartsWith_Matches()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.StartsWith, Value = "Ca" });
+        var result = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.StartsWith, Value = "Ca" });
         Assert.Single(result);
         Assert.Equal("Carol", result[0].Name);
     }
@@ -146,7 +146,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void EndsWith_Matches()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.EndsWith, Value = "ve" });
+        var result = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.EndsWith, Value = "ve" });
         Assert.Single(result);
         Assert.Equal("Dave", result[0].Name);
     }
@@ -155,7 +155,7 @@ public class TranslatorOperatorTests
     public void Contains_OnNullString_ReturnsFalseNotThrow()
     {
         // Bob.Email is null; the translator wraps calls with a null check and must not throw.
-        var result = Run(new AdvancedFilterExpression { Field = "Email", Operator = FilterOperator.Contains, Value = "@" });
+        var result = Run(new FilterSpec { Field = "Email", Operator = FilterOperator.Contains, Value = "@" });
         Assert.DoesNotContain(result, e => e.Id == 2);
         Assert.DoesNotContain(result, e => e.Id == 3); // Carol has empty email
     }
@@ -163,7 +163,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void Regex_ValidPattern_Matches()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Email", Operator = FilterOperator.Regex, Value = @"^[a-z]+@[a-z]+\.io$" });
+        var result = Run(new FilterSpec { Field = "Email", Operator = FilterOperator.Regex, Value = @"^[a-z]+@[a-z]+\.io$" });
         Assert.Equal(2, result.Count);
         Assert.All(result, e => Assert.NotNull(e.Email));
     }
@@ -172,7 +172,7 @@ public class TranslatorOperatorTests
     public void Regex_InvalidPattern_ThrowsArgumentException()
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            Run(new AdvancedFilterExpression { Field = "Email", Operator = FilterOperator.Regex, Value = "[unclosed" }));
+            Run(new FilterSpec { Field = "Email", Operator = FilterOperator.Regex, Value = "[unclosed" }));
         Assert.Contains("regex", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -181,7 +181,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void In_MatchesAnyOf()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Id",
             Operator = FilterOperator.In,
@@ -193,7 +193,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void NotIn_ExcludesMatches()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Id",
             Operator = FilterOperator.NotIn,
@@ -205,7 +205,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void In_EmptyCollection_ReturnsNoRows()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Id",
             Operator = FilterOperator.In,
@@ -219,7 +219,7 @@ public class TranslatorOperatorTests
     {
         var huge = Enumerable.Range(0, 500).ToArray();
         var ex = Assert.Throws<ArgumentException>(() =>
-            Run(new AdvancedFilterExpression { Field = "Id", Operator = FilterOperator.In, Value = huge }));
+            Run(new FilterSpec { Field = "Id", Operator = FilterOperator.In, Value = huge }));
         Assert.Contains("maximum", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -228,7 +228,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void Between_IsInclusive()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.Between,
@@ -242,7 +242,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void NotBetween_InvertsInclusiveRange()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.NotBetween,
@@ -258,7 +258,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void IsNull_MatchesNullableValueTypeNulls()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Salary", Operator = FilterOperator.IsNull });
+        var result = Run(new FilterSpec { Field = "Salary", Operator = FilterOperator.IsNull });
         Assert.Single(result);
         Assert.Equal(2, result[0].Id);
     }
@@ -266,7 +266,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void IsNotNull_InvertsNullCheck()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "DeletedAt", Operator = FilterOperator.IsNotNull });
+        var result = Run(new FilterSpec { Field = "DeletedAt", Operator = FilterOperator.IsNotNull });
         Assert.Single(result);
         Assert.Equal(2, result[0].Id);
     }
@@ -274,7 +274,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void IsEmpty_MatchesEmptyString()
     {
-        var result = Run(new AdvancedFilterExpression { Field = "Email", Operator = FilterOperator.IsEmpty });
+        var result = Run(new FilterSpec { Field = "Email", Operator = FilterOperator.IsEmpty });
         // Carol has empty email; Bob has null (which the isNullable branch includes via OrElse).
         Assert.Contains(result, e => e.Id == 3);
     }
@@ -284,7 +284,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void DateInRange_MatchesInclusiveWindow()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "CreatedAt",
             Operator = FilterOperator.DateInRange,
@@ -298,7 +298,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void DateAfter_StrictGreaterThan()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "CreatedAt",
             Operator = FilterOperator.DateAfter,
@@ -311,7 +311,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void DateBefore_StrictLessThan()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "CreatedAt",
             Operator = FilterOperator.DateBefore,
@@ -324,7 +324,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void DateEquals_MatchesOnDayRegardlessOfTime()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "CreatedAt",
             Operator = FilterOperator.DateEquals,
@@ -340,15 +340,15 @@ public class TranslatorOperatorTests
     public void LogicalAnd_OfTwoChildren()
     {
         // The outer filter carries Field/Operator (required by Validate), nested adds the AND child.
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.GreaterThan,
             Value = 25,
             Logic = LogicalOperator.And,
-            Filters = new()
+            Filters = new[]
             {
-                new() { Field = "Name", Operator = FilterOperator.StartsWith, Value = "A" }
+                new FilterSpec { Field = "Name", Operator = FilterOperator.StartsWith, Value = "A" }
             }
         });
         Assert.Single(result);
@@ -358,15 +358,15 @@ public class TranslatorOperatorTests
     [Fact]
     public void LogicalOr_OfTwoChildren()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.Equal,
             Value = "Alice",
             Logic = LogicalOperator.Or,
-            Filters = new()
+            Filters = new[]
             {
-                new() { Field = "Name", Operator = FilterOperator.Equal, Value = "Bob" }
+                new FilterSpec { Field = "Name", Operator = FilterOperator.Equal, Value = "Bob" }
             }
         });
         Assert.Equal(2, result.Count);
@@ -376,16 +376,16 @@ public class TranslatorOperatorTests
     public void Logical_DepthLimit_Throws()
     {
         // Build a filter deeper than MaxFilterDepth (10).
-        var deepest = new AdvancedFilterExpression { Field = "Id", Operator = FilterOperator.Equal, Value = 1 };
+        var deepest = new FilterSpec { Field = "Id", Operator = FilterOperator.Equal, Value = 1 };
         for (var i = 0; i < 15; i++)
         {
-            deepest = new AdvancedFilterExpression
+            deepest = new FilterSpec
             {
                 Field = "Id",
                 Operator = FilterOperator.Equal,
                 Value = 1,
                 Logic = LogicalOperator.And,
-                Filters = new() { deepest }
+                Filters = new[] { deepest }
             };
         }
         // The outer filter must have Field=<something> or a nested child to pass validation.
@@ -399,7 +399,7 @@ public class TranslatorOperatorTests
     {
         // Filter entities with a populated Address so we isolate path-resolution behavior
         // from null-propagation semantics (which differ between in-memory LINQ and EF Core).
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Address.City",
             Operator = FilterOperator.Equal,
@@ -417,7 +417,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void UnknownProperty_Throws()
     {
-        Assert.Throws<ArgumentException>(() => Run(new AdvancedFilterExpression
+        Assert.Throws<ArgumentException>(() => Run(new FilterSpec
         {
             Field = "DoesNotExist",
             Operator = FilterOperator.Equal,
@@ -428,7 +428,7 @@ public class TranslatorOperatorTests
     [Fact]
     public void InvalidFieldName_FailsValidation()
     {
-        Assert.Throws<ArgumentException>(() => Run(new AdvancedFilterExpression
+        Assert.Throws<ArgumentException>(() => Run(new FilterSpec
         {
             Field = "Name; DROP TABLE Users",
             Operator = FilterOperator.Equal,
@@ -442,7 +442,7 @@ public class TranslatorOperatorTests
     public void NullFilter_ReturnsSourceUnchanged()
     {
         var source = Seed();
-        var result = QuerySpecExpressionTranslator.ApplyFilter(source, (AdvancedFilterExpression?)null);
+        var result = QuerySpecExpressionTranslator.ApplyFilter(source, (FilterSpec?)null);
         Assert.Same(source, result);
     }
 
@@ -476,7 +476,7 @@ public class TranslatorOperatorTests
         ctx.Items.AddRange(Seed());
         await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Age",
             Operator = FilterOperator.GreaterThanOrEqual,

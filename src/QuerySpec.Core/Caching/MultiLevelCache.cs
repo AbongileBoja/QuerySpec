@@ -25,49 +25,6 @@ public class MultiLevelCache : ICacheProvider, ICacheStore
     }
 
     /// <summary>
-    /// Gets a value, checking L1 first, then L2. On L2 hit the value is promoted to L1.
-    /// </summary>
-    /// <typeparam name="T">Reference type the cached value deserialises to.</typeparam>
-    /// <param name="key">Cache key.</param>
-    /// <param name="cancellationToken">Token observed by the L1 and L2 reads.</param>
-    /// <returns>The cached value, or <c>null</c> when neither tier holds an entry for <paramref name="key"/>.</returns>
-#pragma warning disable QSPEC0003 // implementing the obsolete ICacheProvider.GetAsync is by design through 3.x
-    public async ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
-    {
-        var result = await _l1.GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
-        if (result != null)
-        {
-            _stats.IncrementHits();
-            return result;
-        }
-
-        result = await _l2.GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
-        if (result != null)
-        {
-            _stats.IncrementHits();
-            await _l1.SetAsync(key, result, expiration: null, cancellationToken).ConfigureAwait(false);
-            return result;
-        }
-
-        _stats.IncrementMisses();
-        return null;
-    }
-
-    /// <summary>Sets a value in both L1 and L2 caches.</summary>
-    /// <typeparam name="T">Reference type the value will be cached as.</typeparam>
-    /// <param name="key">Cache key.</param>
-    /// <param name="value">Value to cache.</param>
-    /// <param name="expiration">Optional time-to-live; <c>null</c> uses the implementation default for each tier.</param>
-    /// <param name="cancellationToken">Token observed by the L1 and L2 writes.</param>
-    public async ValueTask SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class
-    {
-        await _l1.SetAsync(key, value, expiration, cancellationToken).ConfigureAwait(false);
-        await _l2.SetAsync(key, value, expiration, cancellationToken).ConfigureAwait(false);
-        _stats.IncrementSets();
-    }
-#pragma warning restore QSPEC0003
-
-    /// <summary>
     /// Gets a value via L1 then L2 (L2 hits are promoted to L1). Supports value and reference types.
     /// </summary>
     /// <typeparam name="T">Value or reference type the cached entry was stored as.</typeparam>

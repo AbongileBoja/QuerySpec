@@ -51,7 +51,7 @@ var rlsContext = new RLSContext
 
 var predicate = rls.GetPredicate<Customer>(nameof(Customer), rlsContext)!;
 
-var userFilter = new AdvancedFilterExpression
+var userFilter = new FilterSpec
 {
     Field = "Country",
     Operator = FilterOperator.Equal,

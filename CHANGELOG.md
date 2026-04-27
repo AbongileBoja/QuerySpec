@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/) and this 
 
 ## [Unreleased]
 
+### Removed (BREAKING)
+
+* **core:** `GeoLocation` (entire type, with `decimal` `Latitude` / `Longitude`, the `DistanceTo(GeoLocation)` instance method, and the `ToGeoCoordinate()` migration helper) — use `GeoCoordinate` instead. The `explicit` `GeoCoordinate(GeoLocation)` operator is removed alongside the source type. The 3.x `[Obsolete(DiagnosticId = "QSPEC0001")]` warned every reference site for a full minor cycle; the `QuerySpec.Analyzers` package continues to surface `QSPEC0001` against any remaining 3.x source. Closes [#150](https://github.com/AbongileBoja/QuerySpec/issues/150).
+* **core:** `AdvancedFilterExpression` (entire type, including the obsolete `MaskResult` / `EncryptValue` no-op flags) — use `FilterSpec` instead. The 3.x `[Obsolete(DiagnosticId = "QSPEC0002")]` warned every reference site for a full minor cycle; the `QuerySpec.Analyzers` package continues to surface `QSPEC0002`. Closes [#150](https://github.com/AbongileBoja/QuerySpec/issues/150).
+* **core:** `FilterSpec.FromMutable(AdvancedFilterExpression)` and `FilterSpec.ToMutable()` round-trip helpers — they have no purpose now that `AdvancedFilterExpression` is gone.
+* **core:** `FilterSpec.GeoLocation` property type changed from `GeoLocation?` to `GeoCoordinate?`. The property name is unchanged; only the carried type is reshaped. Update construction sites that pass a `GeoLocation` literal to construct a `GeoCoordinate` directly.
+* **caching:** `ICacheProvider.GetAsync<T>(string, CancellationToken)` and `ICacheProvider.SetAsync<T>(string, T, TimeSpan?, CancellationToken)` (the `where T : class` overloads) — use `ICacheStore.TryGetAsync<T>` / `ICacheStore.SetValueAsync<T>` instead. The non-typed `ICacheProvider` members (`RemoveAsync`, `ExistsAsync`, `FlushAsync`, `GetStatsAsync`) are unchanged; the interface remains a valid abstraction for cache lifecycle and statistics. The `MemoryCacheProvider`, `DistributedCacheProvider`, and `MultiLevelCache` implementations drop the obsolete read/write methods alongside the interface. The 3.x `[Obsolete(DiagnosticId = "QSPEC0003")]` warned every call site for a full minor cycle; the `QuerySpec.Analyzers` package continues to surface `QSPEC0003`. Closes [#150](https://github.com/AbongileBoja/QuerySpec/issues/150).
+* **efcore:** `QuerySpecExpressionTranslator.ApplyFilter<T>(IQueryable<T>, AdvancedFilterExpression?)`, `ApplyFilterCached<T>(IQueryable<T>, AdvancedFilterExpression?)`, and `GetOrBuildCachedPredicate<T>(AdvancedFilterExpression)` overloads — use the `FilterSpec` overloads instead. The 3.x `FilterSpec` overload routed through `AdvancedFilterExpression` via `ToMutable()`; in 4.0 the predicate-builder operates on `FilterSpec` natively, eliminating the per-call round-trip allocation.
+
 ### Added
 
 * **core:** `FilterOperator.ContainsCaseInsensitive` ships alongside the existing snake-case `Contains_CaseInsensitive`. Both members share the underlying value `52` so binary callers passing the integer continue to work; only the symbolic name has changed.

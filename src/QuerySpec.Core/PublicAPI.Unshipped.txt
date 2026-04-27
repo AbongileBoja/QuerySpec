@@ -1,69 +1,52 @@
 #nullable enable
-QuerySpec.Core.Advanced.GeoCoordinate
-QuerySpec.Core.Advanced.GeoCoordinate.GeoCoordinate(double latitude, double longitude) -> void
-QuerySpec.Core.Advanced.GeoCoordinate.Latitude.get -> double
-QuerySpec.Core.Advanced.GeoCoordinate.Longitude.get -> double
-QuerySpec.Core.Advanced.GeoCoordinate.DistanceTo(QuerySpec.Core.Advanced.GeoCoordinate other) -> double
-override QuerySpec.Core.Advanced.GeoCoordinate.ToString() -> string!
-static QuerySpec.Core.Advanced.GeoCoordinate.Parse(string! s) -> QuerySpec.Core.Advanced.GeoCoordinate
-static QuerySpec.Core.Advanced.GeoCoordinate.TryParse(string? s, out QuerySpec.Core.Advanced.GeoCoordinate result) -> bool
-static explicit QuerySpec.Core.Advanced.GeoCoordinate.explicit operator QuerySpec.Core.Advanced.GeoCoordinate(QuerySpec.Core.Advanced.GeoLocation! legacy) -> QuerySpec.Core.Advanced.GeoCoordinate
-QuerySpec.Core.Advanced.GeoLocation.ToGeoCoordinate() -> QuerySpec.Core.Advanced.GeoCoordinate
-QuerySpec.Core.Advanced.FilterSpec
-QuerySpec.Core.Advanced.FilterSpec.FilterSpec() -> void
-QuerySpec.Core.Advanced.FilterSpec.Field.get -> string!
-QuerySpec.Core.Advanced.FilterSpec.Field.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Operator.get -> QuerySpec.Core.Advanced.FilterOperator
-QuerySpec.Core.Advanced.FilterSpec.Operator.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Value.get -> object?
-QuerySpec.Core.Advanced.FilterSpec.Value.init -> void
-QuerySpec.Core.Advanced.FilterSpec.ValueTo.get -> object?
-QuerySpec.Core.Advanced.FilterSpec.ValueTo.init -> void
-QuerySpec.Core.Advanced.FilterSpec.CaseSensitive.get -> bool
-QuerySpec.Core.Advanced.FilterSpec.CaseSensitive.init -> void
-QuerySpec.Core.Advanced.FilterSpec.UseRegex.get -> bool
-QuerySpec.Core.Advanced.FilterSpec.UseRegex.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Logic.get -> QuerySpec.Core.Advanced.LogicalOperator
-QuerySpec.Core.Advanced.FilterSpec.Logic.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Filters.get -> System.Collections.Generic.IReadOnlyList<QuerySpec.Core.Advanced.FilterSpec!>!
-QuerySpec.Core.Advanced.FilterSpec.Filters.init -> void
-QuerySpec.Core.Advanced.FilterSpec.TemporalStart.get -> System.DateTime?
-QuerySpec.Core.Advanced.FilterSpec.TemporalStart.init -> void
-QuerySpec.Core.Advanced.FilterSpec.TemporalEnd.get -> System.DateTime?
-QuerySpec.Core.Advanced.FilterSpec.TemporalEnd.init -> void
-QuerySpec.Core.Advanced.FilterSpec.IncludeDeletedRecords.get -> bool
-QuerySpec.Core.Advanced.FilterSpec.IncludeDeletedRecords.init -> void
-QuerySpec.Core.Advanced.FilterSpec.GeoLocation.get -> QuerySpec.Core.Advanced.GeoLocation?
-QuerySpec.Core.Advanced.FilterSpec.GeoLocation.init -> void
-QuerySpec.Core.Advanced.FilterSpec.GeoRadius.get -> decimal?
-QuerySpec.Core.Advanced.FilterSpec.GeoRadius.init -> void
-QuerySpec.Core.Advanced.FilterSpec.CustomOperatorName.get -> string?
-QuerySpec.Core.Advanced.FilterSpec.CustomOperatorName.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Validate() -> System.Collections.Generic.IEnumerable<string!>!
-QuerySpec.Core.Advanced.FilterSpec.ComputeStableHash() -> long
-QuerySpec.Core.Advanced.FilterSpec.ToMutable() -> QuerySpec.Core.Advanced.AdvancedFilterExpression!
-QuerySpec.Core.Advanced.FilterSpec.Equals(QuerySpec.Core.Advanced.FilterSpec? other) -> bool
-override QuerySpec.Core.Advanced.FilterSpec.GetHashCode() -> int
-static QuerySpec.Core.Advanced.FilterSpec.FromMutable(QuerySpec.Core.Advanced.AdvancedFilterExpression! legacy) -> QuerySpec.Core.Advanced.FilterSpec!
-QuerySpec.Core.Caching.CacheResult<T>
-QuerySpec.Core.Caching.CacheResult<T>.HasValue.get -> bool
-QuerySpec.Core.Caching.CacheResult<T>.Value.get -> T
-QuerySpec.Core.Caching.CacheResult<T>.GetValueOrDefault() -> T
-QuerySpec.Core.Caching.CacheResult<T>.GetValueOrDefault(T fallback) -> T
-QuerySpec.Core.Caching.CacheResult<T>.Equals(QuerySpec.Core.Caching.CacheResult<T> other) -> bool
-override QuerySpec.Core.Caching.CacheResult<T>.Equals(object? obj) -> bool
-override QuerySpec.Core.Caching.CacheResult<T>.GetHashCode() -> int
-static QuerySpec.Core.Caching.CacheResult<T>.Hit(T value) -> QuerySpec.Core.Caching.CacheResult<T>
-static QuerySpec.Core.Caching.CacheResult<T>.Miss.get -> QuerySpec.Core.Caching.CacheResult<T>
-static QuerySpec.Core.Caching.CacheResult<T>.operator ==(QuerySpec.Core.Caching.CacheResult<T> left, QuerySpec.Core.Caching.CacheResult<T> right) -> bool
-static QuerySpec.Core.Caching.CacheResult<T>.operator !=(QuerySpec.Core.Caching.CacheResult<T> left, QuerySpec.Core.Caching.CacheResult<T> right) -> bool
-QuerySpec.Core.Caching.ICacheStore
-QuerySpec.Core.Caching.ICacheStore.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
-QuerySpec.Core.Caching.ICacheStore.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-QuerySpec.Core.Caching.ICacheStore.RemoveAsync(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-QuerySpec.Core.Caching.MemoryCacheProvider.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
-QuerySpec.Core.Caching.MemoryCacheProvider.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-QuerySpec.Core.Caching.DistributedCacheProvider.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
-QuerySpec.Core.Caching.DistributedCacheProvider.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-QuerySpec.Core.Caching.MultiLevelCache.TryGetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>>
-QuerySpec.Core.Caching.MultiLevelCache.SetValueAsync<T>(string! key, T value, System.TimeSpan? ttl = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation.GeoLocation() -> void
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation.GeoLocation(decimal latitude, decimal longitude) -> void
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation.Latitude.get -> decimal
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation.Latitude.set -> void
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation.Longitude.get -> decimal
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation.Longitude.set -> void
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation.DistanceTo(QuerySpec.Core.Advanced.GeoLocation! other) -> double
+*REMOVED*QuerySpec.Core.Advanced.GeoLocation.ToGeoCoordinate() -> QuerySpec.Core.Advanced.GeoCoordinate
+*REMOVED*static explicit QuerySpec.Core.Advanced.GeoCoordinate.explicit operator QuerySpec.Core.Advanced.GeoCoordinate(QuerySpec.Core.Advanced.GeoLocation! legacy) -> QuerySpec.Core.Advanced.GeoCoordinate
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.AdvancedFilterExpression() -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Field.get -> string!
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Field.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Operator.get -> QuerySpec.Core.Advanced.FilterOperator
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Operator.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Value.get -> object?
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Value.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.ValueTo.get -> object?
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.ValueTo.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.CaseSensitive.get -> bool
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.CaseSensitive.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.UseRegex.get -> bool
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.UseRegex.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Logic.get -> QuerySpec.Core.Advanced.LogicalOperator
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Logic.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Filters.get -> System.Collections.Generic.List<QuerySpec.Core.Advanced.AdvancedFilterExpression!>?
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Filters.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.TemporalStart.get -> System.DateTime?
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.TemporalStart.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.TemporalEnd.get -> System.DateTime?
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.TemporalEnd.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.IncludeDeletedRecords.get -> bool
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.IncludeDeletedRecords.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.GeoLocation.get -> QuerySpec.Core.Advanced.GeoLocation?
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.GeoLocation.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.GeoRadius.get -> decimal?
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.GeoRadius.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.CustomOperatorName.get -> string?
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.CustomOperatorName.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.MaskResult.get -> bool
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.MaskResult.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.EncryptValue.get -> bool
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.EncryptValue.set -> void
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.Validate() -> System.Collections.Generic.IEnumerable<string!>!
+*REMOVED*QuerySpec.Core.Advanced.AdvancedFilterExpression.ComputeStableHash() -> long
+*REMOVED*QuerySpec.Core.Advanced.FilterSpec.GeoLocation.get -> QuerySpec.Core.Advanced.GeoLocation?
+*REMOVED*QuerySpec.Core.Advanced.FilterSpec.ToMutable() -> QuerySpec.Core.Advanced.AdvancedFilterExpression!
+*REMOVED*static QuerySpec.Core.Advanced.FilterSpec.FromMutable(QuerySpec.Core.Advanced.AdvancedFilterExpression! legacy) -> QuerySpec.Core.Advanced.FilterSpec!
+*REMOVED*QuerySpec.Core.Caching.ICacheProvider.GetAsync<T>(string! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<T?>
+*REMOVED*QuerySpec.Core.Caching.ICacheProvider.SetAsync<T>(string! key, T value, System.TimeSpan? expiration = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask

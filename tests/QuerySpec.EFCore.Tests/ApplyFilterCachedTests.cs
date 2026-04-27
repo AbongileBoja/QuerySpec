@@ -28,7 +28,7 @@ public class ApplyFilterCachedTests
     [Fact]
     public void Cached_Matches_Uncached_Results()
     {
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "Category",
             Operator = FilterOperator.Equal,
@@ -47,13 +47,13 @@ public class ApplyFilterCachedTests
     public void Cached_Reuses_Compiled_Expression_For_Equivalent_Filters()
     {
         QuerySpecExpressionTranslator.ClearPredicateCache();
-        var a = new AdvancedFilterExpression
+        var a = new FilterSpec
         {
             Field = "Category",
             Operator = FilterOperator.Equal,
             Value = "A",
         };
-        var b = new AdvancedFilterExpression
+        var b = new FilterSpec
         {
             Field = "Category",
             Operator = FilterOperator.Equal,
@@ -70,13 +70,13 @@ public class ApplyFilterCachedTests
     public void Cached_BuildsNew_Expression_When_Filter_Differs()
     {
         QuerySpecExpressionTranslator.ClearPredicateCache();
-        var a = new AdvancedFilterExpression
+        var a = new FilterSpec
         {
             Field = "Category",
             Operator = FilterOperator.Equal,
             Value = "A",
         };
-        var b = new AdvancedFilterExpression
+        var b = new FilterSpec
         {
             Field = "Category",
             Operator = FilterOperator.Equal,
@@ -101,7 +101,7 @@ public class ApplyFilterCachedTests
     public void Cached_InvalidFilter_Throws_OnFirstBuild()
     {
         QuerySpecExpressionTranslator.ClearPredicateCache();
-        var filter = new AdvancedFilterExpression
+        var filter = new FilterSpec
         {
             Field = "bad name!", // fails FieldNamePattern
             Operator = FilterOperator.Equal,

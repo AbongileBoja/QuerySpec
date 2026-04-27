@@ -643,14 +643,14 @@ public class MutationKillerTests
         Assert.Throws<ArgumentNullException>(() => new ComplianceExporter(null!));
     }
 
-    // ─── AdvancedFilterExpression mutations ──────────────────────────────────
+    // ─── FilterSpec mutations ────────────────────────────────────────────────
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public void Validate_EmptyOrWhitespaceField_ReturnsFieldRequiredError(string field)
     {
-        var f = new AdvancedFilterExpression { Field = field };
+        var f = new FilterSpec { Field = field };
         var errors = f.Validate().ToList();
         Assert.Contains("Field is required", errors);
     }
@@ -658,7 +658,7 @@ public class MutationKillerTests
     [Fact]
     public void Validate_InvalidFieldNamePattern_ReturnsInvalidFieldNameError()
     {
-        var f = new AdvancedFilterExpression { Field = "123invalid" };
+        var f = new FilterSpec { Field = "123invalid" };
         var errors = f.Validate().ToList();
         Assert.Single(errors);
         Assert.Contains("Invalid field name", errors[0]);
@@ -667,7 +667,7 @@ public class MutationKillerTests
     [Fact]
     public void Validate_ValidDottedField_NoErrors()
     {
-        var f = new AdvancedFilterExpression { Field = "Customer.Name" };
+        var f = new FilterSpec { Field = "Customer.Name" };
         Assert.Empty(f.Validate());
     }
 
@@ -675,7 +675,7 @@ public class MutationKillerTests
     public void Validate_TemporalStart_GreaterThan_TemporalEnd_ReturnsError()
     {
         var now = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
-        var f = new AdvancedFilterExpression
+        var f = new FilterSpec
         {
             Field = "CreatedAt",
             TemporalStart = now.AddDays(1),
@@ -689,7 +689,7 @@ public class MutationKillerTests
     public void Validate_TemporalStartEqualsEnd_IsValid()
     {
         var now = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
-        var f = new AdvancedFilterExpression
+        var f = new FilterSpec
         {
             Field = "CreatedAt",
             TemporalStart = now,
@@ -701,10 +701,10 @@ public class MutationKillerTests
     [Fact]
     public void Validate_GeoRadiusNonPositive_WithGeoLocation_ReturnsError()
     {
-        var f = new AdvancedFilterExpression
+        var f = new FilterSpec
         {
             Field = "Location",
-            GeoLocation = new GeoLocation(10m, 20m),
+            GeoLocation = new GeoCoordinate(10, 20),
             GeoRadius = 0m
         };
         var errors = f.Validate().ToList();
@@ -714,10 +714,10 @@ public class MutationKillerTests
     [Fact]
     public void Validate_GeoRadiusPositive_NoGeoError()
     {
-        var f = new AdvancedFilterExpression
+        var f = new FilterSpec
         {
             Field = "Location",
-            GeoLocation = new GeoLocation(10m, 20m),
+            GeoLocation = new GeoCoordinate(10, 20),
             GeoRadius = 1.5m
         };
         Assert.Empty(f.Validate());
@@ -726,10 +726,10 @@ public class MutationKillerTests
     [Fact]
     public void Validate_GeoRadiusNegative_ReturnsError()
     {
-        var f = new AdvancedFilterExpression
+        var f = new FilterSpec
         {
             Field = "Location",
-            GeoLocation = new GeoLocation(10m, 20m),
+            GeoLocation = new GeoCoordinate(10, 20),
             GeoRadius = -5m
         };
         Assert.Contains("GeoRadius must be positive", f.Validate().ToList().Select(e => e));
@@ -738,11 +738,11 @@ public class MutationKillerTests
     [Fact]
     public void Validate_NestedFilters_AreRecursivelyValidated()
     {
-        var inner = new AdvancedFilterExpression { Field = "" };
-        var outer = new AdvancedFilterExpression
+        var inner = new FilterSpec { Field = "" };
+        var outer = new FilterSpec
         {
             Field = "Name",
-            Filters = new List<AdvancedFilterExpression> { inner }
+            Filters = new[] { inner }
         };
         var errors = outer.Validate().ToList();
         Assert.Contains("Field is required", errors);
@@ -751,149 +751,124 @@ public class MutationKillerTests
     [Fact]
     public void Validate_ValidFilterWithNoNestedFilters_NoErrors()
     {
-        var f = new AdvancedFilterExpression { Field = "Name", Filters = new List<AdvancedFilterExpression>() };
+        var f = new FilterSpec { Field = "Name", Filters = Array.Empty<FilterSpec>() };
         Assert.Empty(f.Validate());
     }
-
-#pragma warning disable CS0618
-    [Fact]
-    public void Validate_MaskResultTrue_ReturnsError()
-    {
-        var f = new AdvancedFilterExpression { Field = "Name", MaskResult = true };
-        var errors = f.Validate().ToList();
-        Assert.Contains(errors, e => e.Contains("MaskResult"));
-    }
-
-    [Fact]
-    public void Validate_EncryptValueTrue_ReturnsError()
-    {
-        var f = new AdvancedFilterExpression { Field = "Name", EncryptValue = true };
-        var errors = f.Validate().ToList();
-        Assert.Contains(errors, e => e.Contains("EncryptValue"));
-    }
-
-    [Fact]
-    public void Validate_MaskResultFalse_NoObsoleteErrors()
-    {
-        var f = new AdvancedFilterExpression { Field = "Name", MaskResult = false };
-        Assert.Empty(f.Validate());
-    }
-#pragma warning restore CS0618
 
     [Fact]
     public void ComputeStableHash_SameFilter_ProducesSameHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Equal, Value = "test" };
-        var f2 = new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Equal, Value = "test" };
+        var f1 = new FilterSpec { Field = "Name", Operator = FilterOperator.Equal, Value = "test" };
+        var f2 = new FilterSpec { Field = "Name", Operator = FilterOperator.Equal, Value = "test" };
         Assert.Equal(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentField_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", Operator = FilterOperator.Equal };
-        var f2 = new AdvancedFilterExpression { Field = "Age", Operator = FilterOperator.Equal };
+        var f1 = new FilterSpec { Field = "Name", Operator = FilterOperator.Equal };
+        var f2 = new FilterSpec { Field = "Age", Operator = FilterOperator.Equal };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentCaseSensitive_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", CaseSensitive = false };
-        var f2 = new AdvancedFilterExpression { Field = "Name", CaseSensitive = true };
+        var f1 = new FilterSpec { Field = "Name", CaseSensitive = false };
+        var f2 = new FilterSpec { Field = "Name", CaseSensitive = true };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentUseRegex_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", UseRegex = false };
-        var f2 = new AdvancedFilterExpression { Field = "Name", UseRegex = true };
+        var f1 = new FilterSpec { Field = "Name", UseRegex = false };
+        var f2 = new FilterSpec { Field = "Name", UseRegex = true };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentIncludeDeleted_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", IncludeDeletedRecords = false };
-        var f2 = new AdvancedFilterExpression { Field = "Name", IncludeDeletedRecords = true };
+        var f1 = new FilterSpec { Field = "Name", IncludeDeletedRecords = false };
+        var f2 = new FilterSpec { Field = "Name", IncludeDeletedRecords = true };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentLogic_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", Logic = LogicalOperator.And };
-        var f2 = new AdvancedFilterExpression { Field = "Name", Logic = LogicalOperator.Or };
+        var f1 = new FilterSpec { Field = "Name", Logic = LogicalOperator.And };
+        var f2 = new FilterSpec { Field = "Name", Logic = LogicalOperator.Or };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentTemporalStart_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", TemporalStart = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
-        var f2 = new AdvancedFilterExpression { Field = "Name", TemporalStart = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc) };
+        var f1 = new FilterSpec { Field = "Name", TemporalStart = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
+        var f2 = new FilterSpec { Field = "Name", TemporalStart = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc) };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentTemporalEnd_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", TemporalEnd = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
-        var f2 = new AdvancedFilterExpression { Field = "Name", TemporalEnd = new DateTime(2025, 12, 31, 0, 0, 0, DateTimeKind.Utc) };
+        var f1 = new FilterSpec { Field = "Name", TemporalEnd = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
+        var f2 = new FilterSpec { Field = "Name", TemporalEnd = new DateTime(2025, 12, 31, 0, 0, 0, DateTimeKind.Utc) };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_NullTemporalStart_VsSet_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name" };
-        var f2 = new AdvancedFilterExpression { Field = "Name", TemporalStart = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
+        var f1 = new FilterSpec { Field = "Name" };
+        var f2 = new FilterSpec { Field = "Name", TemporalStart = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentGeoLocation_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Loc", GeoLocation = new GeoLocation(10m, 20m) };
-        var f2 = new AdvancedFilterExpression { Field = "Loc", GeoLocation = new GeoLocation(11m, 20m) };
+        var f1 = new FilterSpec { Field = "Loc", GeoLocation = new GeoCoordinate(10, 20) };
+        var f2 = new FilterSpec { Field = "Loc", GeoLocation = new GeoCoordinate(11, 20) };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentGeoRadius_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Loc", GeoRadius = 10m };
-        var f2 = new AdvancedFilterExpression { Field = "Loc", GeoRadius = 20m };
+        var f1 = new FilterSpec { Field = "Loc", GeoRadius = 10m };
+        var f2 = new FilterSpec { Field = "Loc", GeoRadius = 20m };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_DifferentCustomOperatorName_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", CustomOperatorName = "op1" };
-        var f2 = new AdvancedFilterExpression { Field = "Name", CustomOperatorName = "op2" };
+        var f1 = new FilterSpec { Field = "Name", CustomOperatorName = "op1" };
+        var f2 = new FilterSpec { Field = "Name", CustomOperatorName = "op2" };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_NullVsEmptyValue_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name", Value = null };
-        var f2 = new AdvancedFilterExpression { Field = "Name", Value = "x" };
+        var f1 = new FilterSpec { Field = "Name", Value = null };
+        var f2 = new FilterSpec { Field = "Name", Value = "x" };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_WithNestedFilters_DifferentFromWithout()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Name" };
-        var f2 = new AdvancedFilterExpression
+        var f1 = new FilterSpec { Field = "Name" };
+        var f2 = new FilterSpec
         {
             Field = "Name",
-            Filters = new List<AdvancedFilterExpression>
+            Filters = new[]
             {
-                new AdvancedFilterExpression { Field = "Age" }
+                new FilterSpec { Field = "Age" }
             }
         };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
@@ -902,16 +877,16 @@ public class MutationKillerTests
     [Fact]
     public void ComputeStableHash_DifferentFilterCount_ProducesDifferentHash()
     {
-        var child = new AdvancedFilterExpression { Field = "Age" };
-        var f1 = new AdvancedFilterExpression
+        var child = new FilterSpec { Field = "Age" };
+        var f1 = new FilterSpec
         {
             Field = "Name",
-            Filters = new List<AdvancedFilterExpression> { child }
+            Filters = new[] { child }
         };
-        var f2 = new AdvancedFilterExpression
+        var f2 = new FilterSpec
         {
             Field = "Name",
-            Filters = new List<AdvancedFilterExpression> { child, child }
+            Filters = new[] { child, child }
         };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
@@ -919,29 +894,29 @@ public class MutationKillerTests
     [Fact]
     public void ComputeStableHash_EnumerableValue_DifferentFromScalar()
     {
-        var f1 = new AdvancedFilterExpression { Field = "Tags", Value = new[] { "a", "b" } };
-        var f2 = new AdvancedFilterExpression { Field = "Tags", Value = new[] { "a", "c" } };
+        var f1 = new FilterSpec { Field = "Tags", Value = new[] { "a", "b" } };
+        var f2 = new FilterSpec { Field = "Tags", Value = new[] { "a", "c" } };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
     [Fact]
     public void ComputeStableHash_StringValue_VsIntValue_ProducesDifferentHash()
     {
-        var f1 = new AdvancedFilterExpression { Field = "X", Value = "123" };
-        var f2 = new AdvancedFilterExpression { Field = "X", Value = 123 };
+        var f1 = new FilterSpec { Field = "X", Value = "123" };
+        var f2 = new FilterSpec { Field = "X", Value = 123 };
         Assert.NotEqual(f1.ComputeStableHash(), f2.ComputeStableHash());
     }
 
-    // ─── GeoLocation / Haversine mutations ───────────────────────────────────
+    // ─── GeoCoordinate / Haversine mutations ─────────────────────────────────
 
     [Theory]
     [InlineData(51.5074, -0.1278, 48.8566, 2.3522, 340.0)]
     [InlineData(0.0, 0.0, 0.0, 0.0, 0.0)]
-    public void GeoLocation_DistanceTo_ProducesExpectedKilometers(
+    public void GeoCoordinate_DistanceTo_ProducesExpectedKilometers(
         double lat1, double lon1, double lat2, double lon2, double expectedKm)
     {
-        var a = new GeoLocation((decimal)lat1, (decimal)lon1);
-        var b = new GeoLocation((decimal)lat2, (decimal)lon2);
+        var a = new GeoCoordinate(lat1, lon1);
+        var b = new GeoCoordinate(lat2, lon2);
         var dist = a.DistanceTo(b);
         if (expectedKm == 0.0)
             Assert.Equal(0.0, dist, precision: 5);
@@ -950,36 +925,36 @@ public class MutationKillerTests
     }
 
     [Fact]
-    public void GeoLocation_DistanceTo_IsNearlySymmetric()
+    public void GeoCoordinate_DistanceTo_IsNearlySymmetric()
     {
-        var nyc = new GeoLocation(40.7128m, -74.0060m);
-        var london = new GeoLocation(51.5074m, -0.1278m);
+        var nyc = new GeoCoordinate(40.7128, -74.0060);
+        var london = new GeoCoordinate(51.5074, -0.1278);
         var d1 = nyc.DistanceTo(london);
         var d2 = london.DistanceTo(nyc);
         Assert.InRange(Math.Abs(d1 - d2), 0, 0.01);
     }
 
     [Fact]
-    public void GeoLocation_DefaultCtor_InitializesToZero()
+    public void GeoCoordinate_DefaultStruct_InitializesToZero()
     {
-        var g = new GeoLocation();
-        Assert.Equal(0m, g.Latitude);
-        Assert.Equal(0m, g.Longitude);
+        var g = default(GeoCoordinate);
+        Assert.Equal(0d, g.Latitude);
+        Assert.Equal(0d, g.Longitude);
     }
 
     [Fact]
-    public void GeoLocation_ParameteredCtor_SetsCoordinates()
+    public void GeoCoordinate_ParameteredCtor_SetsCoordinates()
     {
-        var g = new GeoLocation(10.5m, 20.3m);
-        Assert.Equal(10.5m, g.Latitude);
-        Assert.Equal(20.3m, g.Longitude);
+        var g = new GeoCoordinate(10.5, 20.3);
+        Assert.Equal(10.5, g.Latitude);
+        Assert.Equal(20.3, g.Longitude);
     }
 
     [Fact]
-    public void GeoLocation_DistanceTo_AntipodalPoints_IsApprox20015Km()
+    public void GeoCoordinate_DistanceTo_AntipodalPoints_IsApprox20015Km()
     {
-        var north = new GeoLocation(90m, 0m);
-        var south = new GeoLocation(-90m, 0m);
+        var north = new GeoCoordinate(90, 0);
+        var south = new GeoCoordinate(-90, 0);
         var dist = north.DistanceTo(south);
         Assert.InRange(dist, 19000, 21000);
     }

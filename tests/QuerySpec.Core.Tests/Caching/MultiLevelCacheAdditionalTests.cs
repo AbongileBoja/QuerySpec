@@ -41,25 +41,24 @@ public class MultiLevelCacheAdditionalTests
     {
         var l1 = new MemoryCacheProvider();
         var l2 = new DistributedCacheProvider(new InMemDistributed());
-        await l2.SetAsync("k", new Thing { N = 42 });
+        await l2.SetValueAsync("k", new Thing { N = 42 });
         var mlc = new MultiLevelCache(l1, l2);
 
-        var r1 = await mlc.GetAsync<Thing>("k");
-        Assert.NotNull(r1);
-        Assert.Equal(42, r1!.N);
+        var r1 = await mlc.TryGetAsync<Thing>("k");
+        Assert.True(r1.HasValue);
+        Assert.Equal(42, r1.Value!.N);
 
-        // L1 should now have it — confirm by checking L1 directly.
-        var fromL1 = await l1.GetAsync<Thing>("k");
-        Assert.NotNull(fromL1);
-        Assert.Equal(42, fromL1!.N);
+        var fromL1 = await l1.TryGetAsync<Thing>("k");
+        Assert.True(fromL1.HasValue);
+        Assert.Equal(42, fromL1.Value!.N);
     }
 
     [Fact]
     public async Task Miss_OnBothLevels_IncrementsMissCounter()
     {
         var mlc = new MultiLevelCache(new MemoryCacheProvider(), new DistributedCacheProvider(new InMemDistributed()));
-        var r = await mlc.GetAsync<Thing>("absent");
-        Assert.Null(r);
+        var r = await mlc.TryGetAsync<Thing>("absent");
+        Assert.False(r.HasValue);
 
         var stats = await mlc.GetStatsAsync();
         Assert.Equal(1, stats.Misses);
@@ -72,12 +71,12 @@ public class MultiLevelCacheAdditionalTests
         var l1 = new MemoryCacheProvider();
         var l2 = new DistributedCacheProvider(new InMemDistributed());
         var mlc = new MultiLevelCache(l1, l2);
-        await mlc.SetAsync("k", new Thing { N = 1 });
+        await mlc.SetValueAsync("k", new Thing { N = 1 });
 
         await mlc.RemoveAsync("k");
 
-        Assert.Null(await l1.GetAsync<Thing>("k"));
-        Assert.Null(await l2.GetAsync<Thing>("k"));
+        Assert.False((await l1.TryGetAsync<Thing>("k")).HasValue);
+        Assert.False((await l2.TryGetAsync<Thing>("k")).HasValue);
     }
 
     [Fact]
@@ -86,13 +85,11 @@ public class MultiLevelCacheAdditionalTests
         var l1 = new MemoryCacheProvider();
         var l2 = new DistributedCacheProvider(new InMemDistributed());
         var mlc = new MultiLevelCache(l1, l2);
-        await mlc.SetAsync("k", new Thing { N = 1 });
+        await mlc.SetValueAsync("k", new Thing { N = 1 });
 
         await mlc.FlushAsync();
 
-        Assert.Null(await l1.GetAsync<Thing>("k")); // L1 entry gone
-        // L2 flush is a stats reset only (IDistributedCache has no flush contract),
-        // but MultiLevelCache should still behave coherently on subsequent calls.
+        Assert.False((await l1.TryGetAsync<Thing>("k")).HasValue);
         var stats = await mlc.GetStatsAsync();
         Assert.Equal(0, stats.Hits + stats.Sets);
     }
@@ -102,7 +99,7 @@ public class MultiLevelCacheAdditionalTests
     {
         var l1 = new MemoryCacheProvider();
         var l2 = new DistributedCacheProvider(new InMemDistributed());
-        await l2.SetAsync("only-in-l2", new Thing { N = 1 });
+        await l2.SetValueAsync("only-in-l2", new Thing { N = 1 });
         var mlc = new MultiLevelCache(l1, l2);
 
         Assert.True(await mlc.ExistsAsync("only-in-l2"));

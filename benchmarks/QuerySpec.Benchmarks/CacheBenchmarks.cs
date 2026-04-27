@@ -29,35 +29,35 @@ public class CacheBenchmarks
         _multi = new MultiLevelCache(new MemoryCacheProvider(), new DistributedCacheProvider(new InMemoryDistributedCache()));
         _value = new Payload { Id = 42, Name = "hot" };
 
-        _memory.SetAsync("k", _value).GetAwaiter().GetResult();
-        _distributed.SetAsync("k", _value).GetAwaiter().GetResult();
-        _multi.SetAsync("k", _value).GetAwaiter().GetResult();
+        _memory.SetValueAsync("k", _value).GetAwaiter().GetResult();
+        _distributed.SetValueAsync("k", _value).GetAwaiter().GetResult();
+        _multi.SetValueAsync("k", _value).GetAwaiter().GetResult();
     }
 
     /// <summary>Hot read from memory cache — measures interlocked stats + MemoryCache lookup.</summary>
     [Benchmark(Baseline = true)]
     public async Task<Payload?> Memory_Get()
-        => await _memory.GetAsync<Payload>("k").ConfigureAwait(false);
+        => (await _memory.TryGetAsync<Payload>("k").ConfigureAwait(false)).GetValueOrDefault();
 
     /// <summary>Memory cache write path.</summary>
     [Benchmark]
     public async Task Memory_Set()
-        => await _memory.SetAsync("w", _value, TimeSpan.FromMinutes(5)).ConfigureAwait(false);
+        => await _memory.SetValueAsync("w", _value, TimeSpan.FromMinutes(5)).ConfigureAwait(false);
 
     /// <summary>Distributed cache read with JSON deserialization.</summary>
     [Benchmark]
     public async Task<Payload?> Distributed_Get()
-        => await _distributed.GetAsync<Payload>("k").ConfigureAwait(false);
+        => (await _distributed.TryGetAsync<Payload>("k").ConfigureAwait(false)).GetValueOrDefault();
 
     /// <summary>Distributed cache write with JSON serialization.</summary>
     [Benchmark]
     public async Task Distributed_Set()
-        => await _distributed.SetAsync("w", _value, TimeSpan.FromMinutes(5)).ConfigureAwait(false);
+        => await _distributed.SetValueAsync("w", _value, TimeSpan.FromMinutes(5)).ConfigureAwait(false);
 
     /// <summary>Multi-level L1 hit — should match Memory_Get modulo statistics overhead.</summary>
     [Benchmark]
     public async Task<Payload?> MultiLevel_L1Hit()
-        => await _multi.GetAsync<Payload>("k").ConfigureAwait(false);
+        => (await _multi.TryGetAsync<Payload>("k").ConfigureAwait(false)).GetValueOrDefault();
 
     private sealed class InMemoryDistributedCache : IDistributedCache
     {

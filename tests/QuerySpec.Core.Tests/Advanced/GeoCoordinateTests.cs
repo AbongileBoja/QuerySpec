@@ -5,7 +5,7 @@ using Xunit;
 namespace QuerySpec.Core.Tests.Advanced;
 
 /// <summary>
-/// Unit tests for GeoCoordinate (QSPEC0001 replacement type).
+/// Unit tests for <see cref="GeoCoordinate"/>.
 /// </summary>
 public class GeoCoordinateTests
 {
@@ -83,6 +83,14 @@ public class GeoCoordinateTests
     }
 
     [Fact]
+    public void DistanceTo_AntipodalPoints_IsApproximately20015Km()
+    {
+        var north = new GeoCoordinate(90, 0);
+        var south = new GeoCoordinate(-90, 0);
+        Assert.InRange(north.DistanceTo(south), 19000, 21000);
+    }
+
+    [Fact]
     public void ToString_RoundTripsViaParse()
     {
         var original = new GeoCoordinate(40.712800, -74.006000);
@@ -136,37 +144,5 @@ public class GeoCoordinateTests
         Assert.True(a == b);
         Assert.NotEqual(a, c);
         Assert.True(a != c);
-    }
-
-    [Fact]
-    public void ExplicitConversion_FromGeoLocation_PreservesComponents()
-    {
-#pragma warning disable QSPEC0001
-        var legacy = new GeoLocation(40.7128m, -74.0060m);
-#pragma warning restore QSPEC0001
-        var coord = (GeoCoordinate)legacy;
-        Assert.Equal(40.7128, coord.Latitude, 4);
-        Assert.Equal(-74.006, coord.Longitude, 4);
-    }
-
-    [Fact]
-    public void ExplicitConversion_NullLegacyThrows()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-        {
-            GeoLocation? legacy = null;
-            _ = (GeoCoordinate)legacy!;
-        });
-    }
-
-    [Fact]
-    public void ToGeoCoordinate_OnLegacy_PreservesComponents()
-    {
-#pragma warning disable QSPEC0001
-        var legacy = new GeoLocation(51.5074m, -0.1278m);
-#pragma warning restore QSPEC0001
-        var coord = legacy.ToGeoCoordinate();
-        Assert.Equal(51.5074, coord.Latitude, 4);
-        Assert.Equal(-0.1278, coord.Longitude, 4);
     }
 }

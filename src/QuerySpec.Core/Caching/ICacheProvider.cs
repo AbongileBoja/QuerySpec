@@ -1,71 +1,41 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace QuerySpec.Core.Caching;
 
 /// <summary>
-/// Abstraction for pluggable cache implementations.
+/// Cache lifecycle and statistics abstraction. The type-constrained read/write API has moved
+/// to <see cref="ICacheStore"/> (<see cref="ICacheStore.TryGetAsync{T}"/> /
+/// <see cref="ICacheStore.SetValueAsync{T}"/>); this interface continues to host the operations
+/// that don't carry a generic type parameter.
 /// </summary>
 /// <remarks>
 /// All async members return <see cref="ValueTask"/> / <see cref="ValueTask{TResult}"/> so
 /// implementations that complete synchronously (notably <see cref="MemoryCacheProvider"/>) can
-/// avoid the per-call <see cref="Task"/> heap allocation. Existing call sites — <c>await
-/// cache.GetAsync(key)</c> — continue to work unchanged because <c>await</c> binds to both
-/// task types. Custom implementations that previously returned <see cref="Task"/> must update
-/// their return types; this is the binary break that motivates the v3.0 cut.
+/// avoid the per-call <see cref="Task"/> heap allocation.
 /// </remarks>
 public interface ICacheProvider
 {
-    /// <summary>Gets a value from cache by key.</summary>
-    /// <param name="key">Cache key.</param>
-    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
-    /// <remarks>
-    /// Replaced by <see cref="ICacheStore.TryGetAsync{T}(string, CancellationToken)"/> which lifts the
-    /// <c>where T : class</c> constraint and returns <see cref="CacheResult{T}"/> to distinguish a hit
-    /// on <see langword="default"/> from a miss. This member will be removed in 4.0; the shipping
-    /// providers implement both interfaces through the 3.x line. Tracked in
-    /// <see href="https://github.com/AbongileBoja/QuerySpec/issues/84">#84</see>.
-    /// </remarks>
-    [Obsolete("Use ICacheStore.TryGetAsync<T>. The reference-only ICacheProvider read API will be removed in 4.0. See QSPEC0003.",
-        error: false,
-        DiagnosticId = "QSPEC0003",
-        UrlFormat = "https://github.com/AbongileBoja/QuerySpec/blob/main/docs/diagnostics/{0}.md")]
-    ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class;
-
-    /// <summary>Sets a value in cache with optional expiration.</summary>
-    /// <param name="key">Cache key.</param>
-    /// <param name="value">Value to cache.</param>
-    /// <param name="expiration">Optional time-to-live; <c>null</c> uses the implementation default.</param>
-    /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
-    /// <remarks>
-    /// Replaced by <see cref="ICacheStore.SetValueAsync{T}(string, T, TimeSpan?, CancellationToken)"/>
-    /// which lifts the <c>where T : class</c> constraint. This member will be removed in 4.0; the
-    /// shipping providers implement both interfaces through the 3.x line. Tracked in
-    /// <see href="https://github.com/AbongileBoja/QuerySpec/issues/84">#84</see>.
-    /// </remarks>
-    [Obsolete("Use ICacheStore.SetValueAsync<T>. The reference-only ICacheProvider write API will be removed in 4.0. See QSPEC0003.",
-        error: false,
-        DiagnosticId = "QSPEC0003",
-        UrlFormat = "https://github.com/AbongileBoja/QuerySpec/blob/main/docs/diagnostics/{0}.md")]
-    ValueTask SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class;
-
     /// <summary>Removes a value from cache by key.</summary>
     /// <param name="key">Cache key.</param>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>A completed task on success.</returns>
     ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>Checks if a key exists in cache.</summary>
     /// <param name="key">Cache key.</param>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns><see langword="true"/> when an entry exists for <paramref name="key"/>; otherwise <see langword="false"/>.</returns>
     ValueTask<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>Flushes all cache entries.</summary>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>A completed task on success.</returns>
     ValueTask FlushAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Gets current cache statistics.</summary>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
+    /// <returns>An immutable snapshot of the hit/miss/set/remove counters.</returns>
     ValueTask<CacheStats> GetStatsAsync(CancellationToken cancellationToken = default);
 }
 

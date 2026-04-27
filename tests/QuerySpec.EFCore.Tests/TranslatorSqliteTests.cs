@@ -63,7 +63,7 @@ public class TranslatorSqliteTests : IDisposable
         _connection.Dispose();
     }
 
-    private List<Widget> Run(AdvancedFilterExpression filter)
+    private List<Widget> Run(FilterSpec filter)
     {
         using var ctx = new WidgetContext(_options);
         return QuerySpecExpressionTranslator.ApplyFilter(ctx.Widgets.AsQueryable(), filter).ToList();
@@ -76,7 +76,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void Equal_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.Equal,
@@ -94,7 +94,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void StringContains_CaseInsensitive_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.Contains,
@@ -114,7 +114,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void StringStartsWith_CaseInsensitive_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.StartsWith,
@@ -134,7 +134,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void StringEndsWith_CaseInsensitive_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.EndsWith,
@@ -153,7 +153,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void StringContains_CaseSensitive_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Name",
             Operator = FilterOperator.Contains,
@@ -169,7 +169,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void GreaterThan_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Quantity",
             Operator = FilterOperator.GreaterThan,
@@ -188,7 +188,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void NullableDecimal_Equal_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Price",
             Operator = FilterOperator.Equal,
@@ -206,7 +206,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void NullableDecimal_GreaterThan_Translates_And_ExcludesNull()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Price",
             Operator = FilterOperator.GreaterThan,
@@ -221,7 +221,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void In_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Id",
             Operator = FilterOperator.In,
@@ -235,7 +235,7 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void Between_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Price",
             Operator = FilterOperator.Between,
@@ -255,13 +255,13 @@ public class TranslatorSqliteTests : IDisposable
     [Fact]
     public void Nested_And_Translates_To_Sql()
     {
-        var result = Run(new AdvancedFilterExpression
+        var result = Run(new FilterSpec
         {
             Field = "Quantity",
             Operator = FilterOperator.GreaterThan,
             Value = 0,
             Logic = LogicalOperator.And,
-            Filters = new List<AdvancedFilterExpression>
+            Filters = new List<FilterSpec>
             {
                 new() { Field = "Price", Operator = FilterOperator.GreaterThan, Value = 1m },
             },

@@ -52,9 +52,7 @@ public class IndividualBuildersTests
 
         Assert.IsType<CachingBuilder>(result);
         using var sp = services.BuildServiceProvider();
-#pragma warning disable QSPEC0003
         Assert.IsType<MemoryCacheProvider>(sp.GetRequiredService<ICacheProvider>());
-#pragma warning restore QSPEC0003
     }
 
     /// <summary>
@@ -68,9 +66,7 @@ public class IndividualBuildersTests
         var services = new ServiceCollection();
         new CachingBuilder(services).UseMemoryCache();
         using var sp = services.BuildServiceProvider();
-#pragma warning disable QSPEC0003
         var legacy = sp.GetRequiredService<ICacheProvider>();
-#pragma warning restore QSPEC0003
         var store = sp.GetRequiredService<ICacheStore>();
         Assert.Same(legacy, store);
         Assert.IsType<MemoryCacheProvider>(legacy);
@@ -86,9 +82,7 @@ public class IndividualBuildersTests
 
         Assert.Same(builder, result);
         // We can't actually connect to Redis; assert the registration descriptors exist.
-#pragma warning disable QSPEC0003
         Assert.Contains(services, d => d.ServiceType == typeof(ICacheProvider));
-#pragma warning restore QSPEC0003
         Assert.Contains(services, d => d.ServiceType == typeof(ICacheStore));
         Assert.Contains(services, d => d.ServiceType == typeof(IDistributedCache));
     }
@@ -111,9 +105,7 @@ public class IndividualBuildersTests
         services.AddDistributedMemoryCache();
 
         using var sp = services.BuildServiceProvider();
-#pragma warning disable QSPEC0003
         var legacy = sp.GetRequiredService<ICacheProvider>();
-#pragma warning restore QSPEC0003
         var store = sp.GetRequiredService<ICacheStore>();
         Assert.Same(legacy, store);
         Assert.IsType<DistributedCacheProvider>(legacy);
@@ -128,9 +120,7 @@ public class IndividualBuildersTests
         new CachingBuilder(services).UseMultiLevel();
 
         using var sp = services.BuildServiceProvider();
-#pragma warning disable QSPEC0003
         var cache = sp.GetRequiredService<ICacheProvider>();
-#pragma warning restore QSPEC0003
         Assert.IsType<MultiLevelCache>(cache);
         Assert.NotNull(sp.GetRequiredService<MemoryCacheProvider>());
         Assert.NotNull(sp.GetRequiredService<DistributedCacheProvider>());
@@ -148,9 +138,7 @@ public class IndividualBuildersTests
         services.AddDistributedMemoryCache();
         new CachingBuilder(services).UseMultiLevel();
         using var sp = services.BuildServiceProvider();
-#pragma warning disable QSPEC0003
         var legacy = sp.GetRequiredService<ICacheProvider>();
-#pragma warning restore QSPEC0003
         var store = sp.GetRequiredService<ICacheStore>();
         Assert.Same(legacy, store);
         Assert.IsType<MultiLevelCache>(legacy);
