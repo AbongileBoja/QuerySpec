@@ -15,6 +15,12 @@ namespace QuerySpec.EFCore;
 /// Optimized for enterprise use: cached reflection, EF Core SQL-compatible expressions,
 /// null-safe comparisons, and depth-limited recursion.
 /// </summary>
+/// <remarks>
+/// This class will be marked <c>static</c> in v3.0. Every public member is already static and
+/// the type carries no instance state, so deriving from it or constructing an instance has no
+/// purpose. Do not derive from this class; call the static members directly. Tracked at
+/// <see href="https://github.com/AbongileBoja/QuerySpec/issues/141">#141</see>.
+/// </remarks>
 public class QuerySpecExpressionTranslator
 {
     private const int MaxFilterDepth = 10;
