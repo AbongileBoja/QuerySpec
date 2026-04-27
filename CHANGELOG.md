@@ -4,114 +4,60 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [4.0.0](https://github.com/AbongileBoja/QuerySpec/compare/v3.0.1-rc1...v4.0.0) (2026-04-27)
 
-### Removed (BREAKING)
 
-* **core:** `GeoLocation` (entire type, with `decimal` `Latitude` / `Longitude`, the `DistanceTo(GeoLocation)` instance method, and the `ToGeoCoordinate()` migration helper) — use `GeoCoordinate` instead. The `explicit` `GeoCoordinate(GeoLocation)` operator is removed alongside the source type. The 3.x `[Obsolete(DiagnosticId = "QSPEC0001")]` warned every reference site for a full minor cycle; the `QuerySpec.Analyzers` package continues to surface `QSPEC0001` against any remaining 3.x source. Closes [#150](https://github.com/AbongileBoja/QuerySpec/issues/150).
-* **core:** `AdvancedFilterExpression` (entire type, including the obsolete `MaskResult` / `EncryptValue` no-op flags) — use `FilterSpec` instead. The 3.x `[Obsolete(DiagnosticId = "QSPEC0002")]` warned every reference site for a full minor cycle; the `QuerySpec.Analyzers` package continues to surface `QSPEC0002`. Closes [#150](https://github.com/AbongileBoja/QuerySpec/issues/150).
-* **core:** `FilterSpec.FromMutable(AdvancedFilterExpression)` and `FilterSpec.ToMutable()` round-trip helpers — they have no purpose now that `AdvancedFilterExpression` is gone.
-* **core:** `FilterSpec.GeoLocation` property type changed from `GeoLocation?` to `GeoCoordinate?`. The property name is unchanged; only the carried type is reshaped. Update construction sites that pass a `GeoLocation` literal to construct a `GeoCoordinate` directly.
-* **caching:** `ICacheProvider.GetAsync<T>(string, CancellationToken)` and `ICacheProvider.SetAsync<T>(string, T, TimeSpan?, CancellationToken)` (the `where T : class` overloads) — use `ICacheStore.TryGetAsync<T>` / `ICacheStore.SetValueAsync<T>` instead. The non-typed `ICacheProvider` members (`RemoveAsync`, `ExistsAsync`, `FlushAsync`, `GetStatsAsync`) are unchanged; the interface remains a valid abstraction for cache lifecycle and statistics. The `MemoryCacheProvider`, `DistributedCacheProvider`, and `MultiLevelCache` implementations drop the obsolete read/write methods alongside the interface. The 3.x `[Obsolete(DiagnosticId = "QSPEC0003")]` warned every call site for a full minor cycle; the `QuerySpec.Analyzers` package continues to surface `QSPEC0003`. Closes [#150](https://github.com/AbongileBoja/QuerySpec/issues/150).
-* **efcore:** `QuerySpecExpressionTranslator.ApplyFilter<T>(IQueryable<T>, AdvancedFilterExpression?)`, `ApplyFilterCached<T>(IQueryable<T>, AdvancedFilterExpression?)`, and `GetOrBuildCachedPredicate<T>(AdvancedFilterExpression)` overloads — use the `FilterSpec` overloads instead. The 3.x `FilterSpec` overload routed through `AdvancedFilterExpression` via `ToMutable()`; in 4.0 the predicate-builder operates on `FilterSpec` natively, eliminating the per-call round-trip allocation.
-* **efcore:** `QuerySpecExpressionTranslator` is now `public static class` (was `public class` in 3.x). Every public member was already `static` and the type carried no instance state, so deriving from it or constructing an instance served no purpose. ApiCompat reports this as `CP0009` (type metadata changed to `abstract sealed`). Call sites that used the static methods directly (the recommended pattern) need no change; consumers who derived from the class must remove the derivation, and consumers who constructed an instance via `new QuerySpecExpressionTranslator()` must drop the construction. Closes [#141](https://github.com/AbongileBoja/QuerySpec/issues/141).
-* **di:** Eleven DI-builder stub methods removed — every one shipped on the public surface only to throw `NotImplementedException` and was marked `[Obsolete(error: true)]` in 3.x. ApiCompat reports `CP0001` (member removed) on each. Removed methods and their replacements:
-  * `AuditingBuilder.LogAllQueries()`, `TrackChanges()`, `EnableEncryption()`, `UseDatabase(string)`, `RetentionDays(int)` — wire your own `IAuditLogger` implementation via `WithAuditing(a => a.UseLogger(myLogger))` and configure logging, change tracking, encryption, persistence, and retention inside the implementation.
-  * `CachingBuilder.EnableCompressionForLarge(int)` — wrap `ICacheProvider` with a compressing decorator (e.g. via Scrutor's `Services.Decorate<ICacheProvider, …>()`) before delegating.
-  * `MonitoringBuilder.EnableOpenTelemetry()` — call `Services.AddOpenTelemetry()` directly on the builder's `Services` property; the OpenTelemetry SDK already provides the wiring.
-  * `MonitoringBuilder.EnableHealthChecks()` — call `Services.AddHealthChecks()` directly on the builder's `Services` property and register the checks against your own dependencies.
-  * `PerformanceBuilder.EnableQueryCaching()` — compose the existing `WithCaching(c => c.UseMemoryCache())` configuration with your query path; QuerySpec does not own a query-result cache.
-  * `PerformanceBuilder.OptimizeExpressions()` — no replacement; expression compilation is already handled by EF Core / `IQueryable` providers.
-  * `SecurityBuilder.RotateKeysEvery(int)` — implement key rotation at the storage layer following the same pattern as the `RotateKeyAsync` removal in [#138](https://github.com/AbongileBoja/QuerySpec/issues/138). Closes [#139](https://github.com/AbongileBoja/QuerySpec/issues/139).
-* **security:** `IEncryptionProvider.RotateKeyAsync()` and `IEncryptionProvider.RotateKeyAsync(CancellationToken)` removed. Both overloads were `[Obsolete(error: true)]` in 3.x and every shipping implementation (`AesEncryptionProvider`, `AesGcmEncryptionProvider`, `MigratingEncryptionProvider`) threw `NotSupportedException`. ApiCompat reports `CP0001` (member removed) on both. Implement key rotation at the storage layer instead: construct a new provider with the new key, decrypt under the old provider, re-encrypt under the new provider, persist, then cut over reads. For `MigratingEncryptionProvider` specifically, the existing prefix-tag dispatch already supports this pattern — register the previous writer as a legacy reader and promote the new writer. Closes [#138](https://github.com/AbongileBoja/QuerySpec/issues/138).
+### ⚠ BREAKING CHANGES
 
-### Added
+* **security:** remove IEncryptionProvider.RotateKeyAsync overloads (#157)
+* **di:** remove 11 throwing DI-builder stub methods (#156)
+* **efcore:** convert QuerySpecExpressionTranslator to static class (#155)
+* **core:** remove 3.x deprecations GeoLocation/AdvancedFilterExpression/ICacheProvider (#154)
 
-* **core:** `FilterOperator.ContainsCaseInsensitive` ships alongside the existing snake-case `Contains_CaseInsensitive`. Both members share the underlying value `52` so binary callers passing the integer continue to work; only the symbolic name has changed.
-* **auditing:** `IComplianceExporter.GenerateGdprExportAsync` (with and without `CancellationToken`) ships alongside the existing `GenerateGDPRExportAsync` overloads. Default-interface-method delegation lets either name be called against any 2.x implementation.
-* **core:** `GeoCoordinate` — immutable `readonly record struct` with `double` lat/long, validated construction (`[-90, 90]` / `[-180, 180]`, no `NaN`), Haversine `DistanceTo`, ISO 6709 `ToString` / `Parse` / `TryParse` round-trip, and an `explicit` operator from `GeoLocation`. `GeoLocation.ToGeoCoordinate()` is the recommended migration helper. Closes site 3 of [#84](https://github.com/AbongileBoja/queryspec/issues/84).
-* **core:** `FilterSpec` — immutable `sealed record` with `init` accessors, `IReadOnlyList<FilterSpec>` children, structural value equality across the entire tree, `Validate()` and `ComputeStableHash()` semantically matching the legacy `AdvancedFilterExpression`, and lossless round-trip via `FilterSpec.FromMutable(AdvancedFilterExpression)` / `spec.ToMutable()`. Closes site 4 of [#84](https://github.com/AbongileBoja/queryspec/issues/84).
-* **core:** `CacheResult<T>` (`readonly struct`) and `ICacheStore` — supersede `ICacheProvider.GetAsync<T>` / `SetAsync<T>`, lifting the `where T : class` constraint so value types compose directly. `TryGetAsync<T>` returns `CacheResult<T>` whose `HasValue` flag distinguishes a hit on `default` from a miss without a heap allocation. Closes site 5 of [#84](https://github.com/AbongileBoja/queryspec/issues/84).
-* **core:** `MemoryCacheProvider`, `DistributedCacheProvider`, and `MultiLevelCache` now implement both `ICacheProvider` and `ICacheStore`. The legacy interface methods stay functional through 3.x; the value-type-aware `ICacheStore` methods are independent implementations (no delegation) so value-type handling stays clean.
-* **efcore:** `QuerySpecExpressionTranslator.ApplyFilter<T>(IQueryable<T>, FilterSpec?)` overload. Internally projects the spec via `ToMutable()` and routes through the existing predicate-builder, so the deprecation window introduces no new code path.
-* **di:** `CachingBuilder.UseMemoryCache` / `UseDistributedRedis` / `UseMultiLevel` now register a single provider instance against both `ICacheProvider` (legacy) and `ICacheStore` (new). Consumers may inject either contract through 3.x.
-* **docs:** Per-diagnostic reference pages under `docs/diagnostics/`: `QSPEC0001.md`, `QSPEC0002.md`, `QSPEC0003.md`. Each `[Obsolete]` attribute uses these as its `UrlFormat` target so IDE quick-info links resolve directly.
-* **samples:** `samples/Migration/{GeoCoordinateMigration,FilterSpecMigration,CacheStoreMigration}` — three console programs showing the old usage (with the matching `#pragma warning disable QSPEC####`) followed by the new equivalent, including value-type caching and structural equality.
-* **core:** `QuerySpec.Analyzers` — standalone Roslyn analyzer + code-fix package shipping `QSPEC0001` (`GeoLocation.Latitude`/`.Longitude` → `GeoCoordinate`), `QSPEC0002` (`AdvancedFilterExpression` → `FilterSpec`), and `QSPEC0003` (`ICacheProvider.GetAsync`/`SetAsync` → `ICacheStore.TryGetAsync`/`SetValueAsync`) diagnostics with one-click code fixes and Fix-All-In-Document/Project/Solution support. Targets `netstandard2.0` per Roslyn host requirements; consumed by adding `<PackageReference Include="QuerySpec.Analyzers" />` alongside the runtime packages. The analyzers suppress themselves when the target member already carries `[Obsolete(DiagnosticId = "QSPEC####")]` so consumers see exactly one warning per call site. Closes [#151](https://github.com/AbongileBoja/QuerySpec/issues/151).
+### Features
 
-### Deprecations
+* **analyzers:** ship QuerySpec.Analyzers package with QSPEC0001/2/3 diagnostics and code fixes ([#153](https://github.com/AbongileBoja/QuerySpec/issues/153)) ([c9032a8](https://github.com/AbongileBoja/QuerySpec/commit/c9032a8f25dc59b6a91750337770e09c90b328a6)), closes [#151](https://github.com/AbongileBoja/QuerySpec/issues/151) [#151](https://github.com/AbongileBoja/QuerySpec/issues/151)
+* **core:** Microsoft-grade additive replacements + PublicAPI tracking ([#84](https://github.com/AbongileBoja/QuerySpec/issues/84)) ([#152](https://github.com/AbongileBoja/QuerySpec/issues/152)) ([773353e](https://github.com/AbongileBoja/QuerySpec/commit/773353ed53f5e11dd406334493d369c6d2b306b6)), closes [#151](https://github.com/AbongileBoja/QuerySpec/issues/151) [#150](https://github.com/AbongileBoja/QuerySpec/issues/150)
+* **core:** remove 3.x deprecations GeoLocation/AdvancedFilterExpression/ICacheProvider ([#154](https://github.com/AbongileBoja/QuerySpec/issues/154)) ([90d6bee](https://github.com/AbongileBoja/QuerySpec/commit/90d6bee3256c6358ba6f2ba0f215aeb651e854d3)), closes [#150](https://github.com/AbongileBoja/QuerySpec/issues/150) [#84](https://github.com/AbongileBoja/QuerySpec/issues/84)
+* **di:** remove 11 throwing DI-builder stub methods ([#156](https://github.com/AbongileBoja/QuerySpec/issues/156)) ([ed3be34](https://github.com/AbongileBoja/QuerySpec/commit/ed3be34faf2364e27ac726e8896145a5ec3fddbb)), closes [#77](https://github.com/AbongileBoja/QuerySpec/issues/77) [#139](https://github.com/AbongileBoja/QuerySpec/issues/139) [#77](https://github.com/AbongileBoja/QuerySpec/issues/77)
+* **efcore:** convert QuerySpecExpressionTranslator to static class ([#155](https://github.com/AbongileBoja/QuerySpec/issues/155)) ([032dec4](https://github.com/AbongileBoja/QuerySpec/commit/032dec4523629c7daf4fa1296f1e4d697410bab4)), closes [#79](https://github.com/AbongileBoja/QuerySpec/issues/79) [#141](https://github.com/AbongileBoja/QuerySpec/issues/141) [#79](https://github.com/AbongileBoja/QuerySpec/issues/79)
+* **security:** remove IEncryptionProvider.RotateKeyAsync overloads ([#157](https://github.com/AbongileBoja/QuerySpec/issues/157)) ([1d2e35c](https://github.com/AbongileBoja/QuerySpec/commit/1d2e35cc8e5bc740530eead6dfd222c577bee043)), closes [#138](https://github.com/AbongileBoja/QuerySpec/issues/138) [#73](https://github.com/AbongileBoja/QuerySpec/issues/73)
 
-* **core:** `FilterOperator.Contains_CaseInsensitive` is marked `[Obsolete(error: false)]` in favour of `FilterOperator.ContainsCaseInsensitive`. Snake-case spelling will be **removed in 3.0**. Both members share the same numeric value so binary callers are unaffected; switch tables and source references should migrate to the PascalCase name. Refs [#84](https://github.com/AbongileBoja/QuerySpec/issues/84).
-* **auditing:** `IComplianceExporter.GenerateGDPRExportAsync(string, string, Stream)` and `IComplianceExporter.GenerateGDPRExportAsync(string, string, Stream, CancellationToken)` are marked `[Obsolete(error: false)]` in favour of `GenerateGdprExportAsync`. The all-caps acronym violates the .NET naming guideline that acronyms three or more characters long are PascalCase. Will be **removed in 3.0**. The new overloads delegate to the obsolete ones via default-interface-method, so existing implementations continue to satisfy the interface unchanged. Refs [#84](https://github.com/AbongileBoja/QuerySpec/issues/84).
-* **security:** `IEncryptionProvider.RotateKeyAsync()` and `IEncryptionProvider.RotateKeyAsync(CancellationToken)` are marked `[Obsolete(error: true)]` and will be **removed in 3.0**. Every shipping implementation already throws `NotSupportedException` because the provider does not own the persisted ciphertexts. Implement key rotation at the storage layer instead (Azure Key Vault, AWS KMS, etc.): decrypt with the old provider, re-encrypt with the new provider. Closes [#73](https://github.com/AbongileBoja/QuerySpec/issues/73).
-* **di:** Eleven DI-builder methods that have only ever thrown `NotImplementedException` are marked `[Obsolete(error: true)]` and will be **removed in 3.0**. No implementation is planned. Affected: `AuditingBuilder.LogAllQueries`, `AuditingBuilder.TrackChanges`, `AuditingBuilder.EnableEncryption`, `AuditingBuilder.UseDatabase(string)`, `AuditingBuilder.RetentionDays(int)`, `CachingBuilder.EnableCompressionForLarge(int)`, `MonitoringBuilder.EnableOpenTelemetry`, `MonitoringBuilder.EnableHealthChecks`, `PerformanceBuilder.EnableQueryCaching`, `PerformanceBuilder.OptimizeExpressions`, `SecurityBuilder.RotateKeysEvery(int)`. Each obsolete message names the recommended replacement (composing your own `IAuditLogger`, calling `Services.AddOpenTelemetry()` / `Services.AddHealthChecks()` directly on the builder's `Services` property, decorating `ICacheProvider`, or implementing key rotation at the storage layer). Closes [#77](https://github.com/AbongileBoja/QuerySpec/issues/77); 3.0 removal tracked in [#139](https://github.com/AbongileBoja/QuerySpec/issues/139).
 
-### Deprecations (3.x → 4.0)
+### Bug Fixes
 
-| Diagnostic ID | Member                                                                           | Replacement                                                              | Severity    |
-| ------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------- |
-| `QSPEC0001`   | `GeoLocation.Latitude` / `.Longitude` (decimal)                                  | `GeoCoordinate` (double, immutable, validated)                           | warning     |
-| `QSPEC0002`   | `AdvancedFilterExpression` (mutable POCO)                                        | `FilterSpec` (record with `init` accessors)                              | warning     |
-| `QSPEC0003`   | `ICacheProvider.GetAsync<T>` / `SetAsync<T>` (`where T : class`)                 | `ICacheStore.TryGetAsync<T>` / `SetValueAsync<T>` + `CacheResult<T>`     | warning     |
+* **auditing:** stream GDPR JSON export and propagate cancellation ([#62](https://github.com/AbongileBoja/QuerySpec/issues/62)) ([#126](https://github.com/AbongileBoja/QuerySpec/issues/126)) ([4f19193](https://github.com/AbongileBoja/QuerySpec/commit/4f19193a3fe8c20e3d8838766d8ba5a1f9759de3))
+* **efcore:** translate string operators via EF-recognized methods ([#113](https://github.com/AbongileBoja/QuerySpec/issues/113)) ([#124](https://github.com/AbongileBoja/QuerySpec/issues/124)) ([dfa8fe5](https://github.com/AbongileBoja/QuerySpec/commit/dfa8fe5652f333ec4651a99d6b2805545b68eec2))
+* **resilience:** inject TimeProvider into RateLimiter and replace wall-clock test ([#143](https://github.com/AbongileBoja/QuerySpec/issues/143)) ([#146](https://github.com/AbongileBoja/QuerySpec/issues/146)) ([04f1877](https://github.com/AbongileBoja/QuerySpec/commit/04f187758d3ec5216552b4cdc41745df31d12efd))
+* **tests:** replace wall-clock timing with FakeTimeProvider and sync primitives ([#74](https://github.com/AbongileBoja/QuerySpec/issues/74)) ([#125](https://github.com/AbongileBoja/QuerySpec/issues/125)) ([b2d74ed](https://github.com/AbongileBoja/QuerySpec/commit/b2d74edd0be0a04dca8bf05dc1fa7e10e687e3ed))
 
-Each `[Obsolete]` attribute carries a `DiagnosticId` and a `UrlFormat` pointing at `docs/diagnostics/QSPEC####.md`, the canonical Microsoft pattern (mirrors `SYSLIB####`). Removal is scheduled for 4.0; tracking issue links below.
 
-### Migration guide
+### CI
 
-#### Site 3 — `GeoLocation` → `GeoCoordinate` (QSPEC0001)
+* emit per-gate JSON evidence and aggregate release-health index ([7bcb4aa](https://github.com/AbongileBoja/QuerySpec/commit/7bcb4aa9aaf3b64687a2f4f7e126f8ad24cdeae2))
 
-```csharp
-// Before
-var loc = new GeoLocation(40.7128m, -74.0060m);
-var d = loc.DistanceTo(other);
 
-// After
-var loc = new GeoCoordinate(40.7128, -74.0060);
-var d = loc.DistanceTo(other);
+### Performance
 
-// Migration helper - allocation-free.
-GeoCoordinate migrated = legacyGeoLocation.ToGeoCoordinate();
-```
+* **core:** eliminate params object[] alloc in CacheKeyGenerator hot path ([#58](https://github.com/AbongileBoja/QuerySpec/issues/58)) ([9f88a21](https://github.com/AbongileBoja/QuerySpec/commit/9f88a21a5b1f08722400e230a4ff4b4d68245169))
+* **efcore:** cache Nullable<T> HasValue/Value PropertyInfo in translator ([#87](https://github.com/AbongileBoja/QuerySpec/issues/87)) ([#127](https://github.com/AbongileBoja/QuerySpec/issues/127)) ([534eb7e](https://github.com/AbongileBoja/QuerySpec/commit/534eb7e6015d8074cdb6ceda26a34d48b59a31c2))
 
-#### Site 4 — `AdvancedFilterExpression` → `FilterSpec` (QSPEC0002)
 
-```csharp
-// Before
-var f = new AdvancedFilterExpression { Field = "Status", Operator = FilterOperator.Equal, Value = "Active" };
+### Documentation
 
-// After
-var f = new FilterSpec { Field = "Status", Operator = FilterOperator.Equal, Value = "Active" };
-var query = QuerySpecExpressionTranslator.ApplyFilter(source, f);
+* **core:** complete <param>/<returns>/<exception>/<typeparam> on public surface ([#136](https://github.com/AbongileBoja/QuerySpec/issues/136)) ([332a2f5](https://github.com/AbongileBoja/QuerySpec/commit/332a2f540a4bdbe128e7764b0649384e0b960c2f)), closes [#3](https://github.com/AbongileBoja/QuerySpec/issues/3)
+* **efcore:** mark QuerySpecExpressionTranslator for 3.0 static-class conversion ([#79](https://github.com/AbongileBoja/QuerySpec/issues/79)) ([#142](https://github.com/AbongileBoja/QuerySpec/issues/142)) ([571cc0a](https://github.com/AbongileBoja/QuerySpec/commit/571cc0a083cdf1023419233ed87178a6d648b015))
+* **release:** document supported TFM policy and netstandard2.0 stance ([#66](https://github.com/AbongileBoja/QuerySpec/issues/66)) ([43bdc24](https://github.com/AbongileBoja/QuerySpec/commit/43bdc2456e40e531507a31bfb606408742077fb0))
 
-// Round-trip.
-FilterSpec spec = FilterSpec.FromMutable(legacy);
-AdvancedFilterExpression legacy = spec.ToMutable();
-```
 
-#### Site 5 — `ICacheProvider` → `ICacheStore` (QSPEC0003)
+### Tests
 
-```csharp
-// Before
-await cache.SetAsync("key", value);
-var v = await cache.GetAsync<MyDto>("key"); // null on miss; reference types only
-
-// After
-await store.SetValueAsync("key", value);              // value types work directly
-var hit = await store.TryGetAsync<int>("key");
-if (hit.HasValue) Console.WriteLine(hit.Value);       // unambiguous miss-vs-default
-```
-
-A Roslyn analyzer + code-fix package shipping these migrations as one-keystroke fixes is tracked as a follow-up.
-
-#### Issue #84 site map
-
-| Site | Old (3.x) | New (3.x additive) | 4.0 final |
-|---|---|---|---|
-| 1 | `FilterOperator.Contains_CaseInsensitive` (obsolete in 2.x) | `FilterOperator.ContainsCaseInsensitive` (shipped) | snake-case removed |
-| 2 | `IComplianceExporter.GenerateGDPRExportAsync(...)` (obsolete in 2.x) | `IComplianceExporter.GenerateGdprExportAsync(...)` (shipped) | `GDPR` overloads removed |
-| 3 | `GeoLocation.Latitude` / `.Longitude` — `[Obsolete]` QSPEC0001 | `GeoCoordinate` (shipped this release) | `GeoLocation` removed in 4.0 |
-| 4 | `AdvancedFilterExpression` — `[Obsolete]` QSPEC0002 | `FilterSpec` (shipped this release) | `AdvancedFilterExpression` removed in 4.0 |
-| 5 | `ICacheProvider.GetAsync<T>` / `SetAsync<T>` — `[Obsolete]` QSPEC0003 | `ICacheStore` + `CacheResult<T>` (shipped this release) | constraints removed, contract reshaped in 4.0 |
+* **auditing:** cover InMemoryAuditLogger query and report methods ([#80](https://github.com/AbongileBoja/QuerySpec/issues/80)) ([#131](https://github.com/AbongileBoja/QuerySpec/issues/131)) ([8fddcb1](https://github.com/AbongileBoja/QuerySpec/commit/8fddcb17c5be53777db5d4d85824595b1e093dd9))
+* **efcore:** add property-based tests and replace silent catch-all with NotSupportedException ([#78](https://github.com/AbongileBoja/QuerySpec/issues/78)) ([#135](https://github.com/AbongileBoja/QuerySpec/issues/135)) ([69a3112](https://github.com/AbongileBoja/QuerySpec/commit/69a3112e59ddbaa4b41ccb28c0dc6175fb210311))
+* **monitoring:** cover N1DetectionEngine eviction/truncation paths and HealthStatus contract ([#83](https://github.com/AbongileBoja/QuerySpec/issues/83)) ([#132](https://github.com/AbongileBoja/QuerySpec/issues/132)) ([59d9ff9](https://github.com/AbongileBoja/QuerySpec/commit/59d9ff9910692bb7fcc876784fe46e6b97fcd1e5))
+* **security:** configure Stryker.NET mutation testing scoped to security paths ([#76](https://github.com/AbongileBoja/QuerySpec/issues/76)) ([#134](https://github.com/AbongileBoja/QuerySpec/issues/134)) ([2caee91](https://github.com/AbongileBoja/QuerySpec/commit/2caee91395d19d7c1e6ad81099345636c9b7f99a)), closes [#130](https://github.com/AbongileBoja/QuerySpec/issues/130)
+* **security:** cover large-AAD heap path in MigratingAuthenticatedEncryptionProvider ([#85](https://github.com/AbongileBoja/QuerySpec/issues/85)) ([#130](https://github.com/AbongileBoja/QuerySpec/issues/130)) ([3dec4e3](https://github.com/AbongileBoja/QuerySpec/commit/3dec4e3df594e9a3136e38a2d61c3c47a8751044))
+* **tests:** full-library Stryker mutation gating with per-PR incremental + weekly sweep ([#76](https://github.com/AbongileBoja/QuerySpec/issues/76)) ([9ebff94](https://github.com/AbongileBoja/QuerySpec/commit/9ebff94a45a1d8208a2c9527b10fcbf68c2eae01))
 
 ### [3.0.1-rc1](https://github.com/AbongileBoja/QuerySpec/compare/v3.0.0...v3.0.1-rc1) (2026-04-26)
 

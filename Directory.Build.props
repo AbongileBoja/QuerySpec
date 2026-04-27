@@ -4,7 +4,7 @@
     <!-- Supported TFM policy: net8.0 (LTS), net9.0 (STS), net10.0 (LTS). netstandard2.0 is intentionally excluded — see README "Supported frameworks". -->
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <Version>0.0.0-local</Version>
-    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
 
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
@@ -29,7 +29,7 @@
 
     <EnablePackageValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnablePackageValidation>
     <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnableStrictModeForBaselineValidation>
-    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">3.0.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">3.0.1-rc1</PackageValidationBaselineVersion>
     <NoWarn>$(NoWarn);RS0016;RS0017;RS0024;RS0025;RS0026;RS0027;RS0036;RS0037;RS0041</NoWarn>
  
     <Authors>Abongile Boja</Authors>

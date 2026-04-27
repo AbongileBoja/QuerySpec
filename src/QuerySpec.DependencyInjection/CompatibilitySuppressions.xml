@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Intentional API surface changes from v3.0.0 → v4.0.0 in QuerySpec.DependencyInjection.
+  All entries are deliberate major-version breaks documented in CHANGELOG.md.
+  Issue references: #139.
+
+  CP0002 = member missing on one side (removed stub methods)
+
+  The 11 methods below were [Obsolete(error: true)] in 3.x and threw
+  NotImplementedException on every call. They are removed in 4.0.
+-->
+<Suppressions>
+
+  <!-- AuditingBuilder.LogAllQueries() removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.LogAllQueries</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.LogAllQueries</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.LogAllQueries</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- AuditingBuilder.TrackChanges() removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.TrackChanges</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.TrackChanges</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.TrackChanges</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- AuditingBuilder.EnableEncryption() removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.EnableEncryption</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.EnableEncryption</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.EnableEncryption</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- AuditingBuilder.UseDatabase(string) removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.UseDatabase(System.String)</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.UseDatabase(System.String)</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.UseDatabase(System.String)</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- AuditingBuilder.RetentionDays(int) removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.RetentionDays(System.Int32)</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.RetentionDays(System.Int32)</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.AuditingBuilder.RetentionDays(System.Int32)</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- CachingBuilder.EnableCompressionForLarge(int) removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.CachingBuilder.EnableCompressionForLarge(System.Int32)</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.CachingBuilder.EnableCompressionForLarge(System.Int32)</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.CachingBuilder.EnableCompressionForLarge(System.Int32)</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- MonitoringBuilder.EnableOpenTelemetry() removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.MonitoringBuilder.EnableOpenTelemetry</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.MonitoringBuilder.EnableOpenTelemetry</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.MonitoringBuilder.EnableOpenTelemetry</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- MonitoringBuilder.EnableHealthChecks() removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.MonitoringBuilder.EnableHealthChecks</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.MonitoringBuilder.EnableHealthChecks</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.MonitoringBuilder.EnableHealthChecks</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- PerformanceBuilder.EnableQueryCaching() removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.PerformanceBuilder.EnableQueryCaching</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.PerformanceBuilder.EnableQueryCaching</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.PerformanceBuilder.EnableQueryCaching</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- PerformanceBuilder.OptimizeExpressions() removed. Refs #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.PerformanceBuilder.OptimizeExpressions</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.PerformanceBuilder.OptimizeExpressions</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.PerformanceBuilder.OptimizeExpressions</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- SecurityBuilder.RotateKeysEvery(int) removed. Refs #138, #139 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.SecurityBuilder.RotateKeysEvery(System.Int32)</Target>
+    <Left>lib/net8.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net8.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.SecurityBuilder.RotateKeysEvery(System.Int32)</Target>
+    <Left>lib/net9.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net9.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.DependencyInjection.SecurityBuilder.RotateKeysEvery(System.Int32)</Target>
+    <Left>lib/net10.0/QuerySpec.DependencyInjection.dll</Left>
+    <Right>lib/net10.0/QuerySpec.DependencyInjection.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+</Suppressions>

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Intentional API surface changes from v3.0.0 → v4.0.0 in QuerySpec.EFCore.
+  All entries are deliberate major-version breaks documented in CHANGELOG.md.
+  Issue references: #141, #150.
+
+  CP0001 = type missing on one side
+  CP0002 = member missing on one side
+  CP0009 = type is sealed (static class) on new side but was not sealed on baseline
+-->
+<Suppressions>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       TYPE METADATA CHANGE (CP0009)
+       QuerySpecExpressionTranslator converted to static class in v4.0.
+       ApiCompat reports CP0009 ("sealed because it has no visible constructor").
+       All members were already static; no instance state existed. Refs #141.
+       ═══════════════════════════════════════════════════════════════════════════ -->
+
+  <Suppression>
+    <DiagnosticId>CP0009</DiagnosticId>
+    <Target>T:QuerySpec.EFCore.QuerySpecExpressionTranslator</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0009</DiagnosticId>
+    <Target>T:QuerySpec.EFCore.QuerySpecExpressionTranslator</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0009</DiagnosticId>
+    <Target>T:QuerySpec.EFCore.QuerySpecExpressionTranslator</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       REMOVED TYPES (CP0001)
+       QuerySpecExpressionTranslator.StringHelper was an internal-to-v3 nested
+       helper that the baseline exposed. Removed alongside the static conversion.
+       Refs #141.
+       ═══════════════════════════════════════════════════════════════════════════ -->
+
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:QuerySpec.EFCore.QuerySpecExpressionTranslator.StringHelper</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:QuerySpec.EFCore.QuerySpecExpressionTranslator.StringHelper</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:QuerySpec.EFCore.QuerySpecExpressionTranslator.StringHelper</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       REMOVED MEMBERS (CP0002) — AdvancedFilterExpression overloads removed.
+       Replacement: FilterSpec overloads. Refs #150, #141.
+       ═══════════════════════════════════════════════════════════════════════════ -->
+
+  <!-- ApplyFilter<T>(IQueryable<T>, AdvancedFilterExpression?) removed -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilter``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilter``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilter``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- ApplyFilterCached<T>(IQueryable<T>, AdvancedFilterExpression?) removed -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilterCached``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilterCached``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilterCached``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- GetOrBuildCachedPredicate<T>(AdvancedFilterExpression) removed -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.GetOrBuildCachedPredicate``1(QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.GetOrBuildCachedPredicate``1(QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.GetOrBuildCachedPredicate``1(QuerySpec.Core.Advanced.AdvancedFilterExpression)</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- Parameterless constructor removed (type is now static). Refs #141 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.#ctor</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.#ctor</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.#ctor</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       NEW MEMBERS (CP0002) — FilterSpec overloads added as replacement surface.
+       ═══════════════════════════════════════════════════════════════════════════ -->
+
+  <!-- ApplyFilter<T>(IQueryable<T>, FilterSpec?) added -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilter``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilter``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilter``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- ApplyFilterCached<T>(IQueryable<T>, FilterSpec?) added -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilterCached``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilterCached``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.ApplyFilterCached``1(System.Linq.IQueryable{``0},QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+  <!-- GetOrBuildCachedPredicate<T>(FilterSpec) added -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.GetOrBuildCachedPredicate``1(QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net8.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net8.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.GetOrBuildCachedPredicate``1(QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net9.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net9.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:QuerySpec.EFCore.QuerySpecExpressionTranslator.GetOrBuildCachedPredicate``1(QuerySpec.Core.Advanced.FilterSpec)</Target>
+    <Left>lib/net10.0/QuerySpec.EFCore.dll</Left>
+    <Right>lib/net10.0/QuerySpec.EFCore.dll</Right>
+    <IsBaselineSuppression>true</IsBaselineSuppression>
+  </Suppression>
+
+</Suppressions>

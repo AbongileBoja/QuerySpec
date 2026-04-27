@@ -140,6 +140,8 @@ jobs:
         count=$(find src/QuerySpec.Core/bin/Release src/QuerySpec.EFCore/bin/Release src/QuerySpec.DependencyInjection/bin/Release \
                   -type f -name 'QuerySpec.*.dll' 2>/dev/null | wc -l | tr -d ' ')
         echo "assemblies=${count}" >> "$GITHUB_OUTPUT"
+        # QuerySpec.Analyzers targets netstandard2.0 and is a DevelopmentDependency;
+        # its assembly is not strong-name signed.
 
     - name: Test
       id: test
@@ -182,7 +184,8 @@ jobs:
         for proj in \
           src/QuerySpec.Core/QuerySpec.Core.csproj \
           src/QuerySpec.EFCore/QuerySpec.EFCore.csproj \
-          src/QuerySpec.DependencyInjection/QuerySpec.DependencyInjection.csproj
+          src/QuerySpec.DependencyInjection/QuerySpec.DependencyInjection.csproj \
+          src/QuerySpec.Analyzers/QuerySpec.Analyzers.csproj
         do
           dotnet pack "$proj" \
             --no-build --configuration Release \
@@ -198,14 +201,14 @@ jobs:
       run: |
         set -euo pipefail
         count=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l)
-        if [[ "$count" != "3" ]]; then
-          echo "::error::Expected 3 nupkg files, found $count." >&2
+        if [[ "$count" != "4" ]]; then
+          echo "::error::Expected 4 nupkg files (Core, EFCore, DI, Analyzers), found $count." >&2
           ls -la ./artifacts
           exit 1
         fi
         snupkg_count=$(ls ./artifacts/*.snupkg 2>/dev/null | wc -l)
         if [[ "$snupkg_count" != "3" ]]; then
-          echo "::error::Expected 3 snupkg symbol files, found $snupkg_count." >&2
+          echo "::error::Expected 3 snupkg symbol files (Analyzers has no symbols), found $snupkg_count." >&2
           exit 1
         fi
         for f in ./artifacts/*.nupkg; do
@@ -215,7 +218,7 @@ jobs:
             exit 1
           fi
         done
-        echo "Package metadata OK: 3 nupkg + 3 snupkg at version ${{ steps.version.outputs.version }}."
+        echo "Package metadata OK: 4 nupkg + 3 snupkg at version ${{ steps.version.outputs.version }}."
 
     - name: Validate package contents and metadata
       id: pkg-validate
@@ -291,7 +294,7 @@ jobs:
           done
         fi
         pack_verdict=pass
-        if [[ "$nupkg_count" -ne 3 || "$snupkg_count" -ne 3 ]]; then pack_verdict=fail; fi
+        if [[ "$nupkg_count" -ne 4 || "$snupkg_count" -ne 3 ]]; then pack_verdict=fail; fi
         pack_summary=$(jq -n \
           --argjson nc "$nupkg_count" --argjson sc "$snupkg_count" \
           --arg ver "$version" --argjson pkgs "$packages_json" \
