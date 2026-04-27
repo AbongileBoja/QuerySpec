@@ -1,0 +1,3 @@
+src/QuerySpec.Core/Security/** @AbongileBoja
+src/QuerySpec.EFCore/QuerySpecExpressionTranslator.cs @AbongileBoja
+.github/workflows/** @AbongileBoja
