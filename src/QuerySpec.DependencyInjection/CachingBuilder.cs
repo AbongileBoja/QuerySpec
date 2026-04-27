@@ -79,10 +79,4 @@ public class CachingBuilder
         return this;
     }
 
-    /// <summary>Enables compression for cache entries larger than the given threshold.</summary>
-    /// <param name="thresholdBytes">Compress entries whose serialized size exceeds this many bytes.</param>
-    /// <exception cref="NotImplementedException">Always thrown. Compression is not implemented.</exception>
-    [Obsolete("Will be removed in 3.0; this method has never been implemented. Wrap ICacheProvider with a compressing decorator (e.g. via Scrutor's Services.Decorate) or remove the call site. Tracked in https://github.com/AbongileBoja/QuerySpec/issues/139.", error: true)]
-    public CachingBuilder EnableCompressionForLarge(int thresholdBytes) =>
-        throw new NotImplementedException("CachingBuilder.EnableCompressionForLarge is not implemented.");
 }
