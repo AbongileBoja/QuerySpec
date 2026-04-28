@@ -22,6 +22,13 @@ jobs:
         dotnet-version: ['8.0.x', '9.0.x', '10.0.x']
 
     steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
+
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
     - name: Record start time
@@ -318,6 +325,12 @@ jobs:
     permissions:
       contents: read
     steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -363,6 +376,12 @@ jobs:
       contents: read
       security-events: write
     steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -456,6 +475,12 @@ jobs:
       pull-requests: read
     if: github.event_name == 'pull_request'
     steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -493,6 +518,12 @@ jobs:
     permissions:
       contents: read
     steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -560,6 +591,12 @@ jobs:
     permissions:
       contents: read
     steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       with:
         fetch-depth: 0
@@ -617,6 +654,12 @@ jobs:
     name: Reproducibility check (deterministic build)
     runs-on: ubuntu-latest
     steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -698,6 +741,12 @@ jobs:
     permissions:
       contents: read
     steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
     - name: Download all per-gate evidence
