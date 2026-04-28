@@ -24,6 +24,9 @@ public static class QuerySpecExpressionTranslator
     internal const string BuildInRequiresDynamicCodeMessage =
         "QuerySpec filter translation builds an Enumerable.Contains<T> call via MethodInfo.MakeGenericMethod / Array.CreateInstance for In/NotIn operators. These APIs emit IL at runtime and are not supported under Native AOT. Avoid In/NotIn in AOT-published applications, or pre-translate to a Contains-call against a strongly-typed array at the call site.";
 
+    internal const string TranslateRequiresUnreferencedCodeMessage =
+        "QuerySpec filter translation resolves entity properties by name via reflection (Type.GetProperty), navigates nested property paths whose intermediate types are not statically annotated, and reads Nullable<T>.HasValue/Value via reflected PropertyInfo. Under PublishTrimmed the trimmer cannot prove these members are preserved for arbitrary entity types, so callers must either annotate T with [DynamicallyAccessedMembers(PublicProperties)] for the entire entity graph or opt out of trimming for the call site.";
+
     /// <summary>
     /// Maximum number of entries retained in the internal (Type, property-name) → PropertyInfo
     /// cache. When exceeded the cache is cleared in bulk; this is a simple bounded policy
@@ -68,8 +71,7 @@ public static class QuerySpecExpressionTranslator
 
     private static readonly ConcurrentDictionary<Type, (PropertyInfo HasValue, PropertyInfo Value)> NullablePropertyInfoCache = new();
 
-    [UnconditionalSuppressMessage("Trimming", "IL2070",
-        Justification = "nullableType is always a closed Nullable<T>. Nullable<T>.HasValue and Nullable<T>.Value are intrinsic public properties of a runtime-known framework type and are guaranteed to be preserved by the trimmer.")]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static (PropertyInfo HasValue, PropertyInfo Value) GetNullablePropertyInfos(Type nullableType)
     {
         if (NullablePropertyInfoCache.Count >= NullablePropertyInfoCacheCapacity)
@@ -97,6 +99,7 @@ public static class QuerySpecExpressionTranslator
     /// <returns>A new <see cref="IQueryable{T}"/> with the filter appended via <see cref="Queryable.Where{TSource}(IQueryable{TSource}, System.Linq.Expressions.Expression{Func{TSource, bool}})"/>; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     public static IQueryable<T> ApplyFilter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(
         IQueryable<T> query,
         FilterSpec? filter) where T : class
@@ -132,6 +135,7 @@ public static class QuerySpecExpressionTranslator
     /// <returns>A new <see cref="IQueryable{T}"/> with the cached predicate appended; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
     /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     public static IQueryable<T> ApplyFilterCached<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(
         IQueryable<T> query,
         FilterSpec? filter) where T : class
@@ -153,6 +157,7 @@ public static class QuerySpecExpressionTranslator
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="filter"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
     [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     public static Expression<Func<T, bool>> GetOrBuildCachedPredicate<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(
         FilterSpec filter) where T : class
     {
@@ -205,6 +210,7 @@ public static class QuerySpecExpressionTranslator
     }
 
     [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression<Func<T, bool>> BuildPredicate<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(FilterSpec filter, int depth)
     {
         if (depth > MaxFilterDepth)
@@ -216,6 +222,7 @@ public static class QuerySpecExpressionTranslator
     }
 
     [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildBody(ParameterExpression param, FilterSpec filter, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type entityType, int depth)
     {
         if (depth > MaxFilterDepth)
@@ -248,6 +255,7 @@ public static class QuerySpecExpressionTranslator
     }
 
     [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildOperatorExpression(ParameterExpression param, FilterSpec filter, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type entityType)
     {
         var property = GetPropertyExpression(param, filter.Field, entityType);
@@ -297,8 +305,7 @@ public static class QuerySpecExpressionTranslator
         };
     }
 
-    [UnconditionalSuppressMessage("Trimming", "IL2080",
-        Justification = "PropertyCache key tuple stores Type without a DAM annotation. The cache is fed only from typeof(T) on the public ApplyFilter/ApplyFilterCached/GetOrBuildCachedPredicate entry points, which carry [DynamicallyAccessedMembers(PublicProperties)] on T. The lambda factory invokes GetProperty by name on a Type whose public properties are statically rooted by the consumer's annotation; PublicProperties is the minimum required by GetProperty(string, BindingFlags.Public).")]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression GetPropertyExpression(ParameterExpression param, string fieldName, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type entityType)
     {
         var parts = fieldName.Split('.');
@@ -324,6 +331,7 @@ public static class QuerySpecExpressionTranslator
         return Expression.Equal(property, Expression.Constant(converted, propertyType));
     }
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildComparison(Expression property, object? value, Type propertyType, Type underlyingType, bool isNullable, ExpressionType op)
     {
         var converted = NormalizeValue(value, propertyType);
@@ -364,6 +372,7 @@ public static class QuerySpecExpressionTranslator
 
     #region String Operators
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildStringPredicate(Expression property, object? value, StringPredicate predicate, bool caseSensitive, bool isNullable)
     {
         var strValue = value?.ToString() ?? "";
@@ -411,6 +420,7 @@ public static class QuerySpecExpressionTranslator
         return call;
     }
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildRegexMatch(Expression property, object? value, bool isNullable)
     {
         var pattern = value?.ToString() ?? "";
@@ -437,8 +447,7 @@ public static class QuerySpecExpressionTranslator
     #region Collection Operators
 
     [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
-    [UnconditionalSuppressMessage("Trimming", "IL2060",
-        Justification = "Enumerable.Contains<T> is a non-trimmable framework method; closing it over the runtime element type via MakeGenericMethod has no trim impact beyond the AOT requirement already declared by RequiresDynamicCode.")]
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildIn(Expression property, object? value, Type propertyType, Type underlyingType, bool isNullable)
     {
         if (value == null)
@@ -476,6 +485,7 @@ public static class QuerySpecExpressionTranslator
 
     #region Range Operators
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildBetween(Expression property, object? valueFrom, object? valueTo, Type propertyType, Type underlyingType, bool isNullable)
     {
         var from = NormalizeValue(valueFrom, propertyType);
@@ -508,6 +518,7 @@ public static class QuerySpecExpressionTranslator
 
     #region Null Operators
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildIsNull(Expression property, bool isNullable)
     {
         if (isNullable)
@@ -523,6 +534,7 @@ public static class QuerySpecExpressionTranslator
         return Expression.Equal(property, Expression.Constant(null, property.Type));
     }
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildIsEmpty(Expression property, bool isNullable)
     {
         if (isNullable)
@@ -542,6 +554,7 @@ public static class QuerySpecExpressionTranslator
 
     #region Temporal Operators
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildDateInRange(Expression property, DateTime from, DateTime to, bool isNullable)
     {
         var fromExpr = Expression.Constant(from, typeof(DateTime));
@@ -563,6 +576,7 @@ public static class QuerySpecExpressionTranslator
             Expression.LessThanOrEqual(property, toExpr));
     }
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildDateComparison(Expression property, object? value, ExpressionType op, bool isNullable)
     {
         var dateValue = (DateTime?)NormalizeValue(value, typeof(DateTime));
@@ -593,6 +607,7 @@ public static class QuerySpecExpressionTranslator
         };
     }
 
+    [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static Expression BuildDateEquals(Expression property, object? value, bool isNullable)
     {
         var dateValue = (DateTime?)NormalizeValue(value, typeof(DateTime));
