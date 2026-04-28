@@ -1,3 +1,6 @@
+# Mutation reports are emitted as workflow artifacts (per-run retention 90 days).
+# The `mutation-reports` branch is no longer used; reports are accessible via the
+# "Artifacts" section of each workflow run. `contents: read` is sufficient.
 name: Mutation testing
 
 on:
@@ -81,34 +84,6 @@ jobs:
         path: src/QuerySpec.Core/StrykerOutput/
         retention-days: 90
 
-    - name: Publish Core report to mutation-reports branch (weekly sweep only)
-      if: github.event_name == 'schedule' && success()
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        REPORT_DIR=$(ls -dt src/QuerySpec.Core/StrykerOutput/*/reports 2>/dev/null | head -1)
-        if [ -z "$REPORT_DIR" ]; then
-          echo "No report directory found; skipping publish."
-          exit 0
-        fi
-        git config user.email "actions@github.com"
-        git config user.name "github-actions"
-        git fetch origin mutation-reports 2>/dev/null || true
-        if git show-ref --verify --quiet refs/remotes/origin/mutation-reports; then
-          git checkout -b mutation-reports origin/mutation-reports
-        else
-          git checkout --orphan mutation-reports
-          git rm -rf . --quiet || true
-        fi
-        DATED=$(date -u +%Y-%m-%d)
-        mkdir -p "core/$DATED"
-        cp "$REPORT_DIR/"*.html "core/$DATED/" 2>/dev/null || true
-        cp "$REPORT_DIR/"*.json "core/$DATED/" 2>/dev/null || true
-        cp -r "core/$DATED" "core/latest"
-        git add .
-        git diff --staged --quiet || git commit -m "chore(tests): mutation report core $DATED"
-        git push origin mutation-reports
-
   stryker-efcore:
     name: Stryker.NET — QuerySpec.EFCore
     runs-on: ubuntu-latest
@@ -163,34 +138,6 @@ jobs:
         path: src/QuerySpec.EFCore/StrykerOutput/
         retention-days: 90
 
-    - name: Publish EFCore report to mutation-reports branch (weekly sweep only)
-      if: github.event_name == 'schedule' && success()
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        REPORT_DIR=$(ls -dt src/QuerySpec.EFCore/StrykerOutput/*/reports 2>/dev/null | head -1)
-        if [ -z "$REPORT_DIR" ]; then
-          echo "No report directory found; skipping publish."
-          exit 0
-        fi
-        git config user.email "actions@github.com"
-        git config user.name "github-actions"
-        git fetch origin mutation-reports 2>/dev/null || true
-        if git show-ref --verify --quiet refs/remotes/origin/mutation-reports; then
-          git checkout -b mutation-reports origin/mutation-reports
-        else
-          git checkout --orphan mutation-reports
-          git rm -rf . --quiet || true
-        fi
-        DATED=$(date -u +%Y-%m-%d)
-        mkdir -p "efcore/$DATED"
-        cp "$REPORT_DIR/"*.html "efcore/$DATED/" 2>/dev/null || true
-        cp "$REPORT_DIR/"*.json "efcore/$DATED/" 2>/dev/null || true
-        cp -r "efcore/$DATED" "efcore/latest"
-        git add .
-        git diff --staged --quiet || git commit -m "chore(tests): mutation report efcore $DATED"
-        git push origin mutation-reports
-
   stryker-di:
     name: Stryker.NET — QuerySpec.DependencyInjection
     runs-on: ubuntu-latest
@@ -244,31 +191,3 @@ jobs:
         name: stryker-report-di
         path: src/QuerySpec.DependencyInjection/StrykerOutput/
         retention-days: 90
-
-    - name: Publish DI report to mutation-reports branch (weekly sweep only)
-      if: github.event_name == 'schedule' && success()
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        REPORT_DIR=$(ls -dt src/QuerySpec.DependencyInjection/StrykerOutput/*/reports 2>/dev/null | head -1)
-        if [ -z "$REPORT_DIR" ]; then
-          echo "No report directory found; skipping publish."
-          exit 0
-        fi
-        git config user.email "actions@github.com"
-        git config user.name "github-actions"
-        git fetch origin mutation-reports 2>/dev/null || true
-        if git show-ref --verify --quiet refs/remotes/origin/mutation-reports; then
-          git checkout -b mutation-reports origin/mutation-reports
-        else
-          git checkout --orphan mutation-reports
-          git rm -rf . --quiet || true
-        fi
-        DATED=$(date -u +%Y-%m-%d)
-        mkdir -p "di/$DATED"
-        cp "$REPORT_DIR/"*.html "di/$DATED/" 2>/dev/null || true
-        cp "$REPORT_DIR/"*.json "di/$DATED/" 2>/dev/null || true
-        cp -r "di/$DATED" "di/latest"
-        git add .
-        git diff --staged --quiet || git commit -m "chore(tests): mutation report di $DATED"
-        git push origin mutation-reports
