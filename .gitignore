@@ -390,7 +390,3 @@ FodyWeavers.xsd
 # Commitlint / husky dev-tooling artefacts
 npm-debug.log*
 .husky/_
-
-# Stryker mutation testing output
-StrykerOutput/
-stryker-baseline/
