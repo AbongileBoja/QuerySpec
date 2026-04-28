@@ -38,6 +38,7 @@
         "tests",
         "ci",
         "deps",
+        "deps-dev",
         "docs",
         "release"
       ]
