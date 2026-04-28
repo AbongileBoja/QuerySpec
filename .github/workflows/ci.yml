@@ -669,43 +669,79 @@ jobs:
 
     - name: First build
       run: |
-        dotnet build src/QuerySpec.Core/QuerySpec.Core.csproj \
-          --configuration Release \
-          -p:ContinuousIntegrationBuild=true \
-          -p:Deterministic=true \
-          -p:SignAssembly=false -p:DelaySign=false \
-          /bl:msbuild1.binlog
-        cp src/QuerySpec.Core/bin/Release/net10.0/QuerySpec.Core.dll /tmp/build1.dll
+        set -euo pipefail
+        common="-p:ContinuousIntegrationBuild=true -p:Deterministic=true -p:SignAssembly=false -p:DelaySign=false"
+        for proj in \
+          src/QuerySpec.Analyzers/QuerySpec.Analyzers.csproj \
+          src/QuerySpec.Analyzers.CodeFixes/QuerySpec.Analyzers.CodeFixes.csproj \
+          src/QuerySpec.Core/QuerySpec.Core.csproj \
+          src/QuerySpec.EFCore/QuerySpec.EFCore.csproj \
+          src/QuerySpec.DependencyInjection/QuerySpec.DependencyInjection.csproj
+        do
+          dotnet build "$proj" --configuration Release $common
+        done
+        mkdir -p /tmp/build1
+        cp src/QuerySpec.Core/bin/Release/net10.0/QuerySpec.Core.dll                                            /tmp/build1/
+        cp src/QuerySpec.EFCore/bin/Release/net10.0/QuerySpec.EFCore.dll                                        /tmp/build1/
+        cp src/QuerySpec.DependencyInjection/bin/Release/net10.0/QuerySpec.DependencyInjection.dll              /tmp/build1/
+        cp src/QuerySpec.Analyzers/bin/Release/netstandard2.0/QuerySpec.Analyzers.dll                           /tmp/build1/
+        cp src/QuerySpec.Analyzers.CodeFixes/bin/Release/netstandard2.0/QuerySpec.Analyzers.CodeFixes.dll       /tmp/build1/
 
     - name: Clean and second build
       run: |
-        dotnet clean src/QuerySpec.Core/QuerySpec.Core.csproj --configuration Release
-        rm -rf src/QuerySpec.Core/bin src/QuerySpec.Core/obj
-        dotnet build src/QuerySpec.Core/QuerySpec.Core.csproj \
-          --configuration Release \
-          -p:ContinuousIntegrationBuild=true \
-          -p:Deterministic=true \
-          -p:SignAssembly=false -p:DelaySign=false \
-          /bl:msbuild2.binlog
-        cp src/QuerySpec.Core/bin/Release/net10.0/QuerySpec.Core.dll /tmp/build2.dll
+        set -euo pipefail
+        for proj in \
+          src/QuerySpec.Analyzers \
+          src/QuerySpec.Analyzers.CodeFixes \
+          src/QuerySpec.Core \
+          src/QuerySpec.EFCore \
+          src/QuerySpec.DependencyInjection
+        do
+          rm -rf "$proj/bin" "$proj/obj"
+        done
+        common="-p:ContinuousIntegrationBuild=true -p:Deterministic=true -p:SignAssembly=false -p:DelaySign=false"
+        for proj in \
+          src/QuerySpec.Analyzers/QuerySpec.Analyzers.csproj \
+          src/QuerySpec.Analyzers.CodeFixes/QuerySpec.Analyzers.CodeFixes.csproj \
+          src/QuerySpec.Core/QuerySpec.Core.csproj \
+          src/QuerySpec.EFCore/QuerySpec.EFCore.csproj \
+          src/QuerySpec.DependencyInjection/QuerySpec.DependencyInjection.csproj
+        do
+          dotnet build "$proj" --configuration Release $common
+        done
+        mkdir -p /tmp/build2
+        cp src/QuerySpec.Core/bin/Release/net10.0/QuerySpec.Core.dll                                            /tmp/build2/
+        cp src/QuerySpec.EFCore/bin/Release/net10.0/QuerySpec.EFCore.dll                                        /tmp/build2/
+        cp src/QuerySpec.DependencyInjection/bin/Release/net10.0/QuerySpec.DependencyInjection.dll              /tmp/build2/
+        cp src/QuerySpec.Analyzers/bin/Release/netstandard2.0/QuerySpec.Analyzers.dll                           /tmp/build2/
+        cp src/QuerySpec.Analyzers.CodeFixes/bin/Release/netstandard2.0/QuerySpec.Analyzers.CodeFixes.dll       /tmp/build2/
 
     - name: Compare assembly hashes
       id: repro
       run: |
         set -euo pipefail
-        h1=$(sha256sum /tmp/build1.dll | cut -d' ' -f1)
-        h2=$(sha256sum /tmp/build2.dll | cut -d' ' -f1)
-        echo "Build 1 sha256: $h1"
-        echo "Build 2 sha256: $h2"
-        echo "h1=${h1}" >> "$GITHUB_OUTPUT"
-        echo "h2=${h2}" >> "$GITHUB_OUTPUT"
-        if [[ "$h1" != "$h2" ]]; then
-          echo "::error::Builds are not byte-identical. Deterministic build is broken."
-          echo "identical=false" >> "$GITHUB_OUTPUT"
+        failed=0
+        for asm in \
+          QuerySpec.Core.dll \
+          QuerySpec.EFCore.dll \
+          QuerySpec.DependencyInjection.dll \
+          QuerySpec.Analyzers.dll \
+          QuerySpec.Analyzers.CodeFixes.dll
+        do
+          hash1=$(sha256sum "/tmp/build1/$asm" | awk '{print $1}')
+          hash2=$(sha256sum "/tmp/build2/$asm" | awk '{print $1}')
+          if [[ "$hash1" != "$hash2" ]]; then
+            echo "::error::Non-deterministic build: $asm differs ($hash1 vs $hash2)"
+            failed=$((failed + 1))
+          else
+            echo "OK: $asm sha256=$hash1"
+          fi
+        done
+        echo "identical=$([[ $failed -eq 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+        if [[ "$failed" -ne 0 ]]; then
           exit 1
         fi
-        echo "Builds are byte-identical."
-        echo "identical=true" >> "$GITHUB_OUTPUT"
+        echo "All 5 assemblies are byte-identical across both builds."
 
     - name: Emit reproducibility evidence
       if: always()
@@ -719,10 +755,8 @@ jobs:
         identical=true
         if [[ "${{ steps.repro.outcome }}" != "success" ]]; then verdict=fail; identical=false; fi
         summary=$(jq -n \
-          --arg h1 '${{ steps.repro.outputs.h1 }}' \
-          --arg h2 '${{ steps.repro.outputs.h2 }}' \
           --argjson id "$identical" \
-          '{build1_sha256:$h1, build2_sha256:$h2, identical:$id, assembly:"QuerySpec.Core.dll"}')
+          '{identical:$id, assemblies_checked:5, assemblies:["QuerySpec.Core.dll","QuerySpec.EFCore.dll","QuerySpec.DependencyInjection.dll","QuerySpec.Analyzers.dll","QuerySpec.Analyzers.CodeFixes.dll"]}')
         eng/emit-evidence.sh --gate reproducibility --verdict "$verdict" \
           --summary-json "$summary" --output-dir ./evidence
     - name: Upload reproducibility evidence
