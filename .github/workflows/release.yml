@@ -241,6 +241,22 @@ jobs:
         fi
         echo "All packages passed Meziantou NuGet content/metadata validation."
 
+    - name: Verify SBOM in packages
+      run: |
+        set -euo pipefail
+        failed=0
+        for pkg in ./artifacts/*.nupkg; do
+          echo "Verifying SBOM in $(basename "$pkg")"
+          if ! unzip -l "$pkg" | grep -q '_manifest/spdx_2.2/manifest.spdx.json'; then
+            echo "::error::SBOM manifest missing from $(basename "$pkg")"
+            failed=$((failed + 1))
+          fi
+        done
+        if [[ "$failed" -ne 0 ]]; then
+          exit 1
+        fi
+        echo "SBOM verified for all $(ls ./artifacts/*.nupkg | wc -l | tr -d ' ') packages"
+
     - name: Test SourceLink mappings
       run: |
         set -euo pipefail
