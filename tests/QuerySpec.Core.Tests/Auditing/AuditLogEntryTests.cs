@@ -147,4 +147,37 @@ public class AuditLogEntryTests
     {
         Assert.Throws<ArgumentNullException>(() => AuditLogEntry.VerifyChain(null!));
     }
+
+    [Fact]
+    public void VerifyChain_Detects_PreviousHash_Mismatch_Against_Valid_Base64()
+    {
+        var entries = new List<AuditLogEntry>();
+        string? prev = null;
+        for (var i = 0; i < 4; i++)
+        {
+            var e = NewValidEntry(user: $"user{i}");
+            e.Seal(prev);
+            prev = e.Hash;
+            entries.Add(e);
+        }
+
+        var pristine = NewValidEntry(user: "userValidB64");
+        pristine.Seal(previousHash: null);
+        var validButWrongBase64 = pristine.Hash;
+
+        var replacement = NewValidEntry(user: "userX");
+        replacement.Seal(validButWrongBase64);
+        entries[2] = replacement;
+
+        Assert.Equal(2, AuditLogEntry.VerifyChain(entries));
+    }
+
+    [Fact]
+    public void VerifyChain_Detects_Genesis_PreviousHash_Mismatch()
+    {
+        var first = NewValidEntry();
+        first.Seal(previousHash: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
+
+        Assert.Equal(0, AuditLogEntry.VerifyChain(new[] { first }));
+    }
 }
