@@ -430,9 +430,6 @@ jobs:
         echo "alerts_medium=${med}"    >> "$GITHUB_OUTPUT"
         echo "alerts_low=${low}"       >> "$GITHUB_OUTPUT"
         echo "CodeQL open alerts: critical=${crit} high=${high} medium=${med} low=${low}"
-        if [[ "${high}" -gt 0 ]]; then
-          echo "::warning::CodeQL reports ${high} open high-severity alert(s). Currently warn-only; ratchet to fail tracked in #200."
-        fi
 
     - name: Emit CodeQL evidence
       if: always()
@@ -452,13 +449,14 @@ jobs:
         if [[ "${{ steps.codeql.outcome }}" != "success" ]]; then verdict=fail; fi
         if [[ "${{ steps.codeql_alerts.outcome }}" != "success" ]]; then verdict=fail; fi
         if [[ "${crit}" -gt 0 ]]; then verdict=fail; fi
+        if [[ "${high}" -gt 0 ]]; then verdict=fail; fi
         summary=$(jq -n \
           --argjson c "$crit" --argjson h "$high" --argjson m "$med" --argjson l "$low" \
           '{language:"csharp", queries:"security-and-quality",
             alerts_critical:$c, alerts_high:$h, alerts_medium:$m, alerts_low:$l}')
         eng/emit-evidence.sh --gate codeql --verdict "$verdict" \
           --summary-json "$summary" --output-dir ./evidence \
-          --notes "Parsed from GitHub Code Scanning API for ref ${REF}, tool=CodeQL. critical>0 fails the gate; high>0 is warn-only (ratchet tracked in #200)."
+          --notes "Parsed from GitHub Code Scanning API for ref ${REF}, tool=CodeQL. critical>0 and high>0 fail the gate; medium/low remain emit-only."
     - name: Upload codeql evidence
       if: always()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
