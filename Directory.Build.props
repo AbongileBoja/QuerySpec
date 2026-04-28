@@ -29,9 +29,9 @@
     <WarningsNotAsErrors>$(WarningsNotAsErrors);RS0026;RS0027</WarningsNotAsErrors>
 
     <EnablePackageValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnablePackageValidation>
-    <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">false</EnableStrictModeForBaselineValidation>
-    <ApiCompatPermitUnnecessarySuppressions Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</ApiCompatPermitUnnecessarySuppressions>
-    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">3.0.1-rc1</PackageValidationBaselineVersion>
+    <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnableStrictModeForBaselineValidation>
+    <ApiCompatPermitUnnecessarySuppressions Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">false</ApiCompatPermitUnnecessarySuppressions>
+    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">4.0.0</PackageValidationBaselineVersion>
 
     <Authors>Abongile Boja</Authors>
     <PackageProjectUrl>https://github.com/AbongileBoja/QuerySpec</PackageProjectUrl>
