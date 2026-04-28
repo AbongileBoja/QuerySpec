@@ -7,7 +7,7 @@
     "target-framework": "net9.0",
     "configuration": "Release",
     "mutation-level": "Standard",
-    "coverage-analysis": "all",
+    "coverage-analysis": "off",
     "ignore-mutations": [
       "linq"
     ],
