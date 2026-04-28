@@ -29,13 +29,13 @@ jobs:
         disable-sudo: true
         disable-file-monitoring: false
 
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
 
     - name: Setup .NET 8, 9, 10
-      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
       with:
         dotnet-version: |
           8.0.x
@@ -75,7 +75,7 @@ jobs:
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: test-results-${{ matrix.dotnet-version }}
         path: ./TestResults
@@ -143,7 +143,7 @@ jobs:
 
     - name: Upload coverage report
       if: matrix.dotnet-version == '10.0.x'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: coverage-report
         path: ./CoverageReport
@@ -178,7 +178,7 @@ jobs:
 
     - name: Upload NuGet artifacts
       if: matrix.dotnet-version == '10.0.x'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: nuget-packages
         path: ./artifacts
@@ -313,7 +313,7 @@ jobs:
 
     - name: Upload per-gate evidence
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: evidence-build-test-${{ matrix.dotnet-version }}
         path: ./evidence
@@ -331,10 +331,10 @@ jobs:
         egress-policy: audit
         disable-sudo: true
         disable-file-monitoring: false
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
-    - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+    - uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
       with:
         dotnet-version: '10.0.x'
     - name: Restore
@@ -362,7 +362,7 @@ jobs:
           --summary-json "$summary" --output-dir ./evidence
     - name: Upload format evidence
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: evidence-format
         path: ./evidence
@@ -382,10 +382,10 @@ jobs:
         egress-policy: audit
         disable-sudo: true
         disable-file-monitoring: false
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
-    - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+    - uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
       with:
         dotnet-version: '10.0.x'
 
@@ -461,7 +461,7 @@ jobs:
           --notes "Parsed from GitHub Code Scanning API for ref ${REF}, tool=CodeQL. critical>0 fails the gate; high>0 is warn-only (ratchet tracked in #200)."
     - name: Upload codeql evidence
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: evidence-codeql
         path: ./evidence
@@ -481,7 +481,7 @@ jobs:
         egress-policy: audit
         disable-sudo: true
         disable-file-monitoring: false
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
     - name: Review dependencies
@@ -506,7 +506,7 @@ jobs:
           --summary-json "$summary" --output-dir ./evidence
     - name: Upload dependency-review evidence
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: evidence-dependency-review
         path: ./evidence
@@ -524,10 +524,10 @@ jobs:
         egress-policy: audit
         disable-sudo: true
         disable-file-monitoring: false
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
-    - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+    - uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
       with:
         dotnet-version: '10.0.x'
     - name: Restore
@@ -579,7 +579,7 @@ jobs:
           --summary-json "$summary" --output-dir ./evidence
     - name: Upload vulnerability evidence
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: evidence-vulnerability-scan
         path: ./evidence
@@ -597,13 +597,13 @@ jobs:
         egress-policy: audit
         disable-sudo: true
         disable-file-monitoring: false
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         fetch-depth: 0
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
 
-    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
       with:
         node-version: '20'
         cache: 'npm'
@@ -644,7 +644,7 @@ jobs:
           --summary-json "$summary" --output-dir ./evidence
     - name: Upload commitlint evidence
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: evidence-commitlint
         path: ./evidence
@@ -660,10 +660,10 @@ jobs:
         egress-policy: audit
         disable-sudo: true
         disable-file-monitoring: false
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
-    - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4
+    - uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
       with:
         dotnet-version: '10.0.x'
 
@@ -761,7 +761,7 @@ jobs:
           --summary-json "$summary" --output-dir ./evidence
     - name: Upload reproducibility evidence
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: evidence-reproducibility
         path: ./evidence
@@ -781,10 +781,10 @@ jobs:
         egress-policy: audit
         disable-sudo: true
         disable-file-monitoring: false
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
     - name: Download all per-gate evidence
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         path: ./all-evidence
         pattern: 'evidence-*'
@@ -811,7 +811,7 @@ jobs:
 
     - name: Upload evidence-index
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: evidence-index
         path: ./evidence-index.json
