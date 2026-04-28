@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace QuerySpec.Core.Security;
 
@@ -39,7 +40,14 @@ public sealed class CompositePiiClassifier : IPiiClassifier
     }
 
     /// <inheritdoc />
-    public PiiCategory Classify(Type? declaringType, string fieldName)
+    public PiiCategory Classify(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicProperties
+            | DynamicallyAccessedMemberTypes.NonPublicProperties
+            | DynamicallyAccessedMemberTypes.PublicFields
+            | DynamicallyAccessedMemberTypes.NonPublicFields)]
+        Type? declaringType,
+        string fieldName)
     {
         foreach (var c in _classifiers)
         {

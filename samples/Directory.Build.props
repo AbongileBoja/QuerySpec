@@ -7,7 +7,7 @@
     <IsPackable>false</IsPackable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;IL2026;IL2046;IL2060;IL2070;IL2072;IL2075;IL2077;IL2080;IL2087;IL2090;IL2091;IL2092;IL3050;IL3051</NoWarn>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);QSPEC0001;QSPEC0002;QSPEC0003</WarningsNotAsErrors>
   </PropertyGroup>
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace QuerySpec.Core.Security;
 
@@ -42,7 +43,14 @@ public sealed class ConfiguredPiiClassifier : IPiiClassifier
     }
 
     /// <inheritdoc />
-    public PiiCategory Classify(Type? declaringType, string fieldName)
+    public PiiCategory Classify(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicProperties
+            | DynamicallyAccessedMemberTypes.NonPublicProperties
+            | DynamicallyAccessedMemberTypes.PublicFields
+            | DynamicallyAccessedMemberTypes.NonPublicFields)]
+        Type? declaringType,
+        string fieldName)
     {
         if (declaringType is null) return PiiCategory.None;
         if (string.IsNullOrEmpty(fieldName)) return PiiCategory.None;

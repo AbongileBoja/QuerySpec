@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -55,6 +56,8 @@ public interface IComplianceExporter
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    [RequiresUnreferencedCode(GdprExportRequiresUnreferencedCodeMessage)]
+    [RequiresDynamicCode(GdprExportRequiresDynamicCodeMessage)]
     Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream);
     /// <summary>
     /// Generates a GDPR export for a user with cancellation support. Original spelling retained
@@ -67,6 +70,8 @@ public interface IComplianceExporter
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
     [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    [RequiresUnreferencedCode(GdprExportRequiresUnreferencedCodeMessage)]
+    [RequiresDynamicCode(GdprExportRequiresDynamicCodeMessage)]
     Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
 #pragma warning disable CS0618
         => GenerateGDPRExportAsync(userId, tenantId, outputStream);
@@ -76,6 +81,8 @@ public interface IComplianceExporter
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
+    [RequiresUnreferencedCode(GdprExportRequiresUnreferencedCodeMessage)]
+    [RequiresDynamicCode(GdprExportRequiresDynamicCodeMessage)]
     Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream)
 #pragma warning disable CS0618
         => GenerateGDPRExportAsync(userId, tenantId, outputStream);
@@ -85,10 +92,17 @@ public interface IComplianceExporter
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
+    [RequiresUnreferencedCode(GdprExportRequiresUnreferencedCodeMessage)]
+    [RequiresDynamicCode(GdprExportRequiresDynamicCodeMessage)]
     Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
 #pragma warning disable CS0618
         => GenerateGDPRExportAsync(userId, tenantId, outputStream, cancellationToken);
 #pragma warning restore CS0618
+
+    internal const string GdprExportRequiresUnreferencedCodeMessage =
+        "GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.";
+    internal const string GdprExportRequiresDynamicCodeMessage =
+        "GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, which emits IL at runtime. Use System.Text.Json source generation (JsonSerializerContext) for AOT scenarios.";
 }
 
 /// <summary>
@@ -134,6 +148,8 @@ public class ComplianceExporter : IComplianceExporter
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    [RequiresUnreferencedCode(IComplianceExporter.GdprExportRequiresUnreferencedCodeMessage)]
+    [RequiresDynamicCode(IComplianceExporter.GdprExportRequiresDynamicCodeMessage)]
     public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream)
         => GenerateGdprExportAsync(userId, tenantId, outputStream, CancellationToken.None);
 
@@ -148,6 +164,8 @@ public class ComplianceExporter : IComplianceExporter
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
     [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    [RequiresUnreferencedCode(IComplianceExporter.GdprExportRequiresUnreferencedCodeMessage)]
+    [RequiresDynamicCode(IComplianceExporter.GdprExportRequiresDynamicCodeMessage)]
     public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
         => GenerateGdprExportAsync(userId, tenantId, outputStream, cancellationToken);
 
@@ -155,6 +173,8 @@ public class ComplianceExporter : IComplianceExporter
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
+    [RequiresUnreferencedCode(IComplianceExporter.GdprExportRequiresUnreferencedCodeMessage)]
+    [RequiresDynamicCode(IComplianceExporter.GdprExportRequiresDynamicCodeMessage)]
     public Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream)
         => GenerateGdprExportAsync(userId, tenantId, outputStream, CancellationToken.None);
 
@@ -163,6 +183,8 @@ public class ComplianceExporter : IComplianceExporter
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
+    [RequiresUnreferencedCode(IComplianceExporter.GdprExportRequiresUnreferencedCodeMessage)]
+    [RequiresDynamicCode(IComplianceExporter.GdprExportRequiresDynamicCodeMessage)]
     public async Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
     {
         var audits = await GetUserDataAsync(userId, tenantId).ConfigureAwait(false);

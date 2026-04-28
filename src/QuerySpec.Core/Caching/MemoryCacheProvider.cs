@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
@@ -70,6 +71,8 @@ public class MemoryCacheProvider : ICacheProvider, ICacheStore, IDisposable
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    [RequiresUnreferencedCode(ICacheStore.CacheStoreTrimMessage)]
+    [RequiresDynamicCode(ICacheStore.CacheStoreAotMessage)]
     public ValueTask<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -97,6 +100,8 @@ public class MemoryCacheProvider : ICacheProvider, ICacheStore, IDisposable
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="ttl"/> is non-positive.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the provider has been disposed.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    [RequiresUnreferencedCode(ICacheStore.CacheStoreTrimMessage)]
+    [RequiresDynamicCode(ICacheStore.CacheStoreAotMessage)]
     public ValueTask SetValueAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);

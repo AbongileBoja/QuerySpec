@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -19,6 +20,9 @@ public static class QuerySpecExpressionTranslator
 {
     private const int MaxFilterDepth = 10;
     private const int MaxInItems = 200;
+
+    internal const string BuildInRequiresDynamicCodeMessage =
+        "QuerySpec filter translation builds an Enumerable.Contains<T> call via MethodInfo.MakeGenericMethod / Array.CreateInstance for In/NotIn operators. These APIs emit IL at runtime and are not supported under Native AOT. Avoid In/NotIn in AOT-published applications, or pre-translate to a Contains-call against a strongly-typed array at the call site.";
 
     /// <summary>
     /// Maximum number of entries retained in the internal (Type, property-name) → PropertyInfo
@@ -64,6 +68,8 @@ public static class QuerySpecExpressionTranslator
 
     private static readonly ConcurrentDictionary<Type, (PropertyInfo HasValue, PropertyInfo Value)> NullablePropertyInfoCache = new();
 
+    [UnconditionalSuppressMessage("Trimming", "IL2070",
+        Justification = "nullableType is always a closed Nullable<T>. Nullable<T>.HasValue and Nullable<T>.Value are intrinsic public properties of a runtime-known framework type and are guaranteed to be preserved by the trimmer.")]
     private static (PropertyInfo HasValue, PropertyInfo Value) GetNullablePropertyInfos(Type nullableType)
     {
         if (NullablePropertyInfoCache.Count >= NullablePropertyInfoCacheCapacity)
@@ -90,7 +96,8 @@ public static class QuerySpecExpressionTranslator
     /// <param name="filter">Filter specification to apply, or <c>null</c> for a passthrough.</param>
     /// <returns>A new <see cref="IQueryable{T}"/> with the filter appended via <see cref="Queryable.Where{TSource}(IQueryable{TSource}, System.Linq.Expressions.Expression{Func{TSource, bool}})"/>; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
-    public static IQueryable<T> ApplyFilter<T>(
+    [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    public static IQueryable<T> ApplyFilter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(
         IQueryable<T> query,
         FilterSpec? filter) where T : class
     {
@@ -124,7 +131,8 @@ public static class QuerySpecExpressionTranslator
     /// <param name="filter">Filter specification to apply, or <c>null</c> for a passthrough.</param>
     /// <returns>A new <see cref="IQueryable{T}"/> with the cached predicate appended; the input <paramref name="query"/> when <paramref name="filter"/> is null.</returns>
     /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
-    public static IQueryable<T> ApplyFilterCached<T>(
+    [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    public static IQueryable<T> ApplyFilterCached<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(
         IQueryable<T> query,
         FilterSpec? filter) where T : class
     {
@@ -144,7 +152,8 @@ public static class QuerySpecExpressionTranslator
     /// <returns>The compiled predicate, retrieved from cache when available.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="filter"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown on cache miss when <paramref name="filter"/> fails <see cref="FilterSpec.Validate"/> or its nesting depth exceeds the configured maximum.</exception>
-    public static Expression<Func<T, bool>> GetOrBuildCachedPredicate<T>(
+    [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    public static Expression<Func<T, bool>> GetOrBuildCachedPredicate<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(
         FilterSpec filter) where T : class
     {
         if (filter is null) throw new ArgumentNullException(nameof(filter));
@@ -195,7 +204,8 @@ public static class QuerySpecExpressionTranslator
             "The previous behaviour was to silently return the unaggregated query, which masked logic errors in callers.");
     }
 
-    private static Expression<Func<T, bool>> BuildPredicate<T>(FilterSpec filter, int depth)
+    [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    private static Expression<Func<T, bool>> BuildPredicate<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(FilterSpec filter, int depth)
     {
         if (depth > MaxFilterDepth)
             throw new ArgumentException($"Filter nesting exceeds maximum depth of {MaxFilterDepth}");
@@ -205,7 +215,8 @@ public static class QuerySpecExpressionTranslator
         return Expression.Lambda<Func<T, bool>>(body, param);
     }
 
-    private static Expression BuildBody(ParameterExpression param, FilterSpec filter, Type entityType, int depth)
+    [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    private static Expression BuildBody(ParameterExpression param, FilterSpec filter, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type entityType, int depth)
     {
         if (depth > MaxFilterDepth)
             throw new ArgumentException($"Filter nesting exceeds maximum depth of {MaxFilterDepth}");
@@ -236,7 +247,8 @@ public static class QuerySpecExpressionTranslator
         return body ?? Expression.Constant(true);
     }
 
-    private static Expression BuildOperatorExpression(ParameterExpression param, FilterSpec filter, Type entityType)
+    [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    private static Expression BuildOperatorExpression(ParameterExpression param, FilterSpec filter, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type entityType)
     {
         var property = GetPropertyExpression(param, filter.Field, entityType);
         var propertyType = property.Type;
@@ -285,7 +297,9 @@ public static class QuerySpecExpressionTranslator
         };
     }
 
-    private static Expression GetPropertyExpression(ParameterExpression param, string fieldName, Type entityType)
+    [UnconditionalSuppressMessage("Trimming", "IL2080",
+        Justification = "PropertyCache key tuple stores Type without a DAM annotation. The cache is fed only from typeof(T) on the public ApplyFilter/ApplyFilterCached/GetOrBuildCachedPredicate entry points, which carry [DynamicallyAccessedMembers(PublicProperties)] on T. The lambda factory invokes GetProperty by name on a Type whose public properties are statically rooted by the consumer's annotation; PublicProperties is the minimum required by GetProperty(string, BindingFlags.Public).")]
+    private static Expression GetPropertyExpression(ParameterExpression param, string fieldName, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type entityType)
     {
         var parts = fieldName.Split('.');
         Expression current = param;
@@ -422,6 +436,9 @@ public static class QuerySpecExpressionTranslator
 
     #region Collection Operators
 
+    [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
+    [UnconditionalSuppressMessage("Trimming", "IL2060",
+        Justification = "Enumerable.Contains<T> is a non-trimmable framework method; closing it over the runtime element type via MakeGenericMethod has no trim impact beyond the AOT requirement already declared by RequiresDynamicCode.")]
     private static Expression BuildIn(Expression property, object? value, Type propertyType, Type underlyingType, bool isNullable)
     {
         if (value == null)
