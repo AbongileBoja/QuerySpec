@@ -393,4 +393,8 @@ npm-debug.log*
 
 # Stryker mutation testing output
 StrykerOutput/
+**/StrykerOutput/
 stryker-baseline/
+
+# Benchmark baseline run artifacts (issue #228)
+benchmarks/baseline-run/

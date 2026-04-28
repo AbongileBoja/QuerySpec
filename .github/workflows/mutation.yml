@@ -1,6 +1,12 @@
 # Mutation reports are emitted as workflow artifacts (per-run retention 90 days).
 # The `mutation-reports` branch is no longer used; reports are accessible via the
 # "Artifacts" section of each workflow run. `contents: read` is sufficient.
+#
+# All Stryker jobs run from repo root using root-level config files.
+# with-baseline: true in each config loads the develop baseline from the dashboard;
+# since: { target: develop } restricts active testing to changed files but reports
+# the full-codebase score. The first run after merge to develop will generate the
+# initial baseline — subsequent PR runs use it incrementally.
 name: Mutation testing
 
 on:
@@ -51,29 +57,29 @@ jobs:
       if: github.event_name == 'pull_request'
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      working-directory: src/QuerySpec.Core
-      run: dotnet stryker --since=origin/${{ github.base_ref }}
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+      run: dotnet stryker --config-file stryker-config.json
 
     - name: Run Stryker Core (full sweep)
       if: github.event_name != 'pull_request'
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      working-directory: src/QuerySpec.Core
-      run: dotnet stryker
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+      run: dotnet stryker --config-file stryker-config.json
 
     - name: Upload Core Stryker HTML report
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: stryker-report-core
-        path: src/QuerySpec.Core/StrykerOutput/
+        path: StrykerOutput/
         retention-days: 90
 
-    - name: Run Stryker Core Security (full sweep — raises break threshold to 85)
+    - name: Run Stryker Core Security (additional security-focused sweep)
       if: github.event_name != 'pull_request'
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      working-directory: src/QuerySpec.Core
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
       run: dotnet stryker --config-file stryker-config.security.json
 
     - name: Upload Core Security Stryker report
@@ -81,7 +87,7 @@ jobs:
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: stryker-report-core-security
-        path: src/QuerySpec.Core/StrykerOutput/
+        path: StrykerOutput/
         retention-days: 90
 
   stryker-efcore:
@@ -120,22 +126,22 @@ jobs:
       if: github.event_name == 'pull_request'
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      working-directory: src/QuerySpec.EFCore
-      run: dotnet stryker --since=origin/${{ github.base_ref }}
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+      run: dotnet stryker --config-file stryker-config.efcore.json
 
     - name: Run Stryker EFCore (full sweep)
       if: github.event_name != 'pull_request'
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      working-directory: src/QuerySpec.EFCore
-      run: dotnet stryker
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+      run: dotnet stryker --config-file stryker-config.efcore.json
 
     - name: Upload EFCore Stryker HTML report
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: stryker-report-efcore
-        path: src/QuerySpec.EFCore/StrykerOutput/
+        path: StrykerOutput/
         retention-days: 90
 
   stryker-di:
@@ -174,20 +180,20 @@ jobs:
       if: github.event_name == 'pull_request'
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      working-directory: src/QuerySpec.DependencyInjection
-      run: dotnet stryker --since=origin/${{ github.base_ref }}
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+      run: dotnet stryker --config-file stryker-config.di.json
 
     - name: Run Stryker DI (full sweep)
       if: github.event_name != 'pull_request'
       env:
         QUERYSPEC_SKIP_SIGN: 'true'
-      working-directory: src/QuerySpec.DependencyInjection
-      run: dotnet stryker
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+      run: dotnet stryker --config-file stryker-config.di.json
 
     - name: Upload DI Stryker HTML report
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
         name: stryker-report-di
-        path: src/QuerySpec.DependencyInjection/StrykerOutput/
+        path: StrykerOutput/
         retention-days: 90

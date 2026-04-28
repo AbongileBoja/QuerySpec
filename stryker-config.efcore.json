@@ -1,8 +1,8 @@
 {
   "stryker-config": {
-    "project": "QuerySpec.Core.csproj",
+    "project": "QuerySpec.EFCore.csproj",
     "test-projects": [
-      "tests/QuerySpec.Core.Tests/QuerySpec.Core.Tests.csproj"
+      "tests/QuerySpec.EFCore.Tests/QuerySpec.EFCore.Tests.csproj"
     ],
     "target-framework": "net9.0",
     "configuration": "Release",
@@ -11,13 +11,9 @@
     "ignore-mutations": [
       "linq"
     ],
-    "ignore-methods": [
-      "RegisterUnrestricted",
-      "EscapeSqlLiteral"
-    ],
     "mutate": [
-      "src/QuerySpec.Core/**/*.cs",
-      "!src/QuerySpec.Core/Properties/**"
+      "src/QuerySpec.EFCore/**/*.cs",
+      "!src/QuerySpec.EFCore/Properties/**"
     ],
     "with-baseline": true,
     "since": {
@@ -37,7 +33,7 @@
     "dashboard": {
       "project": "github.com/AbongileBoja/QuerySpec",
       "version": "develop",
-      "module": "core"
+      "module": "efcore"
     }
   }
 }

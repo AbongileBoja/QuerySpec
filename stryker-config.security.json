@@ -16,16 +16,15 @@
       "EscapeSqlLiteral"
     ],
     "mutate": [
-      "src/QuerySpec.Core/**/*.cs",
-      "!src/QuerySpec.Core/Properties/**"
+      "src/QuerySpec.Core/Security/**/*.cs"
     ],
     "with-baseline": true,
     "since": {
       "target": "develop"
     },
     "thresholds": {
-      "high": 80,
-      "low": 60,
+      "high": 90,
+      "low": 85,
       "break": 0
     },
     "reporters": [
@@ -37,7 +36,7 @@
     "dashboard": {
       "project": "github.com/AbongileBoja/QuerySpec",
       "version": "develop",
-      "module": "core"
+      "module": "security"
     }
   }
 }
