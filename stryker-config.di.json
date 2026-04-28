@@ -7,7 +7,7 @@
     "target-framework": "net9.0",
     "configuration": "Release",
     "mutation-level": "Standard",
-    "coverage-analysis": "perTest",
+    "coverage-analysis": "all",
     "ignore-mutations": [
       "linq"
     ],
@@ -16,7 +16,7 @@
       "!src/QuerySpec.DependencyInjection/Properties/**"
     ],
     "baseline": {
-      "enabled": true,
+      "enabled": false,
       "provider": "Dashboard",
       "fallback-version": "develop"
     },

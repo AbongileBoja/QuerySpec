@@ -56,14 +56,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
         fi
         if [[ -z "${STRYKER_DASHBOARD_API_KEY}" ]]; then
-          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — running without dashboard reporter and baseline."
+          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — skipping dashboard reporter."
           REPORTERS_FLAG="--reporter html --reporter progress --reporter json"
-          BASELINE_FLAG="--with-baseline false"
         else
           REPORTERS_FLAG=""
-          BASELINE_FLAG=""
         fi
-        dotnet stryker --config-file stryker-config.json --version "$VERSION" $REPORTERS_FLAG $BASELINE_FLAG
+        dotnet stryker --config-file stryker-config.json --version "$VERSION" $REPORTERS_FLAG
 
     - name: Run Stryker Core (full sweep)
       if: github.event_name != 'pull_request'
@@ -77,14 +75,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
         fi
         if [[ -z "${STRYKER_DASHBOARD_API_KEY}" ]]; then
-          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — running without dashboard reporter and baseline."
+          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — skipping dashboard reporter."
           REPORTERS_FLAG="--reporter html --reporter progress --reporter json"
-          BASELINE_FLAG="--with-baseline false"
         else
           REPORTERS_FLAG=""
-          BASELINE_FLAG=""
         fi
-        dotnet stryker --config-file stryker-config.json --version "$VERSION" $REPORTERS_FLAG $BASELINE_FLAG
+        dotnet stryker --config-file stryker-config.json --version "$VERSION" $REPORTERS_FLAG
 
     - name: Upload Core Stryker HTML report
       if: always()
@@ -106,14 +102,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
         fi
         if [[ -z "${STRYKER_DASHBOARD_API_KEY}" ]]; then
-          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — running without dashboard reporter and baseline."
+          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — skipping dashboard reporter."
           REPORTERS_FLAG="--reporter html --reporter progress --reporter json"
-          BASELINE_FLAG="--with-baseline false"
         else
           REPORTERS_FLAG=""
-          BASELINE_FLAG=""
         fi
-        dotnet stryker --config-file stryker-config.security.json --version "$VERSION" $REPORTERS_FLAG $BASELINE_FLAG
+        dotnet stryker --config-file stryker-config.security.json --version "$VERSION" $REPORTERS_FLAG
 
     - name: Upload Core Security Stryker report
       if: always() && github.event_name != 'pull_request'
@@ -167,14 +161,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
         fi
         if [[ -z "${STRYKER_DASHBOARD_API_KEY}" ]]; then
-          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — running without dashboard reporter and baseline."
+          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — skipping dashboard reporter."
           REPORTERS_FLAG="--reporter html --reporter progress --reporter json"
-          BASELINE_FLAG="--with-baseline false"
         else
           REPORTERS_FLAG=""
-          BASELINE_FLAG=""
         fi
-        dotnet stryker --config-file stryker-config.efcore.json --version "$VERSION" $REPORTERS_FLAG $BASELINE_FLAG
+        dotnet stryker --config-file stryker-config.efcore.json --version "$VERSION" $REPORTERS_FLAG
 
     - name: Run Stryker EFCore (full sweep)
       if: github.event_name != 'pull_request'
@@ -188,14 +180,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
         fi
         if [[ -z "${STRYKER_DASHBOARD_API_KEY}" ]]; then
-          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — running without dashboard reporter and baseline."
+          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — skipping dashboard reporter."
           REPORTERS_FLAG="--reporter html --reporter progress --reporter json"
-          BASELINE_FLAG="--with-baseline false"
         else
           REPORTERS_FLAG=""
-          BASELINE_FLAG=""
         fi
-        dotnet stryker --config-file stryker-config.efcore.json --version "$VERSION" $REPORTERS_FLAG $BASELINE_FLAG
+        dotnet stryker --config-file stryker-config.efcore.json --version "$VERSION" $REPORTERS_FLAG
 
     - name: Upload EFCore Stryker HTML report
       if: always()
@@ -249,14 +239,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
         fi
         if [[ -z "${STRYKER_DASHBOARD_API_KEY}" ]]; then
-          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — running without dashboard reporter and baseline."
+          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — skipping dashboard reporter."
           REPORTERS_FLAG="--reporter html --reporter progress --reporter json"
-          BASELINE_FLAG="--with-baseline false"
         else
           REPORTERS_FLAG=""
-          BASELINE_FLAG=""
         fi
-        dotnet stryker --config-file stryker-config.di.json --version "$VERSION" $REPORTERS_FLAG $BASELINE_FLAG
+        dotnet stryker --config-file stryker-config.di.json --version "$VERSION" $REPORTERS_FLAG
 
     - name: Run Stryker DI (full sweep)
       if: github.event_name != 'pull_request'
@@ -270,14 +258,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
         fi
         if [[ -z "${STRYKER_DASHBOARD_API_KEY}" ]]; then
-          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — running without dashboard reporter and baseline."
+          echo "::warning::STRYKER_DASHBOARD_API_KEY not set — skipping dashboard reporter."
           REPORTERS_FLAG="--reporter html --reporter progress --reporter json"
-          BASELINE_FLAG="--with-baseline false"
         else
           REPORTERS_FLAG=""
-          BASELINE_FLAG=""
         fi
-        dotnet stryker --config-file stryker-config.di.json --version "$VERSION" $REPORTERS_FLAG $BASELINE_FLAG
+        dotnet stryker --config-file stryker-config.di.json --version "$VERSION" $REPORTERS_FLAG
 
     - name: Upload DI Stryker HTML report
       if: always()
