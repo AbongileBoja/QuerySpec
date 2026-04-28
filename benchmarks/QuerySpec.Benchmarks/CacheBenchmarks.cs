@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Caching.Distributed;
@@ -13,6 +14,8 @@ namespace QuerySpec.Benchmarks;
 /// multi-level promotion paths.
 /// </summary>
 [BenchmarkDotNet.Attributes.Config(typeof(BenchConfig))]
+[RequiresUnreferencedCode("Benchmark exercises ICacheStore implementations, which serialise/deserialise T via System.Text.Json reflection in distributed and multi-level providers.")]
+[RequiresDynamicCode("Benchmark exercises ICacheStore implementations, which serialise/deserialise T via System.Text.Json reflection that emits IL at runtime.")]
 public class CacheBenchmarks
 {
     private MemoryCacheProvider _memory = null!;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using QuerySpec.Core.Security;
@@ -12,6 +13,8 @@ namespace QuerySpec.Core.Tests.Security;
 /// as well as identifier validation and registration edge cases introduced by the
 /// parameterized-SQL rewrite.
 /// </summary>
+[RequiresUnreferencedCode("Test materialises in-memory collections via Queryable.AsQueryable, whose IQueryable extension methods may rebind to IEnumerable extensions that are removed under trimming.")]
+[RequiresDynamicCode("Test materialises in-memory collections via Queryable.AsQueryable, which can require runtime generic-type creation.")]
 public class RowLevelSecurityEnginePredicateTests
 {
     private sealed class Doc { public string Owner { get; set; } = string.Empty; public int Value { get; set; } }

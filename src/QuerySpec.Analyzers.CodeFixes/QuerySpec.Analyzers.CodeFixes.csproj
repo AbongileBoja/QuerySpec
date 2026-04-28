@@ -12,6 +12,11 @@
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DebugType>embedded</DebugType>
+    <IsTrimmable></IsTrimmable>
+    <IsAotCompatible></IsAotCompatible>
+    <EnableTrimAnalyzer></EnableTrimAnalyzer>
+    <EnableAotAnalyzer></EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer></EnableSingleFileAnalyzer>
 
     <!-- Skip baseline validation and SBOM (covered by the parent QuerySpec.Analyzers package). -->
     <EnablePackageValidation>false</EnablePackageValidation>

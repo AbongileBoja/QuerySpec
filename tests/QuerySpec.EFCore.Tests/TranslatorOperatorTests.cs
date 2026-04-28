@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using QuerySpec.Core.Advanced;
@@ -13,6 +14,8 @@ namespace QuerySpec.EFCore.Tests;
 /// Exercises every operator branch the translator supports, against in-memory IQueryable
 /// (sufficient to validate predicate correctness without the EF Core translation layer).
 /// </summary>
+[RequiresUnreferencedCode("Test exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
+[RequiresDynamicCode("Test exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
 public class TranslatorOperatorTests
 {
     private sealed class Entity
@@ -488,6 +491,8 @@ public class TranslatorOperatorTests
         Assert.Equal(new[] { 1, 3, 4 }, ids.OrderBy(x => x));
     }
 
+    [RequiresUnreferencedCode("EF Core DbContext is not fully compatible with trimming.")]
+    [RequiresDynamicCode("EF Core DbContext is not fully compatible with NativeAOT.")]
     private sealed class TestDb : DbContext
     {
         public DbSet<Entity> Items => Set<Entity>();

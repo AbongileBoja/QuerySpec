@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -14,6 +15,8 @@ namespace QuerySpec.Core.Tests.Caching;
 /// MultiLevelCache. Exercises both reference and value types so the value-type-friendly contract
 /// stays honoured under each implementation.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises ICacheStore implementations, which serialise/deserialise T via System.Text.Json reflection in distributed and multi-level providers.")]
+[RequiresDynamicCode("Test exercises ICacheStore implementations, which serialise/deserialise T via System.Text.Json reflection that emits IL at runtime.")]
 public class CacheStoreTests
 {
     private static MemoryCacheProvider NewMemory() => new();

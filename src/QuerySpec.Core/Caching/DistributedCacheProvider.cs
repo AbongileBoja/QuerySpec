@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -47,6 +48,8 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
     /// <returns>A populated <see cref="CacheResult{T}"/> on hit; <see cref="CacheResult{T}.Miss"/> on miss, transport failure, or corrupt payload.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null, empty, or whitespace.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    [RequiresUnreferencedCode(ICacheStore.CacheStoreTrimMessage)]
+    [RequiresDynamicCode(ICacheStore.CacheStoreAotMessage)]
     public async ValueTask<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -112,6 +115,8 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="ttl"/> is non-positive.</exception>
     /// <exception cref="InvalidOperationException">Thrown when JSON serialisation fails.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
+    [RequiresUnreferencedCode(ICacheStore.CacheStoreTrimMessage)]
+    [RequiresDynamicCode(ICacheStore.CacheStoreAotMessage)]
     public async ValueTask SetValueAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);

@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace QuerySpec.Core.Monitoring;
@@ -69,6 +68,7 @@ public class N1DetectionEngine
     /// </remarks>
     /// <param name="sql">SQL text of the query. Retained only as part of the call-stack key when relevant; not stored verbatim.</param>
     /// <param name="executionTimeMs">Execution time in milliseconds, accumulated into the per-pattern aggregates.</param>
+    [RequiresUnreferencedCode("RecordQuery walks the managed stack via System.Diagnostics.StackFrame.GetMethod() to build a call-site fingerprint. Under trimming, method metadata may be incomplete and patterns will collapse to '?' segments, reducing N+1 detection precision. Consider disabling N+1 detection in trimmed deployments or use a structured logging approach upstream of QuerySpec.")]
     public void RecordQuery(string sql, long executionTimeMs)
     {
         var stack = BuildStackPreview();
@@ -153,6 +153,7 @@ public class N1DetectionEngine
         return Convert.ToHexString(hash);
     }
 
+    [RequiresUnreferencedCode("BuildStackPreview walks the managed stack via StackFrame.GetMethod(); under trimming the resolved method metadata may be incomplete.")]
     private string BuildStackPreview()
     {
         // skipFrames: 1 elides BuildStackPreview; the immediate caller (RecordQuery) is included

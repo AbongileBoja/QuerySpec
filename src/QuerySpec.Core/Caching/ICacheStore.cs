@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +25,8 @@ public interface ICacheStore
     /// <param name="key">Cache key. Implementations validate non-null/non-whitespace.</param>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     /// <returns>A <see cref="CacheResult{T}"/> whose <see cref="CacheResult{T}.HasValue"/> indicates whether the lookup hit.</returns>
+    [RequiresUnreferencedCode(CacheStoreTrimMessage)]
+    [RequiresDynamicCode(CacheStoreAotMessage)]
     ValueTask<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -35,6 +38,8 @@ public interface ICacheStore
     /// <param name="ttl">Optional positive time-to-live; <see langword="null"/> uses the implementation default.</param>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     /// <returns>A completed task on success.</returns>
+    [RequiresUnreferencedCode(CacheStoreTrimMessage)]
+    [RequiresDynamicCode(CacheStoreAotMessage)]
     ValueTask SetValueAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -44,4 +49,9 @@ public interface ICacheStore
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     /// <returns>A completed task on success.</returns>
     ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default);
+
+    internal const string CacheStoreTrimMessage =
+        "Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.";
+    internal const string CacheStoreAotMessage =
+        "Cache store reads and writes serialise T. Distributed implementations use System.Text.Json reflection-based serialisation, which emits IL at runtime. Use System.Text.Json source generation (JsonSerializerContext) for AOT scenarios.";
 }

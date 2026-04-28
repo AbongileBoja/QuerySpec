@@ -1,10 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Xunit;
 using QuerySpec.Core.Monitoring;
 
 namespace QuerySpec.Core.Tests.Monitoring;
 
+[RequiresUnreferencedCode("Test exercises N1DetectionEngine.RecordQuery, which walks the call stack via StackFrame.GetMethod and may reference members removed under trimming.")]
+[RequiresDynamicCode("Test exercises N1DetectionEngine.RecordQuery, which walks the call stack via StackFrame.GetMethod.")]
 public class N1DetectionEngineEvictionTests
 {
     private static readonly Type QueryInfoType =

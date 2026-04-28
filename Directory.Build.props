@@ -28,6 +28,12 @@
     <WarningsAsErrors>$(WarningsAsErrors);CS1573;CS1572;CS1574;CS1734</WarningsAsErrors>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);RS0026;RS0027</WarningsNotAsErrors>
 
+    <IsTrimmable Condition="'$(IsPackable)' != 'false' and !$(TargetFramework.StartsWith('netstandard'))">true</IsTrimmable>
+    <IsAotCompatible Condition="'$(IsPackable)' != 'false' and !$(TargetFramework.StartsWith('netstandard'))">true</IsAotCompatible>
+    <EnableTrimAnalyzer Condition="'$(IsPackable)' != 'false' and !$(TargetFramework.StartsWith('netstandard'))">true</EnableTrimAnalyzer>
+    <EnableAotAnalyzer Condition="'$(IsPackable)' != 'false' and !$(TargetFramework.StartsWith('netstandard'))">true</EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer Condition="'$(IsPackable)' != 'false' and !$(TargetFramework.StartsWith('netstandard'))">true</EnableSingleFileAnalyzer>
+
     <EnablePackageValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnablePackageValidation>
     <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnableStrictModeForBaselineValidation>
     <ApiCompatPermitUnnecessarySuppressions Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">false</ApiCompatPermitUnnecessarySuppressions>

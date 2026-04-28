@@ -11,6 +11,11 @@
 
     <IsPackable>true</IsPackable>
     <DevelopmentDependency>true</DevelopmentDependency>
+    <IsTrimmable></IsTrimmable>
+    <IsAotCompatible></IsAotCompatible>
+    <EnableTrimAnalyzer></EnableTrimAnalyzer>
+    <EnableAotAnalyzer></EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer></EnableSingleFileAnalyzer>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DebugType>embedded</DebugType>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>

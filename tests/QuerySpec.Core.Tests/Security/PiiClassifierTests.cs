@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using QuerySpec.Core.Security;
 using Xunit;
 
 namespace QuerySpec.Core.Tests.Security;
 
+[RequiresUnreferencedCode("Test exercises AttributePiiClassifier, which reflects over caller-supplied entity types whose [Pii]-annotated members may be removed under trimming.")]
+[RequiresDynamicCode("Test exercises AttributePiiClassifier, which reflects over caller-supplied entity types.")]
 public class PiiClassifierTests
 {
     private sealed class Customer

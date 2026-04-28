@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -10,6 +11,8 @@ namespace QuerySpec.Core.Tests.Caching;
 /// <summary>
 /// Unit tests for <see cref="DistributedCacheProvider"/>.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises DistributedCacheProvider, which serialises/deserialises T via System.Text.Json reflection.")]
+[RequiresDynamicCode("Test exercises DistributedCacheProvider, which serialises/deserialises T via System.Text.Json reflection that emits IL at runtime.")]
 public class DistributedCacheProviderTests
 {
     [Fact]

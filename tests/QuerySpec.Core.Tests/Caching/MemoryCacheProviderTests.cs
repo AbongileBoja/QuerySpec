@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
 using QuerySpec.Core.Caching;
@@ -7,6 +8,8 @@ namespace QuerySpec.Core.Tests.Caching;
 /// <summary>
 /// Unit tests for <see cref="MemoryCacheProvider"/>.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises MemoryCacheProvider through the ICacheStore generic surface, whose contract requires reflection metadata for T to remain compatible across providers.")]
+[RequiresDynamicCode("Test exercises MemoryCacheProvider through the ICacheStore generic surface, whose contract requires runtime code generation to remain compatible across providers.")]
 public class MemoryCacheProviderTests
 {
     [Fact]

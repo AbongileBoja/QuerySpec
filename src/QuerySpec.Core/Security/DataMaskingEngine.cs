@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -33,6 +34,12 @@ namespace QuerySpec.Core.Security;
 public sealed class DataMaskingEngine
 {
     private const int HashOutputBytes = 32;
+
+    private const DynamicallyAccessedMemberTypes ClassifierMembers =
+        DynamicallyAccessedMemberTypes.PublicProperties
+        | DynamicallyAccessedMemberTypes.NonPublicProperties
+        | DynamicallyAccessedMemberTypes.PublicFields
+        | DynamicallyAccessedMemberTypes.NonPublicFields;
 
     private readonly Dictionary<string, MaskingStrategy> _fieldMasks = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Regex> _piiPatterns = new(StringComparer.Ordinal);
@@ -146,7 +153,11 @@ public sealed class DataMaskingEngine
     /// The masked value. When no field mask is registered and the classifier returns
     /// <see cref="PiiCategory.None"/>, the original string representation is returned.
     /// </returns>
-    public string Mask(Type? declaringType, string fieldName, object? value, string? tenantId = null)
+    public string Mask(
+        [DynamicallyAccessedMembers(ClassifierMembers)] Type? declaringType,
+        string fieldName,
+        object? value,
+        string? tenantId = null)
         => MaskCore(fieldName, value, tenantId, Classify(declaringType, fieldName));
 
     private string MaskCore(string fieldName, object? value, string? tenantId, PiiCategory classifierCategory)
@@ -232,7 +243,9 @@ public sealed class DataMaskingEngine
     /// </param>
     /// <param name="fieldName">The field or property name to classify.</param>
     /// <returns>The category, or <see cref="PiiCategory.None"/> when no classifier is configured.</returns>
-    public PiiCategory Classify(Type? declaringType, string fieldName)
+    public PiiCategory Classify(
+        [DynamicallyAccessedMembers(ClassifierMembers)] Type? declaringType,
+        string fieldName)
         => _classifier?.Classify(declaringType, fieldName) ?? PiiCategory.None;
 
     /// <summary>
@@ -242,7 +255,9 @@ public sealed class DataMaskingEngine
     /// <param name="declaringType">The type that owns the field.</param>
     /// <param name="fieldName">The field or property name to classify.</param>
     /// <returns><c>true</c> when classified as PII; otherwise <c>false</c>.</returns>
-    public bool IsPii(Type? declaringType, string fieldName)
+    public bool IsPii(
+        [DynamicallyAccessedMembers(ClassifierMembers)] Type? declaringType,
+        string fieldName)
         => Classify(declaringType, fieldName) != PiiCategory.None;
 
     /// <summary>

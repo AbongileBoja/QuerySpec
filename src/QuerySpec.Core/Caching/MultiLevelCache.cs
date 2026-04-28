@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +32,8 @@ public class MultiLevelCache : ICacheProvider, ICacheStore
     /// <param name="key">Cache key.</param>
     /// <param name="cancellationToken">Token observed by the L1 and L2 reads.</param>
     /// <returns>A populated <see cref="CacheResult{T}"/> on hit in either tier; <see cref="CacheResult{T}.Miss"/> otherwise.</returns>
+    [RequiresUnreferencedCode(ICacheStore.CacheStoreTrimMessage)]
+    [RequiresDynamicCode(ICacheStore.CacheStoreAotMessage)]
     public async ValueTask<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         var l1 = await _l1.TryGetAsync<T>(key, cancellationToken).ConfigureAwait(false);
@@ -61,6 +64,8 @@ public class MultiLevelCache : ICacheProvider, ICacheStore
     /// <param name="ttl">Optional time-to-live; <see langword="null"/> uses each tier's default.</param>
     /// <param name="cancellationToken">Token observed by the L1 and L2 writes.</param>
     /// <returns>A completed task on success.</returns>
+    [RequiresUnreferencedCode(ICacheStore.CacheStoreTrimMessage)]
+    [RequiresDynamicCode(ICacheStore.CacheStoreAotMessage)]
     public async ValueTask SetValueAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
     {
         await _l1.SetValueAsync(key, value, ttl, cancellationToken).ConfigureAwait(false);

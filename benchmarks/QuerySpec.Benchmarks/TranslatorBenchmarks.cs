@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using QuerySpec.Core.Advanced;
@@ -11,6 +12,8 @@ namespace QuerySpec.Benchmarks;
 /// resolution (reflection cache), and nested filter composition.
 /// </summary>
 [Config(typeof(BenchConfig))]
+[RequiresUnreferencedCode("Benchmark exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
+[RequiresDynamicCode("Benchmark exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
 public class TranslatorBenchmarks
 {
     private IQueryable<Widget> _source = null!;

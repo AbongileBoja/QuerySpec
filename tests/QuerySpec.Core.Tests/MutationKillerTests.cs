@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -622,6 +623,8 @@ public class MutationKillerTests
         Assert.False(await exporter.UserHasAccessedFieldAsync("alice", "PhoneNumber", since));
     }
 
+    [RequiresUnreferencedCode("Test exercises ComplianceExporter, which uses System.Text.Json reflection-based serialisation over AuditLogEntry.")]
+    [RequiresDynamicCode("Test exercises ComplianceExporter, which uses System.Text.Json reflection-based serialisation that emits IL at runtime.")]
     [Fact]
     public async Task ComplianceExporter_GenerateGdprExportAsync_WritesJson()
     {
