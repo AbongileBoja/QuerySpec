@@ -173,6 +173,7 @@ jobs:
             --no-build --configuration Release \
             -p:Version=${{ steps.version.outputs.version }} \
             -p:ContinuousIntegrationBuild=true \
+            -p:RepositoryCommit=${{ github.sha }} \
             --output ./artifacts
         done
 
@@ -225,6 +226,25 @@ jobs:
           exit 1
         fi
         echo "All packages passed Meziantou NuGet content/metadata validation."
+
+    - name: Test SourceLink mappings
+      run: |
+        set -euo pipefail
+        dotnet tool install -g sourcelink
+        export PATH="$PATH:$HOME/.dotnet/tools"
+        failed=0
+        for pkg in ./artifacts/*.nupkg; do
+          echo "::group::SourceLink test $(basename "$pkg")"
+          if ! sourcelink test "$pkg"; then
+            echo "::error::SourceLink test failed for $(basename "$pkg")"
+            failed=$((failed + 1))
+          fi
+          echo "::endgroup::"
+        done
+        if [[ "$failed" -ne 0 ]]; then
+          exit 1
+        fi
+        echo "All packages passed SourceLink mapping verification."
 
     - name: Upload packages
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
