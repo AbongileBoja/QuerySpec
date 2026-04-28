@@ -1,0 +1,61 @@
+version: 2
+
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    groups:
+      microsoft-extensions:
+        patterns:
+          - "Microsoft.Extensions.*"
+      microsoft-efcore:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+      analyzers:
+        patterns:
+          - "Microsoft.CodeAnalysis.*"
+          - "Roslynator.*"
+          - "StyleCop.*"
+          - "SonarAnalyzer.*"
+          - "Meziantou.Analyzer"
+          - "Microsoft.VisualStudio.Threading.Analyzers"
+      xunit:
+        patterns:
+          - "xunit*"
+      benchmark:
+        patterns:
+          - "BenchmarkDotNet*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    groups:
+      actions-core:
+        patterns:
+          - "actions/*"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
