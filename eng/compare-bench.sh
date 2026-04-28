@@ -15,9 +15,10 @@ THRESHOLD_PCT=5
 ALLOC_THRESHOLD=100
 RUN_DIR=""
 BASELINE_DIR=""
+EXCLUDE_LIST=""
 
 usage() {
-    echo "Usage: $0 --run-dir <path> --baseline-dir <path> [--threshold-pct <n>] [--alloc-threshold <n>]" >&2
+    echo "Usage: $0 --run-dir <path> --baseline-dir <path> [--threshold-pct <n>] [--alloc-threshold <n>] [--exclude <comma-separated FullNames>]" >&2
     exit 2
 }
 
@@ -27,6 +28,7 @@ while [[ $# -gt 0 ]]; do
         --baseline-dir)   BASELINE_DIR="$2";   shift 2 ;;
         --threshold-pct)  THRESHOLD_PCT="$2";  shift 2 ;;
         --alloc-threshold) ALLOC_THRESHOLD="$2"; shift 2 ;;
+        --exclude)        EXCLUDE_LIST="$2";   shift 2 ;;
         *) usage ;;
     esac
 done
@@ -57,7 +59,7 @@ for baseline_file in "$BASELINE_DIR"/*.json; do
 
     run_file=$(find "$RUN_DIR" -name "*${class_name}*-report-full.json" 2>/dev/null | head -1)
     if [[ -z "$run_file" ]]; then
-        run_file=$(find "$RUN_DIR" -name "*${class_name}*.json" 2>/dev/null | grep -v "github\|markdown\|html\|csv" | head -1)
+        run_file=$(find "$RUN_DIR" -name "*${class_name}*.json" 2>/dev/null | grep -v "github\|markdown\|html\|csv" | head -1 || true)
     fi
 
     if [[ -z "$run_file" ]]; then
@@ -90,6 +92,22 @@ for baseline_file in "$BASELINE_DIR"/*.json; do
 
         [[ -z "$baseline_mean" || "$baseline_mean" == "null" ]] && continue
         [[ -z "$run_mean" || "$run_mean" == "null" ]] && continue
+
+        if [[ -n "$EXCLUDE_LIST" ]]; then
+            IFS=',' read -ra _excl <<< "$EXCLUDE_LIST"
+            _excluded=0
+            for _e in "${_excl[@]}"; do
+                if [[ "$bench_name" == "$_e" ]]; then
+                    _excluded=1
+                    break
+                fi
+            done
+            if [[ "$_excluded" == "1" ]]; then
+                short_name=$(echo "$bench_name" | sed 's/.*\.//')
+                echo "  EXCLUDED (not counted)  ${short_name}"
+                continue
+            fi
+        fi
 
         compared=$((compared + 1))
 
@@ -132,6 +150,11 @@ echo "Compared $compared benchmark(s). Regressions: $regressions."
 
 if [[ "$regressions" -gt 0 ]]; then
     echo "::error::Perf regression gate FAILED — $regressions benchmark(s) exceeded threshold (mean >+${THRESHOLD_PCT}% or alloc >+${ALLOC_THRESHOLD} B/op)."
+    exit 1
+fi
+
+if [[ "$compared" -eq 0 ]]; then
+    echo "::error::Perf regression gate FAILED — no benchmarks were compared." >&2
     exit 1
 fi
 

@@ -91,11 +91,13 @@ jobs:
           echo "::warning::No results directory found — skipping comparison."
           exit 0
         fi
+        # Exclude until #197 — flaky on cross-OS baseline (CV 18% > 15% threshold)
         eng/compare-bench.sh \
           --run-dir "$run_results_dir" \
           --baseline-dir benchmarks/baseline/net10.0 \
           --threshold-pct 15 \
-          --alloc-threshold 200
+          --alloc-threshold 200 \
+          --exclude "QuerySpec.Benchmarks.TranslatorBenchmarks.SimpleEqual"
 
     - name: Update baseline (workflow_dispatch with update_baseline=true)
       if: inputs.update_baseline == 'true'
