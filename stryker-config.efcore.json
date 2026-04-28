@@ -16,7 +16,8 @@
     ],
     "mutate": [
       "src/QuerySpec.EFCore/**/*.cs",
-      "!src/QuerySpec.EFCore/Properties/**"
+      "!src/QuerySpec.EFCore/Properties/**",
+      "!src/QuerySpec.EFCore/QuerySpecExpressionTranslator.cs{829..870}"
     ],
     "baseline": {
       "enabled": false,

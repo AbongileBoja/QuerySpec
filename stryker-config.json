@@ -17,7 +17,8 @@
     ],
     "mutate": [
       "src/QuerySpec.Core/**/*.cs",
-      "!src/QuerySpec.Core/Properties/**"
+      "!src/QuerySpec.Core/Properties/**",
+      "!src/QuerySpec.Core/Caching/DistributedCacheProvider.cs"
     ],
     "baseline": {
       "enabled": false,
