@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using QuerySpec.Core.Monitoring;
 using Xunit;
@@ -8,6 +9,8 @@ namespace QuerySpec.Core.Tests.Concurrency;
 /// Stress tests verifying the N+1 detection engine does not leak memory under heavy
 /// concurrent recording and enforces its pattern cap.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises N1DetectionEngine.RecordQuery, which walks the call stack via StackFrame.GetMethod and may reference members removed under trimming.")]
+[RequiresDynamicCode("Test exercises N1DetectionEngine.RecordQuery, which walks the call stack via StackFrame.GetMethod.")]
 public class N1DetectionStressTests
 {
     /// <summary>

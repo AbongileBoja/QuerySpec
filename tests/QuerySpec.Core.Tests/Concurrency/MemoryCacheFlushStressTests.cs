@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using QuerySpec.Core.Caching;
@@ -10,6 +11,8 @@ namespace QuerySpec.Core.Tests.Concurrency;
 /// readers/writers. Previously, FlushAsync disposed the live cache, causing
 /// ObjectDisposedException in-flight; the atomic-swap fix removes that hazard.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises MemoryCacheProvider through the ICacheStore generic surface, whose contract requires reflection metadata for T to remain compatible across providers.")]
+[RequiresDynamicCode("Test exercises MemoryCacheProvider through the ICacheStore generic surface, whose contract requires runtime code generation to remain compatible across providers.")]
 public class MemoryCacheFlushStressTests
 {
     /// <summary>Concurrent Get/Set/Flush operations must complete without throwing.</summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,8 @@ namespace QuerySpec.Core.Tests.Auditing
     /// <summary>
     /// Unit tests for ComplianceExporter.
     /// </summary>
+    [RequiresUnreferencedCode("Test exercises ComplianceExporter, which uses System.Text.Json reflection-based serialisation over AuditLogEntry.")]
+    [RequiresDynamicCode("Test exercises ComplianceExporter, which uses System.Text.Json reflection-based serialisation that emits IL at runtime.")]
     public class ComplianceExporterTests
     {
         /// <summary>Tests that GetUserDataAsync filters by tenant ID.</summary>

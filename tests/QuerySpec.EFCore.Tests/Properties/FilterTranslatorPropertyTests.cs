@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CsCheck;
 using Microsoft.Data.Sqlite;
@@ -11,6 +12,8 @@ using Xunit;
 namespace QuerySpec.EFCore.Tests.Properties;
 
 [Trait("Category", "PropertyBased")]
+[RequiresUnreferencedCode("Test exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
+[RequiresDynamicCode("Test exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
 public sealed class FilterTranslatorPropertyTests : IDisposable
 {
     private sealed class SampleEntity
@@ -23,6 +26,8 @@ public sealed class FilterTranslatorPropertyTests : IDisposable
         public decimal? Score { get; set; }
     }
 
+    [RequiresUnreferencedCode("EF Core DbContext is not fully compatible with trimming.")]
+    [RequiresDynamicCode("EF Core DbContext is not fully compatible with NativeAOT.")]
     private sealed class SampleContext : DbContext
     {
         public DbSet<SampleEntity> Entities => Set<SampleEntity>();

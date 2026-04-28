@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using QuerySpec.Core.Advanced;
@@ -19,8 +20,12 @@ namespace QuerySpec.EFCore.Tests;
 /// the EF Core SQL translator pipeline, and parameterisation. SQL-Server- and PostgreSQL-specific
 /// dialect issues require Testcontainers; that is tracked as a follow-up.
 /// </remarks>
+[RequiresUnreferencedCode("Test exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
+[RequiresDynamicCode("Test exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
 public class TranslatorSqliteTests : IDisposable
 {
+    [RequiresUnreferencedCode("EF Core DbContext is not fully compatible with trimming.")]
+    [RequiresDynamicCode("EF Core DbContext is not fully compatible with NativeAOT.")]
     private sealed class WidgetContext : DbContext
     {
         public DbSet<Widget> Widgets => Set<Widget>();

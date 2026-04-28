@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Time.Testing;
 using Xunit;
@@ -10,6 +11,8 @@ namespace QuerySpec.Core.Tests.Caching;
 /// Coverage for validation, lifecycle, expiration, and stats behavior of
 /// <see cref="MemoryCacheProvider"/> that complement the baseline roundtrip tests.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises MemoryCacheProvider through the ICacheStore generic surface, whose contract requires reflection metadata for T to remain compatible across providers.")]
+[RequiresDynamicCode("Test exercises MemoryCacheProvider through the ICacheStore generic surface, whose contract requires runtime code generation to remain compatible across providers.")]
 public class MemoryCacheProviderAdditionalTests
 {
     [Theory]

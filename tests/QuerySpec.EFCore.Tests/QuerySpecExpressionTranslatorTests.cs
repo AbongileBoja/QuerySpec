@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using QuerySpec.Core.Advanced;
 using QuerySpec.EFCore;
@@ -9,8 +10,12 @@ namespace QuerySpec.EFCore.Tests;
 /// <summary>
 /// Unit tests for QuerySpecExpressionTranslator.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
+[RequiresDynamicCode("Test exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
 public class QuerySpecExpressionTranslatorTests
 {
+    [RequiresUnreferencedCode("EF Core DbContext is not fully compatible with trimming.")]
+    [RequiresDynamicCode("EF Core DbContext is not fully compatible with NativeAOT.")]
     private class TestDbContext : DbContext
     {
         public DbSet<TestEntity> TestEntities { get; set; } = null!;

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using QuerySpec.Core.Advanced;
 using QuerySpec.EFCore;
@@ -11,6 +12,8 @@ namespace QuerySpec.EFCore.Tests;
 /// that structurally-equal filters share the same compiled expression instance, and that
 /// validation failures still propagate on cache miss.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
+[RequiresDynamicCode("Test exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
 public class ApplyFilterCachedTests
 {
     private sealed class Widget

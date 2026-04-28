@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -10,6 +11,8 @@ namespace QuerySpec.Core.Tests.Caching;
 /// <summary>
 /// Unit tests for <see cref="MultiLevelCache"/>.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises MultiLevelCache, which serialises/deserialises T via System.Text.Json reflection on the L2 distributed path.")]
+[RequiresDynamicCode("Test exercises MultiLevelCache, which serialises/deserialises T via System.Text.Json reflection that emits IL at runtime on the L2 distributed path.")]
 public class MultiLevelCacheTests
 {
     [Fact]

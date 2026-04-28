@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Xunit;
 using QuerySpec.Core.Security;
@@ -137,6 +138,8 @@ public class DataMaskingEngineTests
         Assert.False(engine.IsPii(typeof(SampleEntity), nameof(SampleEntity.Email)));
     }
 
+    [RequiresUnreferencedCode("Test exercises AttributePiiClassifier, which reflects over caller-supplied entity types whose [Pii]-annotated members may be removed under trimming.")]
+    [RequiresDynamicCode("Test exercises AttributePiiClassifier, which reflects over caller-supplied entity types.")]
     [Fact]
     public void IsPii_WithAttributeClassifier_HonoursAnnotation()
     {

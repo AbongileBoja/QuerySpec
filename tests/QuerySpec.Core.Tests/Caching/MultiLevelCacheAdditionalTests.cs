@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -12,6 +13,8 @@ namespace QuerySpec.Core.Tests.Caching;
 /// Coverage for L1/L2 interaction scenarios beyond the baseline set-in-both tests:
 /// promotion on L2 hit, dual removal, dual flush, and L2 fallback.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises MultiLevelCache, which serialises/deserialises T via System.Text.Json reflection on the L2 distributed path.")]
+[RequiresDynamicCode("Test exercises MultiLevelCache, which serialises/deserialises T via System.Text.Json reflection that emits IL at runtime on the L2 distributed path.")]
 public class MultiLevelCacheAdditionalTests
 {
     private sealed class InMemDistributed : IDistributedCache

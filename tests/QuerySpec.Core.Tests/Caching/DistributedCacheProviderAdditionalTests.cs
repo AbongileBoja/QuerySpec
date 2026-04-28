@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,8 @@ namespace QuerySpec.Core.Tests.Caching;
 /// Coverage for error paths and robust behavior of <see cref="DistributedCacheProvider"/>:
 /// transport failures treated as misses, corrupt payload eviction, validation, and stats.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises DistributedCacheProvider, which serialises/deserialises T via System.Text.Json reflection.")]
+[RequiresDynamicCode("Test exercises DistributedCacheProvider, which serialises/deserialises T via System.Text.Json reflection that emits IL at runtime.")]
 public class DistributedCacheProviderAdditionalTests
 {
     private sealed class FakeDistributedCache : IDistributedCache

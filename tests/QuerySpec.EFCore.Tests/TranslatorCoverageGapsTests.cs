@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using QuerySpec.Core.Advanced;
@@ -14,6 +15,8 @@ namespace QuerySpec.EFCore.Tests;
 /// non-JSON enumerables, nullable comparison/temporal paths, and the predicate cache bulk-eviction
 /// branch.
 /// </summary>
+[RequiresUnreferencedCode("Test exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
+[RequiresDynamicCode("Test exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
 public class TranslatorCoverageGapsTests
 {
     private sealed class Entity
