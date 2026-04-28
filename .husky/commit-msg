@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 # Validates the commit message against the Conventional Commits rules in
-# .commitlintrc.json. Installed by `npm install` via the "prepare" script.
+# commitlint.config.js. Installed by `npm install` via the "prepare" script.
 npx --no-install commitlint --edit "$1"
