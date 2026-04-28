@@ -15,25 +15,20 @@
       "src/QuerySpec.DependencyInjection/**/*.cs",
       "!src/QuerySpec.DependencyInjection/Properties/**"
     ],
-    "with-baseline": true,
-    "since": {
-      "target": "develop"
+    "baseline": {
+      "enabled": true,
+      "provider": "Dashboard",
+      "fallback-version": "develop"
+    },
+    "project-info": {
+      "name": "github.com/AbongileBoja/QuerySpec",
+      "module": "di"
     },
     "thresholds": {
       "high": 80,
       "low": 60,
       "break": 0
     },
-    "reporters": [
-      "html",
-      "progress",
-      "json",
-      "dashboard"
-    ],
-    "dashboard": {
-      "project": "github.com/AbongileBoja/QuerySpec",
-      "version": "develop",
-      "module": "di"
-    }
+    "reporters": ["html", "progress", "json", "dashboard"]
   }
 }

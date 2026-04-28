@@ -18,25 +18,20 @@
     "mutate": [
       "src/QuerySpec.Core/Security/**/*.cs"
     ],
-    "with-baseline": true,
-    "since": {
-      "target": "develop"
+    "baseline": {
+      "enabled": true,
+      "provider": "Dashboard",
+      "fallback-version": "develop"
+    },
+    "project-info": {
+      "name": "github.com/AbongileBoja/QuerySpec",
+      "module": "security"
     },
     "thresholds": {
       "high": 90,
       "low": 85,
       "break": 0
     },
-    "reporters": [
-      "html",
-      "progress",
-      "json",
-      "dashboard"
-    ],
-    "dashboard": {
-      "project": "github.com/AbongileBoja/QuerySpec",
-      "version": "develop",
-      "module": "security"
-    }
+    "reporters": ["html", "progress", "json", "dashboard"]
   }
 }
