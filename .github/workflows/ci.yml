@@ -385,20 +385,61 @@ jobs:
       with:
         category: "/language:csharp"
 
+    - name: Read CodeQL alert counts
+      id: codeql_alerts
+      if: always() && steps.codeql.outcome == 'success'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REF: ${{ github.ref }}
+        REPO: ${{ github.repository }}
+      run: |
+        set -euo pipefail
+        count_for() {
+          local sev="$1"
+          gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${REPO}/code-scanning/alerts?ref=${REF}&state=open&severity=${sev}&tool_name=CodeQL&per_page=100" \
+            --paginate --jq 'length' \
+            | awk '{s+=$1} END {print s+0}'
+        }
+        crit=$(count_for critical)
+        high=$(count_for high)
+        med=$(count_for medium)
+        low=$(count_for low)
+        echo "alerts_critical=${crit}" >> "$GITHUB_OUTPUT"
+        echo "alerts_high=${high}"     >> "$GITHUB_OUTPUT"
+        echo "alerts_medium=${med}"    >> "$GITHUB_OUTPUT"
+        echo "alerts_low=${low}"       >> "$GITHUB_OUTPUT"
+        echo "CodeQL open alerts: critical=${crit} high=${high} medium=${med} low=${low}"
+        if [[ "${high}" -gt 0 ]]; then
+          echo "::warning::CodeQL reports ${high} open high-severity alert(s). Currently warn-only; ratchet to fail tracked in #200."
+        fi
+
     - name: Emit CodeQL evidence
       if: always()
       shell: bash
       env:
         STARTED_AT: ${{ env.STARTED_AT }}
+        REF: ${{ github.ref }}
       run: |
         set -euo pipefail
         chmod +x eng/emit-evidence.sh
+        crit='${{ steps.codeql_alerts.outputs.alerts_critical }}'
+        high='${{ steps.codeql_alerts.outputs.alerts_high }}'
+        med='${{ steps.codeql_alerts.outputs.alerts_medium }}'
+        low='${{ steps.codeql_alerts.outputs.alerts_low }}'
+        crit=${crit:-0}; high=${high:-0}; med=${med:-0}; low=${low:-0}
         verdict=pass
         if [[ "${{ steps.codeql.outcome }}" != "success" ]]; then verdict=fail; fi
-        summary=$(jq -n '{language:"csharp", queries:"security-and-quality", alerts_critical:0, alerts_high:0, alerts_medium:0, alerts_low:0}')
+        if [[ "${{ steps.codeql_alerts.outcome }}" != "success" ]]; then verdict=fail; fi
+        if [[ "${crit}" -gt 0 ]]; then verdict=fail; fi
+        summary=$(jq -n \
+          --argjson c "$crit" --argjson h "$high" --argjson m "$med" --argjson l "$low" \
+          '{language:"csharp", queries:"security-and-quality",
+            alerts_critical:$c, alerts_high:$h, alerts_medium:$m, alerts_low:$l}')
         eng/emit-evidence.sh --gate codeql --verdict "$verdict" \
           --summary-json "$summary" --output-dir ./evidence \
-          --notes "Alert counts not parsed from action output; consult Security tab for precise figures."
+          --notes "Parsed from GitHub Code Scanning API for ref ${REF}, tool=CodeQL. critical>0 fails the gate; high>0 is warn-only (ratchet tracked in #200)."
     - name: Upload codeql evidence
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
