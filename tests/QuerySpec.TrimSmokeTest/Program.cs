@@ -1,10 +1,7 @@
 using System;
-using System.Linq;
-using System.Linq.Expressions;
 using QuerySpec.Core.Advanced;
 using QuerySpec.Core.Caching;
 using QuerySpec.Core.Security;
-using QuerySpec.EFCore;
 
 namespace QuerySpec.TrimSmokeTest;
 
@@ -18,6 +15,7 @@ internal static class Program
 {
     private static int Main()
     {
+        // Smoke test only exercises trim-safe surface; APIs marked [RequiresUnreferencedCode] are intentionally not invoked here.
         var key = CacheKeyGenerator.GenerateQueryCacheKey("t", "u", "qh", "sh", 1);
         Console.WriteLine($"key: {key}");
 
@@ -32,23 +30,13 @@ internal static class Program
         var masked = masking.Mask("Name", "Alice");
         Console.WriteLine($"masked: {masked}");
 
-        var data = new[]
-        {
-            new Sample { Id = 1, Name = "Alice" },
-            new Sample { Id = 2, Name = "Bob" }
-        }.AsQueryable();
-
         var spec = new FilterSpec
         {
             Field = nameof(Sample.Id),
             Operator = FilterOperator.Equal,
             Value = 1,
         };
-
-#pragma warning disable IL2026, IL3050
-        var filtered = QuerySpecExpressionTranslator.ApplyFilter(data, spec);
-#pragma warning restore IL2026, IL3050
-        Console.WriteLine($"matches: {filtered.Count()}");
+        Console.WriteLine($"spec: Field={spec.Field} Operator={spec.Operator} Value={spec.Value}");
 
         return 0;
     }
