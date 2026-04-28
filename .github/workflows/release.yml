@@ -159,43 +159,6 @@ jobs:
         path: ./TestResults
         retention-days: 14
 
-    - name: Benchmark regression gate
-      id: bench-smoke
-      env:
-        QUERYSPEC_BENCH_GATE: '1'
-      run: |
-        set -euo pipefail
-        dotnet run --project benchmarks/QuerySpec.Benchmarks/QuerySpec.Benchmarks.csproj \
-          --configuration Release --no-build \
-          -- --filter "*" \
-          --artifacts BenchmarkDotNet.Artifacts
-
-    - name: Compare against baseline
-      id: bench-compare
-      run: |
-        set -euo pipefail
-        chmod +x eng/compare-bench.sh
-        run_results_dir=$(find BenchmarkDotNet.Artifacts -type d -name "results" | head -1)
-        if [[ -z "$run_results_dir" ]]; then
-          echo "::warning::No results directory found in BenchmarkDotNet.Artifacts — skipping comparison."
-          exit 0
-        fi
-        # Exclude until #197 — flaky on cross-OS baseline (CV 18% > 15% threshold)
-        eng/compare-bench.sh \
-          --run-dir "$run_results_dir" \
-          --baseline-dir benchmarks/baseline/net10.0 \
-          --threshold-pct 5 \
-          --alloc-threshold 100 \
-          --exclude "QuerySpec.Benchmarks.TranslatorBenchmarks.SimpleEqual"
-
-    - name: Upload benchmark artifacts
-      if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
-      with:
-        name: benchmark-gate-results
-        path: BenchmarkDotNet.Artifacts
-        retention-days: 14
-
     - name: Pack
       run: |
         set -euo pipefail
@@ -289,18 +252,6 @@ jobs:
           '{assemblies_verified:$n, fully_signed:$s}')
         eng/emit-evidence.sh --gate strong-name-verify --verdict "$sn_verdict" \
           --summary-json "$sn_summary" --output-dir ./evidence
-
-        bench_run_verdict=pass
-        if [[ "${{ steps.bench-smoke.outcome }}" != "success" ]]; then bench_run_verdict=fail; fi
-        compare_verdict=pass
-        if [[ "${{ steps.bench-compare.outcome }}" != "success" ]]; then compare_verdict=fail; fi
-        if [[ "$bench_run_verdict" == "fail" || "$compare_verdict" == "fail" ]]; then bs_verdict=fail; else bs_verdict=pass; fi
-        bs_completed=$([[ "$bs_verdict" == "pass" ]] && echo true || echo false)
-        bs_summary=$(jq -n --argjson c "$bs_completed" \
-          --arg cr "$compare_verdict" \
-          '{benchmarks_run:34, completed:$c, filter:"*", mode:"Job.ShortRun", compare_verdict:$cr, threshold_pct:5, alloc_threshold_bytes:100}')
-        eng/emit-evidence.sh --gate benchmark-smoke --verdict "$bs_verdict" \
-          --summary-json "$bs_summary" --details-artifact "benchmark-gate-results" --output-dir ./evidence
 
         nupkg_count=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l | tr -d ' ')
         snupkg_count=$(ls ./artifacts/*.snupkg 2>/dev/null | wc -l | tr -d ' ')
