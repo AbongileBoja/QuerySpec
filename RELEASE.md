@@ -1,10 +1,11 @@
 # Releasing QuerySpec to NuGet
 
-Three packages ship together at the same version:
+Four packages ship together at the same version:
 
 - [`QuerySpec.Core`](https://www.nuget.org/packages/QuerySpec.Core)
 - [`QuerySpec.EFCore`](https://www.nuget.org/packages/QuerySpec.EFCore)
 - [`QuerySpec.DependencyInjection`](https://www.nuget.org/packages/QuerySpec.DependencyInjection)
+- [`QuerySpec.Analyzers`](https://www.nuget.org/packages/QuerySpec.Analyzers)
 
 ## One-time setup
 
@@ -16,7 +17,7 @@ Three packages ship together at the same version:
    - **Key name:** `queryspec-github-actions`
    - **Package owner:** your account
    - **Scopes:** `Push new packages and package versions`
-   - **Packages:** `QuerySpec.Core`, `QuerySpec.EFCore`, `QuerySpec.DependencyInjection`
+   - **Packages:** `QuerySpec.Core`, `QuerySpec.EFCore`, `QuerySpec.DependencyInjection`, `QuerySpec.Analyzers`
      *(If the packages don't yet exist, use the `Glob pattern` field with `QuerySpec.*`.)*
    - **Expiration:** 365 days (rotate annually).
 4. **Copy the key once** — nuget.org won't show it again.
@@ -75,8 +76,9 @@ git push --follow-tags origin develop
    - Builds `QuerySpec.sln` with `-p:Version=<tag>` so the tag is the source of truth
      (not `Directory.Build.props`).
    - Runs the full test suite across net8/net9/net10.
-   - Packs only the three shipping `src/` projects → `artifacts/*.nupkg` + `*.snupkg`.
-   - Validates that exactly 3 nupkg + 3 snupkg exist and filenames embed the version.
+   - Packs all four shipping `src/` projects → `artifacts/*.nupkg` + `*.snupkg`.
+   - Validates that exactly 4 nupkg + 3 snupkg exist and filenames embed the version.
+     (QuerySpec.Analyzers ships with `DevelopmentDependency=true` and embedded PDB symbols; no `.snupkg`.)
 3. **Approval gate** — GitHub pauses and requests approval on the `nuget-release`
    environment. Review, then click **Approve and deploy**.
 4. **Publish** — `dotnet nuget push` uploads each `.nupkg` to nuget.org. Adjacent

@@ -41,7 +41,12 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReleaseNotes>https://github.com/AbongileBoja/QuerySpec/blob/main/CHANGELOG.md#$(Version.Replace('.',''))</PackageReleaseNotes>
     <Copyright>Copyright © Abongile Boja</Copyright>
+
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -56,6 +61,7 @@
     <AdditionalFiles Include="$(MSBuildProjectDirectory)\PublicAPI.Shipped.$(TargetFramework).txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Shipped.$(TargetFramework).txt')" />
     <AdditionalFiles Include="$(MSBuildProjectDirectory)\PublicAPI.Unshipped.$(TargetFramework).txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Unshipped.$(TargetFramework).txt')" />
     <None Include="icon.png" Pack="true" PackagePath="\" Condition="Exists('$(MSBuildProjectDirectory)\icon.png')" />
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
