@@ -135,12 +135,26 @@ public class AuditLogEntry
         for (var i = 0; i < entries.Count; i++)
         {
             var expectedPrevious = i == 0 ? null : entries[i - 1].Hash;
-            if (entries[i].PreviousHash != expectedPrevious)
+            if (!ChainLinkMatches(entries[i].PreviousHash, expectedPrevious))
                 return i;
             if (!entries[i].VerifyIntegrity(expectedPrevious))
                 return i;
         }
         return -1;
+    }
+
+    private static bool ChainLinkMatches(string? actual, string? expected)
+    {
+        if (actual is null && expected is null) return true;
+        if (actual is null || expected is null) return false;
+
+        Span<byte> actualBuf = stackalloc byte[64];
+        Span<byte> expectedBuf = stackalloc byte[64];
+        if (!Convert.TryFromBase64String(actual, actualBuf, out var actualLen)) return false;
+        if (!Convert.TryFromBase64String(expected, expectedBuf, out var expectedLen)) return false;
+        if (actualLen != expectedLen) return false;
+
+        return CryptographicOperations.FixedTimeEquals(actualBuf[..actualLen], expectedBuf[..expectedLen]);
     }
 
     private static string ComputeHashCore(AuditLogEntry e, string? previousHash)
