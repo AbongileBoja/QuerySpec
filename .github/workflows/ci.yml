@@ -375,6 +375,10 @@ jobs:
       actions: read
       contents: read
       security-events: write
+    env:
+      # Floor for CodeQL quality findings (alerts without security_severity_level).
+      # Ratchet down only — when this number changes, it must be a decrease.
+      QUALITY_ALERT_FLOOR: '62'
     steps:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
@@ -425,11 +429,16 @@ jobs:
         high=$(count_for high)
         med=$(count_for medium)
         low=$(count_for low)
+        quality=$(gh api -H "Accept: application/vnd.github+json" \
+          "/repos/${REPO}/code-scanning/alerts?ref=${REF}&state=open&tool_name=CodeQL&per_page=100" \
+          --paginate --jq '[.[] | select(.rule.security_severity_level == null)] | length' \
+          | awk '{s+=$1} END {print s+0}')
         echo "alerts_critical=${crit}" >> "$GITHUB_OUTPUT"
         echo "alerts_high=${high}"     >> "$GITHUB_OUTPUT"
         echo "alerts_medium=${med}"    >> "$GITHUB_OUTPUT"
         echo "alerts_low=${low}"       >> "$GITHUB_OUTPUT"
-        echo "CodeQL open alerts: critical=${crit} high=${high} medium=${med} low=${low}"
+        echo "alerts_quality=${quality}" >> "$GITHUB_OUTPUT"
+        echo "CodeQL open alerts: critical=${crit} high=${high} medium=${med} low=${low} quality=${quality}"
 
     - name: Emit CodeQL evidence
       if: always()
@@ -444,19 +453,24 @@ jobs:
         high='${{ steps.codeql_alerts.outputs.alerts_high }}'
         med='${{ steps.codeql_alerts.outputs.alerts_medium }}'
         low='${{ steps.codeql_alerts.outputs.alerts_low }}'
-        crit=${crit:-0}; high=${high:-0}; med=${med:-0}; low=${low:-0}
+        quality='${{ steps.codeql_alerts.outputs.alerts_quality }}'
+        crit=${crit:-0}; high=${high:-0}; med=${med:-0}; low=${low:-0}; quality=${quality:-0}
+        floor="${QUALITY_ALERT_FLOOR:-0}"
         verdict=pass
         if [[ "${{ steps.codeql.outcome }}" != "success" ]]; then verdict=fail; fi
         if [[ "${{ steps.codeql_alerts.outcome }}" != "success" ]]; then verdict=fail; fi
         if [[ "${crit}" -gt 0 ]]; then verdict=fail; fi
         if [[ "${high}" -gt 0 ]]; then verdict=fail; fi
+        if [[ "${quality}" -gt "${floor}" ]]; then verdict=fail; fi
         summary=$(jq -n \
           --argjson c "$crit" --argjson h "$high" --argjson m "$med" --argjson l "$low" \
+          --argjson q "$quality" --argjson qf "$floor" \
           '{language:"csharp", queries:"security-and-quality",
-            alerts_critical:$c, alerts_high:$h, alerts_medium:$m, alerts_low:$l}')
+            alerts_critical:$c, alerts_high:$h, alerts_medium:$m, alerts_low:$l,
+            alerts_quality:$q, quality_alert_floor:$qf}')
         eng/emit-evidence.sh --gate codeql --verdict "$verdict" \
           --summary-json "$summary" --output-dir ./evidence \
-          --notes "Parsed from GitHub Code Scanning API for ref ${REF}, tool=CodeQL. critical>0 and high>0 fail the gate; medium/low remain emit-only."
+          --notes "Parsed from GitHub Code Scanning API for ref ${REF}, tool=CodeQL. critical>0 and high>0 fail the gate; quality>${floor} fails (current floor, ratchet down only); medium/low remain emit-only."
     - name: Upload codeql evidence
       if: always()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
