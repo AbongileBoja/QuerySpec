@@ -58,6 +58,30 @@
     <ProjectReference Include="..\..\src\QuerySpec.Core\QuerySpec.Core.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Verify.XunitV3" Version="31.16.2" />
+    <PackageReference Include="Verify.SourceGenerators" Version="2.5.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Verify.ProjectDirectory</_Parameter1>
+      <_Parameter2>$(MSBuildProjectDirectory)\</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Verify.TargetFrameworks</_Parameter1>
+      <_Parameter2></_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
