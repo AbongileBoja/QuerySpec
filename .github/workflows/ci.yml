@@ -765,9 +765,58 @@ jobs:
         path: ./evidence
         retention-days: 30
 
+  no-suppression:
+    name: No warning suppressions
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      with:
+        fetch-depth: 0
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+    - name: Fetch base branch
+      run: git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+    - name: Check for new suppressions
+      id: check
+      run: bash eng/no-suppression-check.sh origin/${{ github.event.pull_request.base.ref }}
+
+    - name: Emit no-suppression evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        violations=0
+        if [[ "${{ steps.check.outcome }}" != "success" ]]; then
+          verdict=fail
+          violations=1
+        fi
+        summary=$(jq -n --argjson v "$violations" '{violations:$v}')
+        eng/emit-evidence.sh --gate no-suppression --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence
+    - name: Upload no-suppression evidence
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      with:
+        name: evidence-no-suppression
+        path: ./evidence
+        retention-days: 30
+
   aggregate-evidence:
     name: Aggregate evidence index
-    needs: [build, format, codeql, vulnerability-scan, commitlint, reproducibility]
+    needs: [build, format, codeql, vulnerability-scan, commitlint, reproducibility, no-suppression]
     if: always()
     runs-on: ubuntu-latest
     permissions:
