@@ -163,6 +163,43 @@ Both a `feat:` (or `fix:`) commit for the API change and the baseline update bel
 
 Both gates must pass for CI to be green.
 
+## No warning suppression
+
+Every compiler and analyzer warning in QuerySpec is a signal. Suppressing that signal is never the right default — it hides bugs, confuses future contributors, and creates noise in code scanning tools.
+
+### The rule
+
+Do not introduce any of the following in a PR:
+
+- `<NoWarn>` in `.csproj` or `.props` files
+- `<WarningsNotAsErrors>` in `.csproj` or `.props` files
+- `<TreatWarningsAsErrors>false</TreatWarningsAsErrors>` (downgrading the repo-wide true)
+- `[UnconditionalSuppressMessage(...)]` attribute
+- `[SuppressMessage(...)]` attribute
+- `#pragma warning disable <code>`
+- `continue-on-error: true` in a workflow step
+
+CI enforces this on every PR via `eng/no-suppression-check.sh`. The check is diff-based: it compares the PR head against the merge-base with the target branch, so pre-existing suppressions in `develop` are not retriggered.
+
+### Why this matters
+
+Signal preservation keeps the analyzer baseline honest. A suppressed CA1062 today becomes a NullReferenceException in production six months later. Suppressions also confuse supply-chain scanners (CodeQL, Dependabot) that rely on the analyzer results being unfiltered.
+
+### How to fix a warning instead of suppressing it
+
+For the most common cases:
+
+- **CA1062 (validate public params):** replace `if (x == null) throw ...` with `ArgumentNullException.ThrowIfNull(x);`.
+- **MA0004 / CA2007 (ConfigureAwait):** add `.ConfigureAwait(false)` to every `await` in library code.
+- **CA1822 (can be static):** add `static` to the member, or extract to a helper if the member is on a public interface.
+- **RS0026/RS0027 (optional params on overloads):** declare an explicit overload rather than `= default` on an overloaded parameter.
+
+When the fix requires a refactor that is out of scope for the current PR, open a tracked issue describing the warning, link it from the PR description, and land the fix in a subsequent PR. The warning will remain active in CI and continue to show in logs — which is intentional.
+
+### The escape hatch
+
+If a warning genuinely cannot be fixed without a breaking change slated for a future major version, document the carve-out in a GitHub issue before merging. The issue must explain: the warning code and why it fires, why the fix requires a breaking change, and the target version for the fix. This is the only path that allows a suppression past CI — and it requires human review of the issue before the PR can merge.
+
 ## Coverage ratchet
 
 CI enforces minimum line and branch coverage on every push and PR. Thresholds are defined in `.github/workflows/ci.yml`:
