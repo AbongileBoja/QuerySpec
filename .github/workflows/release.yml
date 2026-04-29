@@ -263,24 +263,40 @@ jobs:
         dotnet tool install -g sourcelink
         export PATH="$PATH:$HOME/.dotnet/tools"
         failed=0
+        work="$(mktemp -d)"
         for nupkg in ./artifacts/*.nupkg; do
           base="${nupkg%.nupkg}"
           snupkg="${base}.snupkg"
           pkg_name="$(basename "$nupkg")"
+          echo "::group::SourceLink test $pkg_name"
           if [[ -f "$snupkg" ]]; then
-            target="$snupkg"
-            target_name="$(basename "$snupkg")"
+            pkg_work="$work/$(basename "$base")"
+            mkdir -p "$pkg_work"
+            unzip -q -o "$snupkg" -d "$pkg_work"
+            pdb_failed=0
+            pdb_count=0
+            while IFS= read -r -d '' pdb; do
+              pdb_count=$((pdb_count + 1))
+              if ! sourcelink test "$pdb"; then
+                echo "::error::SourceLink test failed for $(basename "$pdb") (in $pkg_name)"
+                pdb_failed=$((pdb_failed + 1))
+              fi
+            done < <(find "$pkg_work" -name '*.pdb' -print0)
+            if [[ $pdb_count -eq 0 ]]; then
+              echo "::error::No PDB files found inside $(basename "$snupkg")"
+              failed=$((failed + 1))
+            elif [[ $pdb_failed -ne 0 ]]; then
+              failed=$((failed + 1))
+            fi
           else
-            target="$nupkg"
-            target_name="$pkg_name"
-          fi
-          echo "::group::SourceLink test $target_name"
-          if ! sourcelink test "$target"; then
-            echo "::error::SourceLink test failed for $target_name"
-            failed=$((failed + 1))
+            if ! sourcelink test "$nupkg"; then
+              echo "::error::SourceLink test failed for $pkg_name"
+              failed=$((failed + 1))
+            fi
           fi
           echo "::endgroup::"
         done
+        rm -rf "$work"
         if [[ "$failed" -ne 0 ]]; then
           exit 1
         fi
