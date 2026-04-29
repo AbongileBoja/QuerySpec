@@ -37,13 +37,13 @@ public sealed class SqlServerFixture : IAsyncLifetime
         using var ctx = new SqlServerWidgetContext(Options);
         await ctx.Database.EnsureCreatedAsync();
         ctx.Widgets.AddRange(
-            new SqlServerWidget { Id = 1, Name = "Alpha",       Quantity = 10, Price = 99.50m, CreatedAt = new DateTime(2024, 1, 15) },
-            new SqlServerWidget { Id = 2, Name = "Beta",        Quantity = 5,  Price = null,   CreatedAt = new DateTime(2024, 6, 1)  },
-            new SqlServerWidget { Id = 3, Name = "alphabet",    Quantity = 25, Price = 49.99m, CreatedAt = new DateTime(2024, 9, 20) },
-            new SqlServerWidget { Id = 4, Name = "Gamma",       Quantity = 0,  Price = 0m,     CreatedAt = new DateTime(2023, 12, 31) },
-            new SqlServerWidget { Id = 5, Name = "50%_off",     Quantity = 3,  Price = 10.00m, CreatedAt = new DateTime(2024, 3, 1)  },
-            new SqlServerWidget { Id = 6, Name = "[Special]",   Quantity = 1,  Price = 5.00m,  CreatedAt = new DateTime(2024, 4, 15) },
-            new SqlServerWidget { Id = 7, Name = "Under_score", Quantity = 2,  Price = 8.00m,  CreatedAt = new DateTime(2024, 5, 10) });
+            new SqlServerWidget { Id = 1, Name = "Alpha", Quantity = 10, Price = 99.50m, CreatedAt = new DateTime(2024, 1, 15) },
+            new SqlServerWidget { Id = 2, Name = "Beta", Quantity = 5, Price = null, CreatedAt = new DateTime(2024, 6, 1) },
+            new SqlServerWidget { Id = 3, Name = "alphabet", Quantity = 25, Price = 49.99m, CreatedAt = new DateTime(2024, 9, 20) },
+            new SqlServerWidget { Id = 4, Name = "Gamma", Quantity = 0, Price = 0m, CreatedAt = new DateTime(2023, 12, 31) },
+            new SqlServerWidget { Id = 5, Name = "50%_off", Quantity = 3, Price = 10.00m, CreatedAt = new DateTime(2024, 3, 1) },
+            new SqlServerWidget { Id = 6, Name = "[Special]", Quantity = 1, Price = 5.00m, CreatedAt = new DateTime(2024, 4, 15) },
+            new SqlServerWidget { Id = 7, Name = "Under_score", Quantity = 2, Price = 8.00m, CreatedAt = new DateTime(2024, 5, 10) });
         await ctx.SaveChangesAsync();
     }
 
@@ -66,6 +66,7 @@ public sealed class SqlServerWidgetContext : DbContext
         modelBuilder.Entity<SqlServerWidget>(e =>
         {
             e.HasKey(w => w.Id);
+            e.Property(w => w.Id).ValueGeneratedNever();
             e.Property(w => w.Price).HasPrecision(18, 4);
         });
     }

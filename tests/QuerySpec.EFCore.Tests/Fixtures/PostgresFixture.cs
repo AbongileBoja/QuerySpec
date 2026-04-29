@@ -36,10 +36,10 @@ public sealed class PostgresFixture : IAsyncLifetime
         using var ctx = new PostgresWidgetContext(Options);
         await ctx.Database.EnsureCreatedAsync();
         ctx.Widgets.AddRange(
-            new PostgresWidget { Id = 1, Name = "Alpha",    Quantity = 10, Price = 99.50m, CreatedAt = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new PostgresWidget { Id = 2, Name = "Beta",     Quantity = 5,  Price = null,   CreatedAt = new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc)  },
+            new PostgresWidget { Id = 1, Name = "Alpha", Quantity = 10, Price = 99.50m, CreatedAt = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new PostgresWidget { Id = 2, Name = "Beta", Quantity = 5, Price = null, CreatedAt = new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc) },
             new PostgresWidget { Id = 3, Name = "alphabet", Quantity = 25, Price = 49.99m, CreatedAt = new DateTime(2024, 9, 20, 0, 0, 0, DateTimeKind.Utc) },
-            new PostgresWidget { Id = 4, Name = "Gamma",    Quantity = 0,  Price = 0m,     CreatedAt = new DateTime(2023, 12, 31, 0, 0, 0, DateTimeKind.Utc) });
+            new PostgresWidget { Id = 4, Name = "Gamma", Quantity = 0, Price = 0m, CreatedAt = new DateTime(2023, 12, 31, 0, 0, 0, DateTimeKind.Utc) });
         await ctx.SaveChangesAsync();
     }
 
@@ -62,6 +62,7 @@ public sealed class PostgresWidgetContext : DbContext
         modelBuilder.Entity<PostgresWidget>(e =>
         {
             e.HasKey(w => w.Id);
+            e.Property(w => w.Id).ValueGeneratedNever();
             e.Property(w => w.Price).HasPrecision(18, 4);
         });
     }
