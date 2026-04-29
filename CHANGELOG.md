@@ -4,6 +4,20 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## 4.2.0 (2026-04-29)
+
+
+### Features
+
+* **ci:** gate CodeQL quality findings above count threshold ([#260](https://github.com/AbongileBoja/QuerySpec/issues/260)) ([3cf2a41](https://github.com/AbongileBoja/QuerySpec/commit/3cf2a4101dc66daf002f525df72ecbbcd96eeda1)), closes [#202](https://github.com/AbongileBoja/QuerySpec/issues/202)
+* **quality:** pin NetAnalyzers and BannedApiAnalyzers; LoggerMessage for DistributedCacheProvider ([#258](https://github.com/AbongileBoja/QuerySpec/issues/258)) ([cafcd24](https://github.com/AbongileBoja/QuerySpec/commit/cafcd2426e47042e81456f851d49705814a2372a)), closes [#158](https://github.com/AbongileBoja/QuerySpec/issues/158) [#160](https://github.com/AbongileBoja/QuerySpec/issues/160) [#194](https://github.com/AbongileBoja/QuerySpec/issues/194) [#195](https://github.com/AbongileBoja/QuerySpec/issues/195) [#159](https://github.com/AbongileBoja/QuerySpec/issues/159)
+* **tests,ci:** add SQL snapshots, trim/AOT smoke, sample-build CI; xunit.v3 migration; Core.Tests TFM ([#259](https://github.com/AbongileBoja/QuerySpec/issues/259)) ([d0993de](https://github.com/AbongileBoja/QuerySpec/commit/d0993de3d3d3cc8e340fb5deb5250e6557f2cb28)), closes [#171](https://github.com/AbongileBoja/QuerySpec/issues/171) [#181](https://github.com/AbongileBoja/QuerySpec/issues/181) [#184](https://github.com/AbongileBoja/QuerySpec/issues/184) [#185](https://github.com/AbongileBoja/QuerySpec/issues/185) [#246](https://github.com/AbongileBoja/QuerySpec/issues/246)
+
+
+### Bug Fixes
+
+* **ci:** no-suppression gate misses new #pragma additions due to regex bug ([#257](https://github.com/AbongileBoja/QuerySpec/issues/257)) ([a1f0600](https://github.com/AbongileBoja/QuerySpec/commit/a1f06000d668c9c4e7925043195c3cb1332055af))
+
 ### [4.1.3](https://github.com/AbongileBoja/QuerySpec/compare/v4.1.2...v4.1.3) (2026-04-29)
 
 
