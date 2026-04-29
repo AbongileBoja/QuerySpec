@@ -98,8 +98,8 @@ jobs:
       if: matrix.dotnet-version == '10.0.x'
       shell: bash
       env:
-        MIN_LINE_COVERAGE: '90'
-        MIN_BRANCH_COVERAGE: '81'
+        MIN_LINE_COVERAGE: '93'
+        MIN_BRANCH_COVERAGE: '83'
       run: |
         set -euo pipefail
         summary="./CoverageReport/Summary.md"
