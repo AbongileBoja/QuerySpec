@@ -18,7 +18,9 @@ Console.WriteLine($"[encryption] roundtrip  = {crypto.Decrypt(encryptedSsn)}\n")
 Seed(db, crypto);
 
 // ---------- 2. Data masking ----------
-var masker = new DataMaskingEngine();
+// Demo-only key — in production, load this from secret storage (e.g. Azure Key Vault or env var).
+var hashKey = System.Text.Encoding.UTF8.GetBytes("demo-key-do-not-use-in-production-min-16-bytes");
+var masker = new DataMaskingEngine(hashKey);
 masker.RegisterFieldMask("Email", MaskingStrategy.EmailMask);
 masker.RegisterFieldMask("CreditCard", MaskingStrategy.LastFourOnly);
 masker.RegisterFieldMask("PhoneNumber", MaskingStrategy.PartialMask);
