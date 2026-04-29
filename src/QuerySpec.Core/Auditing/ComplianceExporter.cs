@@ -50,12 +50,15 @@ public interface IComplianceExporter
     /// <summary>
     /// Generates a GDPR export for a user. Original spelling retained for source compatibility
     /// with 2.x consumers; prefer <see cref="GenerateGdprExportAsync(string, string, Stream)"/>.
-    /// Will be removed in 3.0.
     /// </summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
-    [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    [Obsolete(
+        "Use GenerateGdprExportAsync instead.",
+        error: false,
+        DiagnosticId = "QSPEC0011",
+        UrlFormat = "https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
     [RequiresUnreferencedCode(GdprExportRequiresUnreferencedCodeMessage)]
     [RequiresDynamicCode(GdprExportRequiresDynamicCodeMessage)]
     Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream);
@@ -63,19 +66,20 @@ public interface IComplianceExporter
     /// Generates a GDPR export for a user with cancellation support. Original spelling retained
     /// for source compatibility with 2.x consumers; prefer
     /// <see cref="GenerateGdprExportAsync(string, string, Stream, CancellationToken)"/>.
-    /// Will be removed in 3.0.
     /// </summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
-    [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    [Obsolete(
+        "Use GenerateGdprExportAsync instead.",
+        error: false,
+        DiagnosticId = "QSPEC0012",
+        UrlFormat = "https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
     [RequiresUnreferencedCode(GdprExportRequiresUnreferencedCodeMessage)]
     [RequiresDynamicCode(GdprExportRequiresDynamicCodeMessage)]
     Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)
-#pragma warning disable CS0618
-        => GenerateGDPRExportAsync(userId, tenantId, outputStream);
-#pragma warning restore CS0618
+        => GenerateGdprExportAsync(userId, tenantId, outputStream, cancellationToken);
 
     /// <summary>Generates a GDPR export for a user.</summary>
     /// <param name="userId">Subject of the export.</param>
@@ -84,9 +88,7 @@ public interface IComplianceExporter
     [RequiresUnreferencedCode(GdprExportRequiresUnreferencedCodeMessage)]
     [RequiresDynamicCode(GdprExportRequiresDynamicCodeMessage)]
     Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream)
-#pragma warning disable CS0618
-        => GenerateGDPRExportAsync(userId, tenantId, outputStream);
-#pragma warning restore CS0618
+        => GenerateGdprExportAsync(userId, tenantId, outputStream, CancellationToken.None);
     /// <summary>Generates a GDPR export for a user with cancellation support.</summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
@@ -95,9 +97,13 @@ public interface IComplianceExporter
     [RequiresUnreferencedCode(GdprExportRequiresUnreferencedCodeMessage)]
     [RequiresDynamicCode(GdprExportRequiresDynamicCodeMessage)]
     Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
-#pragma warning disable CS0618
-        => GenerateGDPRExportAsync(userId, tenantId, outputStream, cancellationToken);
-#pragma warning restore CS0618
+        // v5.0: this pragma is the only remaining warning suppression in shipping code.
+        // It bridges the new-name DIM to the obsolete abstract member; removing it
+        // requires flipping which interface member is abstract, which is a binary break.
+        // Tracked by issue #255 for v5.0.
+#pragma warning disable QSPEC0011
+        => GenerateGDPRExportAsync(userId, tenantId, outputStream);
+#pragma warning restore QSPEC0011
 
     internal const string GdprExportRequiresUnreferencedCodeMessage =
         "GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.";
@@ -142,12 +148,15 @@ public class ComplianceExporter : IComplianceExporter
     /// <summary>
     /// Generates a GDPR export for a user. Original spelling retained for source compatibility
     /// with 2.x consumers; prefer <see cref="GenerateGdprExportAsync(string, string, Stream)"/>.
-    /// Will be removed in 3.0.
     /// </summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
-    [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    [Obsolete(
+        "Use GenerateGdprExportAsync instead.",
+        error: false,
+        DiagnosticId = "QSPEC0013",
+        UrlFormat = "https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
     [RequiresUnreferencedCode(IComplianceExporter.GdprExportRequiresUnreferencedCodeMessage)]
     [RequiresDynamicCode(IComplianceExporter.GdprExportRequiresDynamicCodeMessage)]
     public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream)
@@ -157,13 +166,16 @@ public class ComplianceExporter : IComplianceExporter
     /// Generates a GDPR export for a user with cancellation support. Original spelling retained
     /// for source compatibility with 2.x consumers; prefer
     /// <see cref="GenerateGdprExportAsync(string, string, Stream, CancellationToken)"/>.
-    /// Will be removed in 3.0.
     /// </summary>
     /// <param name="userId">Subject of the export.</param>
     /// <param name="tenantId">Tenant scope for the export.</param>
     /// <param name="outputStream">Destination stream the export is serialised to.</param>
     /// <param name="cancellationToken">Token observed during the serialisation pass.</param>
-    [Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", error: false)]
+    [Obsolete(
+        "Use GenerateGdprExportAsync instead.",
+        error: false,
+        DiagnosticId = "QSPEC0014",
+        UrlFormat = "https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
     [RequiresUnreferencedCode(IComplianceExporter.GdprExportRequiresUnreferencedCodeMessage)]
     [RequiresDynamicCode(IComplianceExporter.GdprExportRequiresDynamicCodeMessage)]
     public Task GenerateGDPRExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken)

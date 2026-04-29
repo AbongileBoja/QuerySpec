@@ -109,9 +109,8 @@ public class TranslatorOperatorTests
     public void ContainsCaseInsensitive_AliasAndRenamedMember_ProduceSameResults()
     {
         var renamed = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.ContainsCaseInsensitive, Value = "ali" });
-#pragma warning disable CS0618
-        var legacy = Run(new FilterSpec { Field = "Name", Operator = FilterOperator.Contains_CaseInsensitive, Value = "ali" });
-#pragma warning restore CS0618
+        var legacyOperator = (FilterOperator)Enum.Parse(typeof(FilterOperator), "Contains_CaseInsensitive");
+        var legacy = Run(new FilterSpec { Field = "Name", Operator = legacyOperator, Value = "ali" });
         Assert.Equal(renamed.Select(e => e.Id).OrderBy(x => x), legacy.Select(e => e.Id).OrderBy(x => x));
         Assert.Single(renamed);
         Assert.Equal("Alice", renamed[0].Name);

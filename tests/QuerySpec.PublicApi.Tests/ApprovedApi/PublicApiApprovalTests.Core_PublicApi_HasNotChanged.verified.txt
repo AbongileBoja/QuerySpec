@@ -62,7 +62,7 @@ namespace QuerySpec.Core.Advanced
         IsNotNull = 41,
         IsEmpty = 50,
         IsNotEmpty = 51,
-        [System.Obsolete("Use ContainsCaseInsensitive. Will be removed in 3.0.", false)]
+        [System.Obsolete("Use ContainsCaseInsensitive instead.", false, DiagnosticId="QSPEC0010", UrlFormat="https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
         Contains_CaseInsensitive = 52,
         ContainsCaseInsensitive = 52,
         FullTextSearch = 60,
@@ -176,13 +176,13 @@ namespace QuerySpec.Core.Auditing
             "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
             "ntext) for AOT scenarios.")]
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
-        [System.Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", false)]
+        [System.Obsolete("Use GenerateGdprExportAsync instead.", false, DiagnosticId="QSPEC0013", UrlFormat="https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
         public System.Threading.Tasks.Task GenerateGDPRExportAsync(string userId, string tenantId, System.IO.Stream outputStream) { }
         [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
             "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
             "ntext) for AOT scenarios.")]
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
-        [System.Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", false)]
+        [System.Obsolete("Use GenerateGdprExportAsync instead.", false, DiagnosticId="QSPEC0014", UrlFormat="https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
         public System.Threading.Tasks.Task GenerateGDPRExportAsync(string userId, string tenantId, System.IO.Stream outputStream, System.Threading.CancellationToken cancellationToken) { }
         [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
             "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
@@ -250,13 +250,13 @@ namespace QuerySpec.Core.Auditing
             "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
             "ntext) for AOT scenarios.")]
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
-        [System.Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", false)]
+        [System.Obsolete("Use GenerateGdprExportAsync instead.", false, DiagnosticId="QSPEC0011", UrlFormat="https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
         System.Threading.Tasks.Task GenerateGDPRExportAsync(string userId, string tenantId, System.IO.Stream outputStream);
         [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
             "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
             "ntext) for AOT scenarios.")]
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
-        [System.Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", false)]
+        [System.Obsolete("Use GenerateGdprExportAsync instead.", false, DiagnosticId="QSPEC0012", UrlFormat="https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
         System.Threading.Tasks.Task GenerateGDPRExportAsync(string userId, string tenantId, System.IO.Stream outputStream, System.Threading.CancellationToken cancellationToken);
         [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
             "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
