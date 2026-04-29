@@ -4,6 +4,18 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [4.3.0](https://github.com/AbongileBoja/QuerySpec/compare/v4.2.0...v4.3.0) (2026-04-29)
+
+
+### Features
+
+* **release:** auto-regenerate ApiCompat suppression file in postbump + verify in CI ([#263](https://github.com/AbongileBoja/QuerySpec/issues/263)) ([2c5ff0d](https://github.com/AbongileBoja/QuerySpec/commit/2c5ff0db3a3b8866ca4f4fe4b66d2a4b44d42f44))
+
+
+### Bug Fixes
+
+* **api:** add CompatibilitySuppressions.xml for v4.2.x additive surface ([#261](https://github.com/AbongileBoja/QuerySpec/issues/261)) ([419ad82](https://github.com/AbongileBoja/QuerySpec/commit/419ad824e8303c40383f759d037b3b3f2baf5ff9))
+
 ## 4.2.0 (2026-04-29)
 
 
