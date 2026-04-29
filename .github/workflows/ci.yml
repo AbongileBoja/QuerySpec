@@ -814,9 +814,213 @@ jobs:
         path: ./evidence
         retention-days: 30
 
+  sample-build:
+    name: Build & smoke-test sample apps
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+    - uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Build Resilience sample
+      id: build-resilience
+      run: dotnet build samples/QuerySpec.Samples.Resilience/QuerySpec.Samples.Resilience.csproj -c Release
+
+    - name: Build Security sample
+      id: build-security
+      run: dotnet build samples/QuerySpec.Samples.Security/QuerySpec.Samples.Security.csproj -c Release
+
+    - name: Build WebApi sample
+      id: build-webapi
+      run: dotnet build samples/QuerySpec.Samples.WebApi/QuerySpec.Samples.WebApi.csproj -c Release
+
+    - name: Smoke-run Resilience sample
+      id: smoke-resilience
+      run: |
+        set -euo pipefail
+        timeout 30 dotnet run --no-build -c Release \
+          --project samples/QuerySpec.Samples.Resilience/QuerySpec.Samples.Resilience.csproj
+
+    - name: Smoke-run Security sample
+      id: smoke-security
+      run: |
+        set -euo pipefail
+        timeout 30 dotnet run --no-build -c Release \
+          --project samples/QuerySpec.Samples.Security/QuerySpec.Samples.Security.csproj
+
+    - name: Emit sample-build evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        if [[ "${{ steps.build-resilience.outcome }}" != "success" ]] || \
+           [[ "${{ steps.build-security.outcome }}"   != "success" ]] || \
+           [[ "${{ steps.build-webapi.outcome }}"     != "success" ]] || \
+           [[ "${{ steps.smoke-resilience.outcome }}" != "success" ]] || \
+           [[ "${{ steps.smoke-security.outcome }}"   != "success" ]]; then
+          verdict=fail
+        fi
+        summary=$(jq -n \
+          --arg br "${{ steps.build-resilience.outcome }}" \
+          --arg bs "${{ steps.build-security.outcome }}" \
+          --arg bw "${{ steps.build-webapi.outcome }}" \
+          --arg sr "${{ steps.smoke-resilience.outcome }}" \
+          --arg ss "${{ steps.smoke-security.outcome }}" \
+          '{build_resilience:$br, build_security:$bs, build_webapi:$bw,
+            smoke_resilience:$sr, smoke_security:$ss,
+            webapi_note:"build-only; needs external DB for smoke run"}')
+        eng/emit-evidence.sh --gate sample-build --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence
+
+    - name: Upload sample-build evidence
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      with:
+        name: evidence-sample-build
+        path: ./evidence
+        retention-days: 30
+
+  trim-smoke:
+    name: Trim and AOT smoke tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Harden runner
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
+      with:
+        egress-policy: audit
+        disable-sudo: true
+        disable-file-monitoring: false
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+    - name: Record start time
+      run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+    - uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Install clang (required for NativeAOT)
+      run: sudo apt-get install -y clang zlib1g-dev
+
+    - name: Publish trimmed
+      id: publish-trim
+      run: |
+        set -euo pipefail
+        log=$(dotnet publish tests/QuerySpec.TrimSmokeTest \
+          -c Release -r linux-x64 \
+          -p:PublishTrimmed=true \
+          --output ./publish-trim 2>&1)
+        rc=$?
+        echo "$log"
+        if echo "$log" | grep -qE 'warning IL[0-9]+|error IL[0-9]+'; then
+          echo "::error::IL trim warnings or errors detected"
+          exit 1
+        fi
+        exit $rc
+
+    - name: Run trimmed executable
+      id: run-trim
+      run: |
+        set -euo pipefail
+        output=$(./publish-trim/QuerySpec.TrimSmokeTest)
+        echo "$output"
+        if ! echo "$output" | grep -q 'key:'; then
+          echo "::error::Trimmed executable did not produce expected output"
+          exit 1
+        fi
+        if ! echo "$output" | grep -q 'masked:'; then
+          echo "::error::Trimmed executable did not produce expected masking output"
+          exit 1
+        fi
+        if ! echo "$output" | grep -q 'spec:'; then
+          echo "::error::Trimmed executable did not produce expected spec output"
+          exit 1
+        fi
+        echo "trim_stdout<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$output" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
+
+    - name: Publish AOT
+      id: publish-aot
+      run: |
+        set -euo pipefail
+        log=$(dotnet publish tests/QuerySpec.TrimSmokeTest \
+          -c Release -r linux-x64 \
+          -p:PublishAot=true \
+          --output ./publish-aot 2>&1)
+        rc=$?
+        echo "$log"
+        if echo "$log" | grep -qE 'warning IL[0-9]+|error IL[0-9]+'; then
+          echo "::error::IL AOT warnings or errors detected"
+          exit 1
+        fi
+        exit $rc
+
+    - name: Run AOT executable
+      id: run-aot
+      run: |
+        set -euo pipefail
+        output=$(./publish-aot/QuerySpec.TrimSmokeTest)
+        echo "$output"
+        if ! echo "$output" | grep -q 'key:'; then
+          echo "::error::AOT executable did not produce expected output"
+          exit 1
+        fi
+
+    - name: Emit trim-smoke evidence
+      if: always()
+      shell: bash
+      env:
+        STARTED_AT: ${{ env.STARTED_AT }}
+      run: |
+        set -euo pipefail
+        chmod +x eng/emit-evidence.sh
+        verdict=pass
+        if [[ "${{ steps.publish-trim.outcome }}" != "success" ]] || \
+           [[ "${{ steps.run-trim.outcome }}"     != "success" ]] || \
+           [[ "${{ steps.publish-aot.outcome }}"  != "success" ]] || \
+           [[ "${{ steps.run-aot.outcome }}"      != "success" ]]; then
+          verdict=fail
+        fi
+        trim_stdout='${{ steps.run-trim.outputs.trim_stdout }}'
+        summary=$(jq -n \
+          --arg pt "${{ steps.publish-trim.outcome }}" \
+          --arg rt "${{ steps.run-trim.outcome }}" \
+          --arg pa "${{ steps.publish-aot.outcome }}" \
+          --arg ra "${{ steps.run-aot.outcome }}" \
+          --arg stdout "${trim_stdout}" \
+          '{publish_trim:$pt, run_trim:$rt,
+            publish_aot:$pa, run_aot:$ra,
+            trim_stdout:$stdout, runtime:"linux-x64", tfm:"net10.0"}')
+        eng/emit-evidence.sh --gate trim-smoke --verdict "$verdict" \
+          --summary-json "$summary" --output-dir ./evidence
+
+    - name: Upload trim-smoke evidence
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      with:
+        name: evidence-trim-smoke
+        path: ./evidence
+        retention-days: 30
+
   aggregate-evidence:
     name: Aggregate evidence index
-    needs: [build, format, codeql, vulnerability-scan, commitlint, reproducibility, no-suppression]
+    needs: [build, format, codeql, vulnerability-scan, commitlint, reproducibility, no-suppression, sample-build, trim-smoke]
     if: always()
     runs-on: ubuntu-latest
     permissions:

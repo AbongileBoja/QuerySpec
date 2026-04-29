@@ -58,7 +58,7 @@ for v in GATE VERDICT OUTPUT_DIR; do
 done
 
 case "$GATE" in
-  build|test|format|codeql|vulnerability-scan|commitlint|reproducibility|dependency-review|pack|package-validation|strong-name-verify|benchmark-smoke|no-suppression) ;;
+  build|test|format|codeql|vulnerability-scan|commitlint|reproducibility|dependency-review|pack|package-validation|strong-name-verify|benchmark-smoke|no-suppression|sample-build|trim-smoke) ;;
   *) echo "invalid --gate: $GATE" >&2; exit 2 ;;
 esac
 case "$VERDICT" in
