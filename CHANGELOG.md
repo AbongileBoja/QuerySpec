@@ -4,6 +4,14 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+### [4.1.2](https://github.com/AbongileBoja/QuerySpec/compare/v4.1.1...v4.1.2) (2026-04-29)
+
+
+### Bug Fixes
+
+* **release:** test SourceLink against .snupkg when symbols are external ([#250](https://github.com/AbongileBoja/QuerySpec/issues/250)) ([8a348a7](https://github.com/AbongileBoja/QuerySpec/commit/8a348a7a9db3c42a0d27215a190c7ea723cdcf4e))
+* **release:** walk back postbump baseline through unpublished tags ([#252](https://github.com/AbongileBoja/QuerySpec/issues/252)) ([0dd3d32](https://github.com/AbongileBoja/QuerySpec/commit/0dd3d32df0bc6f2e49651e6310cddf5408965c08)), closes [#251](https://github.com/AbongileBoja/QuerySpec/issues/251)
+
 ### [4.1.1](https://github.com/AbongileBoja/QuerySpec/compare/v4.1.0...v4.1.1) (2026-04-29)
 
 
