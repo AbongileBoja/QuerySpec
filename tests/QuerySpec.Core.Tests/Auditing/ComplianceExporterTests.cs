@@ -152,9 +152,14 @@ namespace QuerySpec.Core.Tests.Auditing
             using var msNew = new MemoryStream();
             using var msOld = new MemoryStream();
             await exporter.GenerateGdprExportAsync("u1", "t1", msNew);
-#pragma warning disable CS0618
-            await exporter.GenerateGDPRExportAsync("u1", "t1", msOld);
-#pragma warning restore CS0618
+
+            // Invoke the obsolete overload via reflection to keep the deprecation contract
+            // exercised without re-introducing an in-source obsolete reference. See the
+            // [Obsolete(... DiagnosticId = "QSPEC0013")] attribute on the target method.
+            var obsoleteMethod = typeof(ComplianceExporter).GetMethod(
+                "GenerateGDPRExportAsync",
+                new[] { typeof(string), typeof(string), typeof(Stream) })!;
+            await (Task)obsoleteMethod.Invoke(exporter, new object[] { "u1", "t1", msOld })!;
 
             Assert.Equal(msNew.ToArray(), msOld.ToArray());
         }

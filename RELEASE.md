@@ -57,6 +57,14 @@ All commands run from the repo root on `develop`.
 git status
 dotnet test QuerySpec.sln -c Release
 
+# 1a. When cutting a major: promote analyzer rules from Unshipped.md to Shipped.md.
+#     Move every row under "### New Rules" / "### Removed Rules" / etc. from
+#     src/QuerySpec.Analyzers/AnalyzerReleases.Unshipped.md into a new
+#     "## Release X.0.0" section in
+#     src/QuerySpec.Analyzers/AnalyzerReleases.Shipped.md, leaving Unshipped
+#     header-only. The Microsoft.CodeAnalysis.Analyzers release-tracking gate
+#     fails the analyzer build until this is done.
+
 # 2. Use standard-version to bump + changelog + tag atomically.
 #    Pick the right semver bump type:
 npm run release                    # auto: derives from commit types since last tag

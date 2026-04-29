@@ -70,9 +70,13 @@ public enum FilterOperator
     IsNotEmpty = 51,
     /// <summary>
     /// Contains substring case-insensitive. Snake-case spelling retained for source compatibility
-    /// with 2.x consumers; prefer <see cref="ContainsCaseInsensitive"/>. Will be removed in 3.0.
+    /// with 2.x consumers; prefer <see cref="ContainsCaseInsensitive"/>.
     /// </summary>
-    [Obsolete("Use ContainsCaseInsensitive. Will be removed in 3.0.", error: false)]
+    [Obsolete(
+        "Use ContainsCaseInsensitive instead.",
+        error: false,
+        DiagnosticId = "QSPEC0010",
+        UrlFormat = "https://github.com/AbongileBoja/QuerySpec/blob/main/docs/deprecations/{0}.md")]
     Contains_CaseInsensitive = 52,
     /// <summary>Contains substring case-insensitive.</summary>
     ContainsCaseInsensitive = 52,
