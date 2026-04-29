@@ -37,7 +37,7 @@
     <EnablePackageValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnablePackageValidation>
     <EnableStrictModeForBaselineValidation Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">true</EnableStrictModeForBaselineValidation>
     <ApiCompatPermitUnnecessarySuppressions Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">false</ApiCompatPermitUnnecessarySuppressions>
-    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">4.0.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion Condition="'$(IsPackable)' != 'false' and '$(Version)' != '0.0.0-local'">4.1.3</PackageValidationBaselineVersion>
 
     <Authors>Abongile Boja</Authors>
     <PackageProjectUrl>https://github.com/AbongileBoja/QuerySpec</PackageProjectUrl>
