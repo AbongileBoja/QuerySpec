@@ -45,9 +45,7 @@ public sealed class AnalyzerObsoleteAttributeEdgeCaseTests
 
             class C
             {
-            #pragma warning disable CS0618
                 object M() => new {|#0:AdvancedFilterExpression|}();
-            #pragma warning restore CS0618
             }
             """;
 
@@ -85,9 +83,7 @@ public sealed class AnalyzerObsoleteAttributeEdgeCaseTests
 
             class C
             {
-            #pragma warning disable OTHER001
                 object M() => new {|#0:AdvancedFilterExpression|}();
-            #pragma warning restore OTHER001
             }
             """;
 
@@ -122,9 +118,7 @@ public sealed class AnalyzerObsoleteAttributeEdgeCaseTests
 
             class C
             {
-            #pragma warning disable CS0618
                 decimal M(GeoLocation g) => g.{|#0:Latitude|};
-            #pragma warning restore CS0618
             }
             """;
 
@@ -157,9 +151,7 @@ public sealed class AnalyzerObsoleteAttributeEdgeCaseTests
 
             class C
             {
-            #pragma warning disable OTHER001
                 decimal M(GeoLocation g) => g.{|#0:Latitude|};
-            #pragma warning restore OTHER001
             }
             """;
 
