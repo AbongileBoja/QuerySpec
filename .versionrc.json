@@ -3,7 +3,7 @@
   "tag-prefix": "v",
   "commit-all": true,
   "scripts": {
-    "postbump": "node scripts/postbump-baseline.mjs"
+    "postbump": "node scripts/postbump-baseline.mjs && node scripts/postbump-apicompat.mjs"
   },
   "types": [
     { "type": "feat",     "section": "Features" },
