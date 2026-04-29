@@ -145,4 +145,24 @@ public class GeoCoordinateTests
         Assert.NotEqual(a, c);
         Assert.True(a != c);
     }
+
+    [Theory]
+    [InlineData("+91.000000+000.000000/")]
+    [InlineData("-91.000000+000.000000/")]
+    [InlineData("+40.000000+181.000000/")]
+    [InlineData("+40.000000-181.000000/")]
+    public void TryParse_OutOfRangeComponents_ReturnsFalse(string iso)
+    {
+        Assert.False(GeoCoordinate.TryParse(iso, out var result));
+        Assert.Equal(default, result);
+    }
+
+    [Fact]
+    public void FilterSpec_GetHashCode_ReturnsConsistentValue()
+    {
+        var spec = new FilterSpec { Field = "Name", Operator = FilterOperator.Equal, Value = "Alice" };
+        var hash1 = spec.GetHashCode();
+        var hash2 = spec.GetHashCode();
+        Assert.Equal(hash1, hash2);
+    }
 }

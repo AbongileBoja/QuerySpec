@@ -73,4 +73,19 @@ public class QueryMetricsTests
         // Assert
         Assert.Equal(1, report.SlowQueries);
     }
+
+    [Fact]
+    public void QueryMetrics_NullableLongProperties_CanBeSetAndRead()
+    {
+        var metrics = new QueryMetrics
+        {
+            CacheExtractionTimeMs = 12L,
+            DatabaseRoundTrips = 3L,
+            DatabaseTimeMs = 45L,
+        };
+
+        Assert.Equal(12L, metrics.CacheExtractionTimeMs);
+        Assert.Equal(3L, metrics.DatabaseRoundTrips);
+        Assert.Equal(45L, metrics.DatabaseTimeMs);
+    }
 }

@@ -205,4 +205,27 @@ public class RowLevelSecurityEngineTests
         var engine = new RowLevelSecurityEngine();
         Assert.Throws<ArgumentNullException>(() => engine.GetPredicate<object>("User", null!));
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void RLSFilter_EmptySql_ThrowsArgumentException(string? sql)
+    {
+        Assert.Throws<ArgumentException>(() => new RLSFilter(sql!));
+    }
+
+    [Fact]
+    public void RLSPolicy_ApplyHierarchically_DefaultIsFalse()
+    {
+        var policy = new RLSPolicy { ResourceType = "Order" };
+        Assert.False(policy.ApplyHierarchically);
+    }
+
+    [Fact]
+    public void RLSPolicy_ApplyHierarchically_CanBeSetTrue()
+    {
+        var policy = new RLSPolicy { ResourceType = "Order", ApplyHierarchically = true };
+        Assert.True(policy.ApplyHierarchically);
+    }
 }

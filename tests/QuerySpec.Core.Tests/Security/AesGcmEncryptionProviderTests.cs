@@ -30,6 +30,14 @@ public class AesGcmEncryptionProviderTests
     }
 
     [Fact]
+    public void Constructor_Base64_WrongKeyLength_Throws()
+    {
+        var shortKey = Convert.ToBase64String(new byte[16]);
+        var ex = Assert.Throws<ArgumentException>(() => new AesGcmEncryptionProvider(shortKey));
+        Assert.Contains("256-bit", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void EncryptDecrypt_RoundTrip_RecoversPlaintext()
     {
         var p = new AesGcmEncryptionProvider(NewKey());

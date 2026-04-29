@@ -282,7 +282,7 @@ public static class QuerySpecExpressionTranslator
             FilterOperator.ContainsCaseInsensitive => BuildStringPredicate(property, filter.Value, StringPredicate.Contains, false, isNullable),
 
             FilterOperator.In => BuildIn(property, filter.Value, propertyType, underlyingType, isNullable),
-            FilterOperator.NotIn => Expression.Not(BuildIn(property, filter.Value, propertyType, underlyingType, isNullable)),
+            FilterOperator.NotIn => BuildIn(property, filter.Value, propertyType, underlyingType, isNullable, negate: true),
 
             FilterOperator.Between => BuildBetween(property, filter.Value, filter.ValueTo, propertyType, underlyingType, isNullable),
             FilterOperator.NotBetween => Expression.Not(BuildBetween(property, filter.Value, filter.ValueTo, propertyType, underlyingType, isNullable)),
@@ -448,7 +448,7 @@ public static class QuerySpecExpressionTranslator
 
     [RequiresDynamicCode(BuildInRequiresDynamicCodeMessage)]
     [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
-    private static Expression BuildIn(Expression property, object? value, Type propertyType, Type underlyingType, bool isNullable)
+    private static Expression BuildIn(Expression property, object? value, Type propertyType, Type underlyingType, bool isNullable, bool negate = false)
     {
         if (value == null)
             return Expression.Constant(false);
@@ -469,16 +469,20 @@ public static class QuerySpecExpressionTranslator
             static t => EnumerableContainsOpenGeneric.MakeGenericMethod(t));
 
         var constantArray = Expression.Constant(typedArray, underlyingType.MakeArrayType());
-        var containsCall = Expression.Call(containsMethod, constantArray, property);
 
         if (isNullable && underlyingType.IsValueType)
         {
-            var (hvProp, _) = GetNullablePropertyInfos(propertyType);
+            var (hvProp, valProp) = GetNullablePropertyInfos(propertyType);
             var hasValue = Expression.Property(property, hvProp);
-            return Expression.AndAlso(hasValue, containsCall);
+            var valueAccess = Expression.Property(property, valProp);
+            Expression containsExpr = Expression.Call(containsMethod, constantArray, valueAccess);
+            if (negate)
+                containsExpr = Expression.Not(containsExpr);
+            return Expression.AndAlso(hasValue, containsExpr);
         }
 
-        return containsCall;
+        Expression call = Expression.Call(containsMethod, constantArray, property);
+        return negate ? Expression.Not(call) : call;
     }
 
     #endregion
