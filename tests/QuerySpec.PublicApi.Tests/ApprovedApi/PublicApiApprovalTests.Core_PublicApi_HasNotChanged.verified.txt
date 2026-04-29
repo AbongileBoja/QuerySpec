@@ -1,0 +1,790 @@
+﻿[assembly: System.Reflection.AssemblyMetadata("IsAotCompatible", "True")]
+[assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AbongileBoja/QuerySpec.git")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"QuerySpec.Core.Tests, PublicKey=0024000004800000140100000602000000240000525341310008000001000100D915FCF575EC3FFF6560CD4D2090C44489428DB73F14E639FD23D7B05DF3670BE3C8B1D0443196D2A1C6BE5CE10A0784A799D6002014C8A667151C0063170754D3D71C2124E3960CA1C77EA352FE698C25DFB50D76D9E9F3D41FCEB71BA59763A26ECA04C1FA3AA1F9045DA9CD706333958B96763D0C836EA64A6E709CD470FFE5C144E0DF0BD317D59AB1B80856CF1B6019108B5545FA66BB25749BE658A6E5CE4822520E633CACAEC5E88441DEEE52CDC069016AFE4BE9C8730CF479E2901DEEBB38D987DDE9DB875435352F3D1473F98708E0C2F691F1E42A52AF9EC3840AFF379711B1D2373DCBD0C4B239B93CD408EF35C2FB30ED2FB10A1CE52E7615EA")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"QuerySpec.EFCore.Tests, PublicKey=0024000004800000140100000602000000240000525341310008000001000100D915FCF575EC3FFF6560CD4D2090C44489428DB73F14E639FD23D7B05DF3670BE3C8B1D0443196D2A1C6BE5CE10A0784A799D6002014C8A667151C0063170754D3D71C2124E3960CA1C77EA352FE698C25DFB50D76D9E9F3D41FCEB71BA59763A26ECA04C1FA3AA1F9045DA9CD706333958B96763D0C836EA64A6E709CD470FFE5C144E0DF0BD317D59AB1B80856CF1B6019108B5545FA66BB25749BE658A6E5CE4822520E633CACAEC5E88441DEEE52CDC069016AFE4BE9C8730CF479E2901DEEBB38D987DDE9DB875435352F3D1473F98708E0C2F691F1E42A52AF9EC3840AFF379711B1D2373DCBD0C4B239B93CD408EF35C2FB30ED2FB10A1CE52E7615EA")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
+namespace QuerySpec.Core.Advanced
+{
+    public enum AggregationOperator
+    {
+        Count = 0,
+        Sum = 1,
+        Average = 2,
+        Min = 3,
+        Max = 4,
+        Distinct = 5,
+        GroupBy = 6,
+        StdDev = 7,
+        Variance = 8,
+        Percentile = 9,
+    }
+    public class AggregationRequest
+    {
+        public AggregationRequest() { }
+        public string? Alias { get; set; }
+        public string Field { get; set; }
+        public string? GroupByField { get; set; }
+        public QuerySpec.Core.Advanced.AggregationOperator Operator { get; set; }
+        public int? Percentile { get; set; }
+    }
+    public class CustomOperatorRegistry
+    {
+        public CustomOperatorRegistry() { }
+        public QuerySpec.Core.Advanced.ICustomOperator? Get(string name) { }
+        public System.Collections.Generic.IEnumerable<QuerySpec.Core.Advanced.ICustomOperator> GetAll() { }
+        public void Register(QuerySpec.Core.Advanced.ICustomOperator op) { }
+    }
+    public enum FilterOperator
+    {
+        Equal = 0,
+        NotEqual = 1,
+        GreaterThan = 2,
+        GreaterThanOrEqual = 3,
+        LessThan = 4,
+        LessThanOrEqual = 5,
+        Contains = 10,
+        NotContains = 11,
+        StartsWith = 12,
+        EndsWith = 13,
+        StringMatchCase = 14,
+        StringMatchIgnoreCase = 15,
+        Regex = 16,
+        In = 20,
+        NotIn = 21,
+        AnyMatch = 22,
+        AllMatch = 23,
+        CountGreaterThan = 24,
+        CountLessThan = 25,
+        Between = 30,
+        NotBetween = 31,
+        IsNull = 40,
+        IsNotNull = 41,
+        IsEmpty = 50,
+        IsNotEmpty = 51,
+        [System.Obsolete("Use ContainsCaseInsensitive. Will be removed in 3.0.", false)]
+        Contains_CaseInsensitive = 52,
+        ContainsCaseInsensitive = 52,
+        FullTextSearch = 60,
+        GeoDistance = 70,
+        GeoWithin = 71,
+        DateInRange = 80,
+        DateAfter = 81,
+        DateBefore = 82,
+        DateEquals = 83,
+        RelativeDate = 84,
+        BitwiseAnd = 90,
+        BitwiseOr = 91,
+        Custom = 999,
+    }
+    public sealed class FilterSpec : System.IEquatable<QuerySpec.Core.Advanced.FilterSpec>
+    {
+        public FilterSpec() { }
+        public bool CaseSensitive { get; init; }
+        public string? CustomOperatorName { get; init; }
+        public string Field { get; init; }
+        public System.Collections.Generic.IReadOnlyList<QuerySpec.Core.Advanced.FilterSpec> Filters { get; init; }
+        public QuerySpec.Core.Advanced.GeoCoordinate? GeoLocation { get; init; }
+        public decimal? GeoRadius { get; init; }
+        public bool IncludeDeletedRecords { get; init; }
+        public QuerySpec.Core.Advanced.LogicalOperator Logic { get; init; }
+        public QuerySpec.Core.Advanced.FilterOperator Operator { get; init; }
+        public System.DateTime? TemporalEnd { get; init; }
+        public System.DateTime? TemporalStart { get; init; }
+        public bool UseRegex { get; init; }
+        public object? Value { get; init; }
+        public object? ValueTo { get; init; }
+        public long ComputeStableHash() { }
+        public bool Equals(QuerySpec.Core.Advanced.FilterSpec? other) { }
+        public override int GetHashCode() { }
+        public System.Collections.Generic.IEnumerable<string> Validate() { }
+    }
+    public readonly struct GeoCoordinate : System.IEquatable<QuerySpec.Core.Advanced.GeoCoordinate>
+    {
+        public GeoCoordinate(double latitude, double longitude) { }
+        public double Latitude { get; }
+        public double Longitude { get; }
+        public double DistanceTo(QuerySpec.Core.Advanced.GeoCoordinate other) { }
+        public override string ToString() { }
+        public static QuerySpec.Core.Advanced.GeoCoordinate Parse(string s) { }
+        public static bool TryParse(string? s, out QuerySpec.Core.Advanced.GeoCoordinate result) { }
+    }
+    public interface ICustomOperator
+    {
+        string Description { get; }
+        string Name { get; }
+        System.Type[] SupportedTypes { get; }
+        object? Execute(object value, object filterValue);
+    }
+    public enum LogicalOperator
+    {
+        And = 0,
+        Or = 1,
+        Xor = 2,
+    }
+}
+namespace QuerySpec.Core.Auditing
+{
+    public class AuditContext
+    {
+        public AuditContext() { }
+        public bool EnableAuditing { get; set; }
+        public bool EnableEncryption { get; set; }
+        public bool EnableFieldLevelTracking { get; set; }
+        public bool EnableMasking { get; set; }
+        public string Operation { get; set; }
+        public string RequestId { get; set; }
+        public string ResourceType { get; set; }
+        public System.Collections.Generic.List<string> SensitiveFields { get; set; }
+        public string TenantId { get; set; }
+        public string UserId { get; set; }
+    }
+    public class AuditLogEntry
+    {
+        public AuditLogEntry() { }
+        public System.Collections.Generic.List<string> AccessedSensitiveFields { get; init; }
+        public System.Collections.Generic.List<string> DeniedFields { get; init; }
+        public string? ErrorMessage { get; init; }
+        public long ExecutionTimeMs { get; init; }
+        public System.Collections.Generic.Dictionary<string, object> Filters { get; init; }
+        public string Hash { get; }
+        public string Id { get; init; }
+        public string Operation { get; init; }
+        public string? PreviousHash { get; }
+        public System.Collections.Generic.List<string> ProjectedFields { get; init; }
+        public int RecordsAffected { get; init; }
+        public string RequestId { get; init; }
+        public string ResourceType { get; init; }
+        public bool Success { get; init; }
+        public string TenantId { get; init; }
+        public System.DateTime Timestamp { get; init; }
+        public string UserId { get; init; }
+        public bool WasEncrypted { get; init; }
+        public bool WasMasked { get; init; }
+        [System.Obsolete("Use Seal(previousHash) instead. ComputeHash does not establish chain linkage when" +
+            " called directly.")]
+        public void ComputeHash() { }
+        public void Seal(string? previousHash) { }
+        public void Validate() { }
+        public bool VerifyIntegrity(string? expectedPreviousHash) { }
+        public static int VerifyChain(System.Collections.Generic.IReadOnlyList<QuerySpec.Core.Auditing.AuditLogEntry> entries) { }
+    }
+    public class ComplianceExporter : QuerySpec.Core.Auditing.IComplianceExporter
+    {
+        public ComplianceExporter(QuerySpec.Core.Auditing.IAuditReader auditReader) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
+            "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
+            "ntext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
+        [System.Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", false)]
+        public System.Threading.Tasks.Task GenerateGDPRExportAsync(string userId, string tenantId, System.IO.Stream outputStream) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
+            "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
+            "ntext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
+        [System.Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", false)]
+        public System.Threading.Tasks.Task GenerateGDPRExportAsync(string userId, string tenantId, System.IO.Stream outputStream, System.Threading.CancellationToken cancellationToken) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
+            "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
+            "ntext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
+        public System.Threading.Tasks.Task GenerateGdprExportAsync(string userId, string tenantId, System.IO.Stream outputStream) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
+            "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
+            "ntext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
+        public System.Threading.Tasks.Task GenerateGdprExportAsync(string userId, string tenantId, System.IO.Stream outputStream, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetUserDataAsync(string userId, string tenantId) { }
+        public System.Threading.Tasks.Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, System.DateTime since) { }
+    }
+    public class EntityAuditTrail
+    {
+        public EntityAuditTrail() { }
+        public System.Collections.Generic.List<QuerySpec.Core.Auditing.FieldChange> Changes { get; set; }
+        public System.DateTime CreatedAt { get; set; }
+        public string EntityId { get; set; }
+        public string EntityType { get; set; }
+        public System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.FieldChange> GetChangesByUser(string userId) { }
+        public System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.FieldChange> GetChangesSince(System.DateTime since) { }
+    }
+    public class FieldChange
+    {
+        public FieldChange() { }
+        public string ChangeReason { get; set; }
+        public System.DateTime ChangedAt { get; set; }
+        public string ChangedBy { get; set; }
+        public string FieldName { get; set; }
+        public object? NewValue { get; set; }
+        public object? OldValue { get; set; }
+        public void Validate() { }
+    }
+    public interface IAuditLogger : QuerySpec.Core.Auditing.IAuditMaintenance, QuerySpec.Core.Auditing.IAuditReader, QuerySpec.Core.Auditing.IAuditWriter { }
+    public interface IAuditMaintenance
+    {
+        System.Threading.Tasks.Task PurgeOldLogsAsync(System.TimeSpan olderThan);
+        System.Threading.Tasks.Task PurgeOldLogsAsync(System.TimeSpan olderThan, System.Threading.CancellationToken cancellationToken);
+    }
+    public interface IAuditReader
+    {
+        System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?> GetAuditAsync(string id);
+        System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?> GetAuditAsync(string id, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByRequestAsync(string requestId);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByRequestAsync(string requestId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetComplianceReportAsync(System.DateTime from, System.DateTime to);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetComplianceReportAsync(System.DateTime from, System.DateTime to, System.Threading.CancellationToken cancellationToken);
+    }
+    public interface IAuditWriter
+    {
+        System.Threading.Tasks.Task LogChangeAsync(QuerySpec.Core.Auditing.FieldChange change);
+        System.Threading.Tasks.Task LogChangeAsync(QuerySpec.Core.Auditing.FieldChange change, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task LogQueryAsync(QuerySpec.Core.Auditing.AuditLogEntry entry);
+        System.Threading.Tasks.Task LogQueryAsync(QuerySpec.Core.Auditing.AuditLogEntry entry, System.Threading.CancellationToken cancellationToken);
+    }
+    public interface IComplianceExporter
+    {
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
+            "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
+            "ntext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
+        [System.Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", false)]
+        System.Threading.Tasks.Task GenerateGDPRExportAsync(string userId, string tenantId, System.IO.Stream outputStream);
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
+            "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
+            "ntext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
+        [System.Obsolete("Use GenerateGdprExportAsync. Will be removed in 3.0.", false)]
+        System.Threading.Tasks.Task GenerateGDPRExportAsync(string userId, string tenantId, System.IO.Stream outputStream, System.Threading.CancellationToken cancellationToken);
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
+            "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
+            "ntext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
+        System.Threading.Tasks.Task GenerateGdprExportAsync(string userId, string tenantId, System.IO.Stream outputStream);
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
+            "ch emits IL at runtime. Use System.Text.Json source generation (JsonSerializerCo" +
+            "ntext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation over AuditLogEntry. Under trimming, members of AuditLogEntry or its referenced types may be removed and emit incomplete JSON. Use a JsonSerializerContext-based exporter for trimmed scenarios.")]
+        System.Threading.Tasks.Task GenerateGdprExportAsync(string userId, string tenantId, System.IO.Stream outputStream, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetUserDataAsync(string userId, string tenantId);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetUserDataAsync(string userId, string tenantId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, System.DateTime since);
+        System.Threading.Tasks.Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, System.DateTime since, System.Threading.CancellationToken cancellationToken);
+    }
+    public class InMemoryAuditLogger : QuerySpec.Core.Auditing.IAuditLogger, QuerySpec.Core.Auditing.IAuditMaintenance, QuerySpec.Core.Auditing.IAuditReader, QuerySpec.Core.Auditing.IAuditWriter, System.IDisposable
+    {
+        public InMemoryAuditLogger() { }
+        public InMemoryAuditLogger(System.TimeProvider timeProvider) { }
+        public int Count { get; }
+        public void Dispose() { }
+        protected virtual void Dispose(bool disposing) { }
+        public System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?> GetAuditAsync(string id) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByRequestAsync(string requestId) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetComplianceReportAsync(System.DateTime from, System.DateTime to) { }
+        public System.Threading.Tasks.Task LogChangeAsync(QuerySpec.Core.Auditing.FieldChange change) { }
+        public System.Threading.Tasks.Task LogQueryAsync(QuerySpec.Core.Auditing.AuditLogEntry entry) { }
+        public System.Threading.Tasks.Task PurgeOldLogsAsync(System.TimeSpan olderThan) { }
+    }
+}
+namespace QuerySpec.Core.Caching
+{
+    public class CacheKeyGenerator
+    {
+        public static string GenerateKey(string prefix, [System.Runtime.CompilerServices.ParamCollection] [System.Runtime.CompilerServices.ScopedRef] System.ReadOnlySpan<object?> components) { }
+        public static string GeneratePermissionCacheKey(string userId, string resourceType, string fieldName) { }
+        public static string GenerateQueryCacheKey(string tenantId, string userId, string queryHash, string sortHash, int page) { }
+        public static string GenerateSecurityPolicyCacheKey(string resourceType) { }
+    }
+    public class CachePolicy
+    {
+        public CachePolicy() { }
+        public bool CacheByPermissions { get; set; }
+        public bool CacheByTenant { get; set; }
+        public bool CacheByUser { get; set; }
+        public string? CacheKeyPrefix { get; set; }
+        public bool CompressForSize { get; set; }
+        public int CompressionThresholdBytes { get; set; }
+        public System.TimeSpan? Duration { get; set; }
+        public System.Collections.Generic.List<string> InvalidationTriggers { get; set; }
+        public static QuerySpec.Core.Caching.CachePolicy Long { get; }
+        public static QuerySpec.Core.Caching.CachePolicy Medium { get; }
+        public static QuerySpec.Core.Caching.CachePolicy None { get; }
+        public static QuerySpec.Core.Caching.CachePolicy Short { get; }
+    }
+    public readonly struct CacheResult<T> : System.IEquatable<QuerySpec.Core.Caching.CacheResult<T>>
+    {
+        public bool HasValue { get; }
+        public T Value { get; }
+        public static QuerySpec.Core.Caching.CacheResult<T> Miss { get; }
+        public bool Equals(QuerySpec.Core.Caching.CacheResult<T> other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public T GetValueOrDefault() { }
+        public T GetValueOrDefault(T fallback) { }
+        public static QuerySpec.Core.Caching.CacheResult<T> Hit(T value) { }
+        public static bool operator !=(QuerySpec.Core.Caching.CacheResult<T> left, QuerySpec.Core.Caching.CacheResult<T> right) { }
+        public static bool operator ==(QuerySpec.Core.Caching.CacheResult<T> left, QuerySpec.Core.Caching.CacheResult<T> right) { }
+    }
+    public class CacheStats
+    {
+        public CacheStats() { }
+        public double HitRate { get; }
+        public long Hits { get; set; }
+        public long Misses { get; set; }
+        public long Removes { get; set; }
+        public long Sets { get; set; }
+        public void IncrementHits() { }
+        public void IncrementMisses() { }
+        public void IncrementRemoves() { }
+        public void IncrementSets() { }
+        public void Reset() { }
+        public QuerySpec.Core.Caching.CacheStats Snapshot() { }
+        public override string ToString() { }
+    }
+    public class DistributedCacheProvider : QuerySpec.Core.Caching.ICacheProvider, QuerySpec.Core.Caching.ICacheStore
+    {
+        public DistributedCacheProvider(Microsoft.Extensions.Caching.Distributed.IDistributedCache cache, Microsoft.Extensions.Logging.ILogger<QuerySpec.Core.Caching.DistributedCacheProvider>? logger = null) { }
+        public System.Threading.Tasks.ValueTask<bool> ExistsAsync(string key, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask FlushAsync(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheStats> GetStatsAsync(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask RemoveAsync(string key, System.Threading.CancellationToken cancellationToken = default) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Cache store reads and writes serialise T. Distributed implementations use System." +
+            "Text.Json reflection-based serialisation, which emits IL at runtime. Use System." +
+            "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
+        public System.Threading.Tasks.ValueTask SetValueAsync<T>(string key, T value, System.TimeSpan? ttl = default, System.Threading.CancellationToken cancellationToken = default) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Cache store reads and writes serialise T. Distributed implementations use System." +
+            "Text.Json reflection-based serialisation, which emits IL at runtime. Use System." +
+            "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
+        public System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>> TryGetAsync<T>(string key, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public interface ICacheInvalidationStrategy
+    {
+        System.Threading.Tasks.ValueTask InvalidateAsync(string key, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask InvalidateByTenantAsync(string tenantId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask InvalidateByUserAsync(string userId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask InvalidatePatternAsync(string pattern, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface ICacheProvider
+    {
+        System.Threading.Tasks.ValueTask<bool> ExistsAsync(string key, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask FlushAsync(System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheStats> GetStatsAsync(System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask RemoveAsync(string key, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface ICacheStore
+    {
+        System.Threading.Tasks.ValueTask RemoveAsync(string key, System.Threading.CancellationToken cancellationToken = default);
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Cache store reads and writes serialise T. Distributed implementations use System." +
+            "Text.Json reflection-based serialisation, which emits IL at runtime. Use System." +
+            "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
+        System.Threading.Tasks.ValueTask SetValueAsync<T>(string key, T value, System.TimeSpan? ttl = default, System.Threading.CancellationToken cancellationToken = default);
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Cache store reads and writes serialise T. Distributed implementations use System." +
+            "Text.Json reflection-based serialisation, which emits IL at runtime. Use System." +
+            "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
+        System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>> TryGetAsync<T>(string key, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface ICacheWarmer
+    {
+        System.Threading.Tasks.ValueTask WarmCacheAsync(System.Threading.CancellationToken cancellationToken = default);
+    }
+    public class MemoryCacheProvider : QuerySpec.Core.Caching.ICacheProvider, QuerySpec.Core.Caching.ICacheStore, System.IDisposable
+    {
+        public MemoryCacheProvider() { }
+        public MemoryCacheProvider(Microsoft.Extensions.Caching.Memory.MemoryCacheOptions options) { }
+        public MemoryCacheProvider(Microsoft.Extensions.Caching.Memory.MemoryCacheOptions options, System.TimeProvider timeProvider) { }
+        public void Dispose() { }
+        public System.Threading.Tasks.ValueTask<bool> ExistsAsync(string key, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask FlushAsync(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheStats> GetStatsAsync(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask RemoveAsync(string key, System.Threading.CancellationToken cancellationToken = default) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Cache store reads and writes serialise T. Distributed implementations use System." +
+            "Text.Json reflection-based serialisation, which emits IL at runtime. Use System." +
+            "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
+        public System.Threading.Tasks.ValueTask SetValueAsync<T>(string key, T value, System.TimeSpan? ttl = default, System.Threading.CancellationToken cancellationToken = default) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Cache store reads and writes serialise T. Distributed implementations use System." +
+            "Text.Json reflection-based serialisation, which emits IL at runtime. Use System." +
+            "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
+        public System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>> TryGetAsync<T>(string key, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public class MultiLevelCache : QuerySpec.Core.Caching.ICacheProvider, QuerySpec.Core.Caching.ICacheStore
+    {
+        public MultiLevelCache(QuerySpec.Core.Caching.MemoryCacheProvider l1, QuerySpec.Core.Caching.DistributedCacheProvider l2) { }
+        public System.Threading.Tasks.ValueTask<bool> ExistsAsync(string key, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask FlushAsync(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheStats> GetStatsAsync(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask RemoveAsync(string key, System.Threading.CancellationToken cancellationToken = default) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Cache store reads and writes serialise T. Distributed implementations use System." +
+            "Text.Json reflection-based serialisation, which emits IL at runtime. Use System." +
+            "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
+        public System.Threading.Tasks.ValueTask SetValueAsync<T>(string key, T value, System.TimeSpan? ttl = default, System.Threading.CancellationToken cancellationToken = default) { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Cache store reads and writes serialise T. Distributed implementations use System." +
+            "Text.Json reflection-based serialisation, which emits IL at runtime. Use System." +
+            "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
+        public System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>> TryGetAsync<T>(string key, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+}
+namespace QuerySpec.Core.Monitoring
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    public class HealthStatus
+    {
+        public HealthStatus() { }
+        public string Component { get; set; }
+        public bool IsHealthy { get; set; }
+        public string? Message { get; set; }
+        public long ResponseTimeMs { get; set; }
+    }
+    public interface IHealthCheckProvider
+    {
+        System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus> CheckAuditAsync();
+        System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus> CheckCacheAsync();
+        System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus> CheckDatabaseAsync();
+        System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus> CheckSecurityAsync();
+    }
+    public class MetricsCollector
+    {
+        public const int DefaultMaxRetainedQueries = 10000;
+        public MetricsCollector() { }
+        public MetricsCollector(int maxRetainedQueries) { }
+        public MetricsCollector(int maxRetainedQueries, System.TimeProvider timeProvider) { }
+        public QuerySpec.Core.Monitoring.QueryMetricsReport GetReport(System.TimeSpan? period = default) { }
+        public void Record(QuerySpec.Core.Monitoring.QueryMetrics metrics) { }
+    }
+    public class N1DetectionEngine
+    {
+        public const int MaxTrackedPatterns = 1024;
+        public N1DetectionEngine() { }
+        public int MaxStackFrames { get; set; }
+        public int StackPreviewChars { get; set; }
+        public int SuspicionThreshold { get; set; }
+        public QuerySpec.Core.Monitoring.N1DetectionReport GetReport() { }
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"RecordQuery walks the managed stack via System.Diagnostics.StackFrame.GetMethod() to build a call-site fingerprint. Under trimming, method metadata may be incomplete and patterns will collapse to '?' segments, reducing N+1 detection precision. Consider disabling N+1 detection in trimmed deployments or use a structured logging approach upstream of QuerySpec.")]
+        public void RecordQuery(string sql, long executionTimeMs) { }
+        public void Reset() { }
+    }
+    public class N1DetectionReport
+    {
+        public N1DetectionReport() { }
+        public bool HasSuspiciousPatterns { get; set; }
+        public System.Collections.Generic.List<QuerySpec.Core.Monitoring.SuspiciousPattern> Patterns { get; set; }
+        public int TotalPatterns { get; set; }
+    }
+    public class QueryMetrics
+    {
+        public QueryMetrics() { }
+        public long? CacheExtractionTimeMs { get; set; }
+        public bool CacheHit { get; set; }
+        public int ComplexityScore { get; set; }
+        public long? DatabaseRoundTrips { get; set; }
+        public long? DatabaseTimeMs { get; set; }
+        public double EstimatedComplexity { get; }
+        public System.DateTime ExecutedAt { get; set; }
+        public long ExecutionTimeMs { get; set; }
+        public int FilterCount { get; set; }
+        public System.Collections.Generic.List<string> OptimizationApplied { get; set; }
+        public string QueryId { get; set; }
+        public int RecordsReturned { get; set; }
+        public string ResourceType { get; set; }
+        public int SortCount { get; set; }
+        public bool WasOptimized { get; set; }
+    }
+    public class QueryMetricsReport
+    {
+        public QueryMetricsReport() { }
+        public double AverageComplexityScore { get; set; }
+        public double AverageExecutionTimeMs { get; set; }
+        public double CacheHitRate { get; set; }
+        public QuerySpec.Core.Monitoring.QueryMetrics? MostExpensiveQuery { get; set; }
+        public int OptimizedQueriesCount { get; set; }
+        public int SlowQueries { get; set; }
+        public int TotalQueries { get; set; }
+    }
+    public class SuspiciousPattern
+    {
+        public SuspiciousPattern() { }
+        public double AverageTime { get; set; }
+        public int ExecutionCount { get; set; }
+        public string StackTrace { get; set; }
+        public long TotalTime { get; set; }
+    }
+}
+namespace QuerySpec.Core.Resilience
+{
+    public class BulkheadException : System.Exception
+    {
+        public BulkheadException() { }
+        public BulkheadException(string message) { }
+        public BulkheadException(string message, System.Exception innerException) { }
+    }
+    public class BulkheadPolicy : System.IDisposable
+    {
+        public BulkheadPolicy(int maxConcurrentRequests) { }
+        public int MaxConcurrentRequests { get; }
+        public void Dispose() { }
+        protected virtual void Dispose(bool disposing) { }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation) { }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, System.Threading.CancellationToken cancellationToken) { }
+    }
+    public class CircuitBreaker
+    {
+        public CircuitBreaker(System.TimeProvider? timeProvider = null) { }
+        public int FailureThreshold { get; set; }
+        public System.TimeSpan HalfOpenTestInterval { get; set; }
+        public System.TimeSpan OpenTimeout { get; set; }
+        public QuerySpec.Core.Resilience.CircuitState State { get; }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation) { }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, System.Threading.CancellationToken cancellationToken) { }
+        public void Reset() { }
+    }
+    public class CircuitBreakerOpenException : System.Exception
+    {
+        public CircuitBreakerOpenException() { }
+        public CircuitBreakerOpenException(string message) { }
+        public CircuitBreakerOpenException(string message, System.Exception innerException) { }
+        public CircuitBreakerOpenException(string message, int failureCount, int failureThreshold, System.DateTime lastFailureTime, System.TimeSpan retryAfter) { }
+        public int FailureCount { get; }
+        public int FailureThreshold { get; }
+        public System.DateTime LastFailureTime { get; }
+        public System.TimeSpan RetryAfter { get; }
+    }
+    public enum CircuitState
+    {
+        Closed = 0,
+        Open = 1,
+        HalfOpen = 2,
+    }
+    public class RateLimitedException : System.Exception
+    {
+        public RateLimitedException() { }
+        public RateLimitedException(string message) { }
+        public RateLimitedException(string message, System.Exception innerException) { }
+    }
+    public class RateLimiter
+    {
+        public RateLimiter(System.TimeProvider? timeProvider = null) { }
+        public int BurstSize { get; set; }
+        public int TokensPerSecond { get; set; }
+        public System.TimeSpan? GetRetryAfter(string key, int tokensRequired = 1) { }
+        public bool TryAcquire(string key, int tokensRequired = 1) { }
+    }
+    public class ResiliencePolicy
+    {
+        public ResiliencePolicy() { }
+        public QuerySpec.Core.Resilience.BulkheadPolicy? Bulkhead { get; set; }
+        public QuerySpec.Core.Resilience.CircuitBreaker? CircuitBreaker { get; set; }
+        public QuerySpec.Core.Resilience.RateLimiter? RateLimiter { get; set; }
+        public QuerySpec.Core.Resilience.RetryPolicy? RetryPolicy { get; set; }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, string key = "default") { }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, string key, System.Threading.CancellationToken cancellationToken) { }
+    }
+    public class RetryPolicy
+    {
+        public RetryPolicy() { }
+        public double BackoffMultiplier { get; set; }
+        public System.TimeSpan InitialDelay { get; set; }
+        public System.TimeSpan MaxDelay { get; set; }
+        public int MaxRetries { get; set; }
+        public bool UseExponentialBackoff { get; set; }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation) { }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, System.Threading.CancellationToken cancellationToken) { }
+    }
+}
+namespace QuerySpec.Core.Security
+{
+    [System.Obsolete("CBC without authentication is malleable. Use AesGcmEncryptionProvider for new cip" +
+        "hertexts; this class remains only to decrypt legacy data.")]
+    public class AesEncryptionProvider : QuerySpec.Core.Security.IEncryptionProvider
+    {
+        public AesEncryptionProvider(string keyBase64) { }
+        public string Decrypt(string ciphertext) { }
+        public string Encrypt(string plaintext) { }
+        public static string GenerateKey() { }
+    }
+    public class AesGcmEncryptionProvider : QuerySpec.Core.Security.IAuthenticatedEncryptionProvider, QuerySpec.Core.Security.IEncryptionProvider
+    {
+        public AesGcmEncryptionProvider(byte[] key) { }
+        public AesGcmEncryptionProvider(string keyBase64) { }
+        public string Decrypt(string ciphertext) { }
+        public string Decrypt(string ciphertext, System.ReadOnlySpan<byte> associatedData) { }
+        public string Encrypt(string plaintext) { }
+        public string Encrypt(string plaintext, System.ReadOnlySpan<byte> associatedData) { }
+        public static string GenerateKey() { }
+    }
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("AttributePiiClassifier reflects over caller-supplied entity types. Under trimming" +
+        ", [Pii]-annotated members may be removed and the classifier will silently return" +
+        " None. Use ConfiguredPiiClassifier in trimmed/AOT scenarios.")]
+    public sealed class AttributePiiClassifier : QuerySpec.Core.Security.IPiiClassifier
+    {
+        public AttributePiiClassifier() { }
+        public QuerySpec.Core.Security.PiiCategory Classify([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName) { }
+    }
+    public sealed class CompositePiiClassifier : QuerySpec.Core.Security.IPiiClassifier
+    {
+        public CompositePiiClassifier(params QuerySpec.Core.Security.IPiiClassifier[] classifiers) { }
+        public CompositePiiClassifier(System.Collections.Generic.IEnumerable<QuerySpec.Core.Security.IPiiClassifier> classifiers) { }
+        public QuerySpec.Core.Security.PiiCategory Classify([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName) { }
+    }
+    public sealed class ConfiguredPiiClassifier : QuerySpec.Core.Security.IPiiClassifier
+    {
+        public ConfiguredPiiClassifier([System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "DeclaringType",
+                "FieldName",
+                "Category"})] System.Collections.Generic.IEnumerable<System.ValueTuple<System.Type, string, QuerySpec.Core.Security.PiiCategory>> registrations) { }
+        public QuerySpec.Core.Security.PiiCategory Classify([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName) { }
+    }
+    public sealed class DataMaskingEngine
+    {
+        public DataMaskingEngine() { }
+        public DataMaskingEngine(byte[]? hashKey) { }
+        public DataMaskingEngine(byte[]? hashKey, QuerySpec.Core.Security.IPiiClassifier? classifier) { }
+        public QuerySpec.Core.Security.PiiCategory Classify([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName) { }
+        public bool IsPii([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName) { }
+        [System.Obsolete("Field-name + value-regex heuristics produce false negatives that leak PII. Annota" +
+            "te fields with [Pii(...)] and use IsPii(Type, string) backed by IPiiClassifier i" +
+            "nstead. Promoted to a build error in 2.0.1; scheduled for removal in 3.0.0.", true)]
+        public bool IsPii(string fieldName, object? value) { }
+        public string Mask(string fieldName, object? value, string? tenantId = null) { }
+        public string Mask([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName, object? value, string? tenantId = null) { }
+        public void RegisterFieldMask(string fieldName, QuerySpec.Core.Security.MaskingStrategy strategy) { }
+    }
+    public class DynamicContext
+    {
+        public DynamicContext() { }
+        public System.DateTime AccessTime { get; set; }
+        public System.Collections.Generic.Dictionary<string, object> CustomData { get; set; }
+        public string? FieldName { get; set; }
+        public string ResourceType { get; set; }
+        public System.Collections.Generic.List<string> Roles { get; set; }
+        public string UserId { get; set; }
+    }
+    public class DynamicPermissionEvaluator
+    {
+        public DynamicPermissionEvaluator() { }
+        public bool HasPermission(QuerySpec.Core.Security.DynamicContext context, QuerySpec.Core.Security.PermissionType type) { }
+        public void RegisterPermission(string role, QuerySpec.Core.Security.PermissionType type, System.Func<QuerySpec.Core.Security.DynamicContext, bool> evaluator) { }
+    }
+    public interface IAuthenticatedEncryptionProvider
+    {
+        string Decrypt(string ciphertext, System.ReadOnlySpan<byte> associatedData);
+        string Encrypt(string plaintext, System.ReadOnlySpan<byte> associatedData);
+    }
+    public interface IEncryptionProvider
+    {
+        string Decrypt(string ciphertext);
+        string Encrypt(string plaintext);
+    }
+    public interface IPiiClassifier
+    {
+        QuerySpec.Core.Security.PiiCategory Classify([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName);
+    }
+    public enum MaskingStrategy
+    {
+        FullMask = 0,
+        PartialMask = 1,
+        LastFourOnly = 2,
+        EmailMask = 3,
+        HashMask = 4,
+    }
+    public sealed class MigratingAuthenticatedEncryptionProvider : QuerySpec.Core.Security.IAuthenticatedEncryptionProvider
+    {
+        public MigratingAuthenticatedEncryptionProvider(string writeTag, QuerySpec.Core.Security.IAuthenticatedEncryptionProvider writer, System.Collections.Generic.IReadOnlyDictionary<string, QuerySpec.Core.Security.IAuthenticatedEncryptionProvider>? legacyReaders = null) { }
+        public System.Collections.Generic.IReadOnlyCollection<string> RegisteredTags { get; }
+        public string WriteTag { get; }
+        public string Decrypt(string ciphertext, System.ReadOnlySpan<byte> associatedData) { }
+        public string Encrypt(string plaintext, System.ReadOnlySpan<byte> associatedData) { }
+    }
+    public sealed class MigratingEncryptionProvider : QuerySpec.Core.Security.IEncryptionProvider
+    {
+        public MigratingEncryptionProvider(string writeTag, QuerySpec.Core.Security.IEncryptionProvider writer, System.Collections.Generic.IReadOnlyDictionary<string, QuerySpec.Core.Security.IEncryptionProvider>? legacyReaders = null) { }
+        public System.Collections.Generic.IReadOnlyCollection<string> RegisteredTags { get; }
+        public string WriteTag { get; }
+        public string Decrypt(string ciphertext) { }
+        public string Encrypt(string plaintext) { }
+    }
+    public sealed class NameOnlyPiiClassifier : QuerySpec.Core.Security.IPiiClassifier
+    {
+        public NameOnlyPiiClassifier(System.Collections.Generic.IReadOnlyDictionary<string, QuerySpec.Core.Security.PiiCategory> byFieldName) { }
+        public QuerySpec.Core.Security.PiiCategory Classify([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName) { }
+    }
+    public enum PermissionType
+    {
+        Read = 0,
+        Write = 1,
+        Delete = 2,
+        Export = 3,
+        ViewSensitive = 4,
+    }
+    [System.AttributeUsage(System.AttributeTargets.Property | System.AttributeTargets.Field, AllowMultiple=false, Inherited=true)]
+    public sealed class PiiAttribute : System.Attribute
+    {
+        public PiiAttribute(QuerySpec.Core.Security.PiiCategory category) { }
+        public QuerySpec.Core.Security.PiiCategory Category { get; }
+    }
+    public enum PiiCategory
+    {
+        None = 0,
+        DirectIdentifier = 1,
+        Contact = 2,
+        Financial = 3,
+        Health = 4,
+        Location = 5,
+        Sensitive = 6,
+    }
+    public class RLSContext
+    {
+        public RLSContext() { }
+        public System.Collections.Generic.List<string> AllowedTenants { get; set; }
+        public System.Collections.Generic.Dictionary<string, object> CustomAttributes { get; set; }
+        public string Department { get; set; }
+        public string Region { get; set; }
+        public string UserId { get; set; }
+    }
+    public enum RLSDefaultBehavior
+    {
+        Throw = 0,
+        DenyAll = 1,
+        AllowAll = 2,
+    }
+    public sealed class RLSFilter
+    {
+        public static readonly QuerySpec.Core.Security.RLSFilter AllowAll;
+        public static readonly QuerySpec.Core.Security.RLSFilter DenyAll;
+        public RLSFilter(string sql, System.Collections.Generic.IReadOnlyDictionary<string, object?>? parameters = null) { }
+        public System.Collections.Generic.IReadOnlyDictionary<string, object?> Parameters { get; }
+        public string Sql { get; }
+    }
+    public class RLSPolicy
+    {
+        public RLSPolicy() { }
+        public bool ApplyHierarchically { get; set; }
+        public System.Func<QuerySpec.Core.Security.RLSContext, QuerySpec.Core.Security.RLSFilter> FilterGenerator { get; set; }
+        public System.Delegate? PredicateFactory { get; set; }
+        public string ResourceType { get; set; }
+        public QuerySpec.Core.Security.RLSPolicy SetPredicate<T>(System.Func<QuerySpec.Core.Security.RLSContext, System.Linq.Expressions.Expression<System.Func<T, bool>>> factory) { }
+    }
+    public class RowLevelSecurityEngine
+    {
+        public RowLevelSecurityEngine(QuerySpec.Core.Security.RLSDefaultBehavior defaultBehavior = 0) { }
+        public QuerySpec.Core.Security.RLSFilter GenerateFilter(string resourceType, QuerySpec.Core.Security.RLSContext context) { }
+        public System.Linq.Expressions.Expression<System.Func<T, bool>>? GetPredicate<T>(string resourceType, QuerySpec.Core.Security.RLSContext context) { }
+        public void RegisterPolicy(QuerySpec.Core.Security.RLSPolicy policy) { }
+        public void RegisterUnrestricted<T>(string resourceType) { }
+        public static QuerySpec.Core.Security.RLSPolicy CreateDepartmentBased(string deptFieldName) { }
+        public static QuerySpec.Core.Security.RLSPolicy CreateOwnerBased(string ownerFieldName) { }
+        public static QuerySpec.Core.Security.RLSPolicy CreateTenantBased(string tenantFieldName) { }
+        public static string EscapeSqlLiteral(string? value) { }
+        public static string ValidateIdentifier(string identifier) { }
+    }
+}

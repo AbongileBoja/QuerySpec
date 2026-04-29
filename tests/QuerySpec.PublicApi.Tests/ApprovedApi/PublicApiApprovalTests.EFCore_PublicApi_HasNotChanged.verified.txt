@@ -1,0 +1,32 @@
+﻿[assembly: System.Reflection.AssemblyMetadata("IsAotCompatible", "True")]
+[assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AbongileBoja/QuerySpec.git")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
+namespace QuerySpec.EFCore
+{
+    public static class QuerySpecExpressionTranslator
+    {
+        [System.Obsolete("Aggregation translation is not implemented. The method now throws when an aggrega" +
+            "tion is supplied; previously it silently returned the unmodified query.", false)]
+        public static System.Linq.IQueryable<T> ApplyAggregation<T>(System.Linq.IQueryable<T> query, QuerySpec.Core.Advanced.AggregationRequest? aggregation)
+            where T :  class { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode(@"QuerySpec filter translation builds an Enumerable.Contains<T> call via MethodInfo.MakeGenericMethod / Array.CreateInstance for In/NotIn operators. These APIs emit IL at runtime and are not supported under Native AOT. Avoid In/NotIn in AOT-published applications, or pre-translate to a Contains-call against a strongly-typed array at the call site.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"QuerySpec filter translation resolves entity properties by name via reflection (Type.GetProperty), navigates nested property paths whose intermediate types are not statically annotated, and reads Nullable<T>.HasValue/Value via reflected PropertyInfo. Under PublishTrimmed the trimmer cannot prove these members are preserved for arbitrary entity types, so callers must either annotate T with [DynamicallyAccessedMembers(PublicProperties)] for the entire entity graph or opt out of trimming for the call site.")]
+        public static System.Linq.IQueryable<T> ApplyFilter<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties)]  T>(System.Linq.IQueryable<T> query, QuerySpec.Core.Advanced.FilterSpec? filter)
+            where T :  class { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode(@"QuerySpec filter translation builds an Enumerable.Contains<T> call via MethodInfo.MakeGenericMethod / Array.CreateInstance for In/NotIn operators. These APIs emit IL at runtime and are not supported under Native AOT. Avoid In/NotIn in AOT-published applications, or pre-translate to a Contains-call against a strongly-typed array at the call site.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"QuerySpec filter translation resolves entity properties by name via reflection (Type.GetProperty), navigates nested property paths whose intermediate types are not statically annotated, and reads Nullable<T>.HasValue/Value via reflected PropertyInfo. Under PublishTrimmed the trimmer cannot prove these members are preserved for arbitrary entity types, so callers must either annotate T with [DynamicallyAccessedMembers(PublicProperties)] for the entire entity graph or opt out of trimming for the call site.")]
+        public static System.Linq.IQueryable<T> ApplyFilterCached<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties)]  T>(System.Linq.IQueryable<T> query, QuerySpec.Core.Advanced.FilterSpec? filter)
+            where T :  class { }
+        public static void ClearPredicateCache() { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode(@"QuerySpec filter translation builds an Enumerable.Contains<T> call via MethodInfo.MakeGenericMethod / Array.CreateInstance for In/NotIn operators. These APIs emit IL at runtime and are not supported under Native AOT. Avoid In/NotIn in AOT-published applications, or pre-translate to a Contains-call against a strongly-typed array at the call site.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"QuerySpec filter translation resolves entity properties by name via reflection (Type.GetProperty), navigates nested property paths whose intermediate types are not statically annotated, and reads Nullable<T>.HasValue/Value via reflected PropertyInfo. Under PublishTrimmed the trimmer cannot prove these members are preserved for arbitrary entity types, so callers must either annotate T with [DynamicallyAccessedMembers(PublicProperties)] for the entire entity graph or opt out of trimming for the call site.")]
+        public static System.Linq.Expressions.Expression<System.Func<T, bool>> GetOrBuildCachedPredicate<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties)]  T>(QuerySpec.Core.Advanced.FilterSpec filter)
+            where T :  class { }
+        public static class RegexHelper
+        {
+            public static void ClearRegexCache() { }
+            public static bool IsMatch(string? input, string pattern) { }
+        }
+    }
+}
