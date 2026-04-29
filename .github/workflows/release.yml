@@ -263,10 +263,20 @@ jobs:
         dotnet tool install -g sourcelink
         export PATH="$PATH:$HOME/.dotnet/tools"
         failed=0
-        for pkg in ./artifacts/*.nupkg; do
-          echo "::group::SourceLink test $(basename "$pkg")"
-          if ! sourcelink test "$pkg"; then
-            echo "::error::SourceLink test failed for $(basename "$pkg")"
+        for nupkg in ./artifacts/*.nupkg; do
+          base="${nupkg%.nupkg}"
+          snupkg="${base}.snupkg"
+          pkg_name="$(basename "$nupkg")"
+          if [[ -f "$snupkg" ]]; then
+            target="$snupkg"
+            target_name="$(basename "$snupkg")"
+          else
+            target="$nupkg"
+            target_name="$pkg_name"
+          fi
+          echo "::group::SourceLink test $target_name"
+          if ! sourcelink test "$target"; then
+            echo "::error::SourceLink test failed for $target_name"
             failed=$((failed + 1))
           fi
           echo "::endgroup::"
