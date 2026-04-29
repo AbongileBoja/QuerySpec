@@ -63,6 +63,23 @@ public class AesEncryptionProviderTests
         var provider = new AesEncryptionProvider(AesEncryptionProvider.GenerateKey());
         Assert.Throws<ArgumentNullException>(() => provider.Decrypt(null!));
     }
+
+    [Fact]
+    public void Constructor_KeyNotExactly32Bytes_ThrowsArgumentException()
+    {
+        var shortKey = Convert.ToBase64String(new byte[16]);
+        var ex = Assert.Throws<ArgumentException>(() => new AesEncryptionProvider(shortKey));
+        Assert.Contains("256-bit", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Decrypt_CiphertextTooShortForIv_ThrowsArgumentException()
+    {
+        var provider = new AesEncryptionProvider(AesEncryptionProvider.GenerateKey());
+        var tooShort = Convert.ToBase64String(new byte[4]);
+        var ex = Assert.Throws<ArgumentException>(() => provider.Decrypt(tooShort));
+        Assert.Contains("IV", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 #pragma warning restore CS0618

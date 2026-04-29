@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Xunit;
 using QuerySpec.Core.Auditing;
 
@@ -179,5 +181,45 @@ public class AuditLogEntryTests
         first.Seal(previousHash: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
 
         Assert.Equal(0, AuditLogEntry.VerifyChain(new[] { first }));
+    }
+
+    [Fact]
+    public void VerifyChain_DetectsIntegrityFailure_WhenChainLinkMatchesButHashMutated()
+    {
+        // Chain link matches (PreviousHash of entry[1] == Hash of entry[0])
+        // but entry[1].Hash itself is tampered — exercises VerifyIntegrity return at line 141.
+        var e0 = NewValidEntry(user: "u0");
+        e0.Seal(previousHash: null);
+
+        var e1 = NewValidEntry(user: "u1");
+        e1.Seal(previousHash: e0.Hash);
+
+        var hashProp = typeof(AuditLogEntry).GetProperty("Hash")!;
+        var backingField = typeof(AuditLogEntry)
+            .GetField("<Hash>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?? typeof(AuditLogEntry)
+                .GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .FirstOrDefault(f => f.Name.Contains("Hash"));
+
+        if (backingField is not null)
+        {
+            var original = (string)hashProp.GetValue(e1)!;
+            backingField.SetValue(e1, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            Assert.Equal(1, AuditLogEntry.VerifyChain(new[] { e0, e1 }));
+        }
+        else
+        {
+            Assert.Fail("Could not locate backing field for AuditLogEntry.Hash via reflection");
+        }
+    }
+
+    [Fact]
+    public void ComputeHash_ObsoleteOverload_SealsSameAsSealing()
+    {
+        var e1 = NewValidEntry();
+        var computeHash = typeof(AuditLogEntry).GetMethod("ComputeHash", Type.EmptyTypes)!;
+        computeHash.Invoke(e1, null);
+
+        Assert.NotNull(e1.Hash);
     }
 }

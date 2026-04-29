@@ -199,4 +199,16 @@ public sealed class AdvancedFilterExpressionAnalyzerTests
 
         await VerifyCodeFix.VerifyCodeFixAsync(Source, diagnostics, Fixed, StubSources);
     }
+
+    [Fact]
+    public async Task NoAdvancedFilterExpressionType_NoDiagnostic()
+    {
+        const string Source = """
+            class C
+            {
+                object M() => new { Field = "Status" };
+            }
+            """;
+        await VerifyAnalyzer.VerifyAnalyzerAsync(Source);
+    }
 }

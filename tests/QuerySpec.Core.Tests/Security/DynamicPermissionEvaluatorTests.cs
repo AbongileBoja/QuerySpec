@@ -151,4 +151,12 @@ public class DynamicPermissionEvaluatorTests
         Assert.Throws<ArgumentNullException>(() =>
             evaluator.RegisterPermission("Admin", PermissionType.Read, null!));
     }
+
+    [Fact]
+    public void DynamicContext_AccessTime_CanBeSetAndRead()
+    {
+        var ts = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var ctx = new DynamicContext { UserId = "u1", AccessTime = ts };
+        Assert.Equal(ts, ctx.AccessTime);
+    }
 }

@@ -59,4 +59,17 @@ public class N1DetectionEngineTests
         // Assert
         Assert.False(report.HasSuspiciousPatterns);
     }
+
+    [Fact]
+    public void Reset_ClearsAllTrackedPatterns()
+    {
+        var engine = new N1DetectionEngine();
+        for (var i = 0; i < 5; i++)
+            engine.RecordQuery("SELECT * FROM Users WHERE Id = @p", 10);
+
+        engine.Reset();
+
+        var report = engine.GetReport();
+        Assert.False(report.HasSuspiciousPatterns);
+    }
 }

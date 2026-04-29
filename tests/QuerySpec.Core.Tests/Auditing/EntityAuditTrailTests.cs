@@ -56,4 +56,12 @@ public class EntityAuditTrailTests
         Assert.Single(changes);
         Assert.Equal("user1", changes.First().ChangedBy);
     }
+
+    [Fact]
+    public void EntityAuditTrail_CreatedAt_CanBeSetAndRead()
+    {
+        var ts = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        var trail = new EntityAuditTrail { EntityId = "1", CreatedAt = ts };
+        Assert.Equal(ts, trail.CreatedAt);
+    }
 }

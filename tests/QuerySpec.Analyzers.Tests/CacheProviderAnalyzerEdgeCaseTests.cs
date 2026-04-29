@@ -172,4 +172,36 @@ public sealed class CacheProviderAnalyzerEdgeCaseTests
             """;
         await VerifyAnalyzer.VerifyAnalyzerAsync(Source, new[] { Stub });
     }
+
+    // ── Extension method on ICacheProvider — not flagged (IsExtensionMethod branch) ──
+    // When the invocation resolves to an extension method, IsCacheProviderMember
+    // returns false (line 172) because the receiver type is not the containing type
+    // of an extension method.
+
+    [Fact]
+    public async Task ExtensionMethod_WithGetAsyncName_NoDiagnostic()
+    {
+        const string Stub = TestStubs.CacheTypes;
+        const string Source = """
+            using System;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using QuerySpec.Core.Caching;
+
+            static class CacheExtensions
+            {
+                public static ValueTask<T?> GetAsync<T>(this ICacheStore store, string key) where T : class
+                    => default;
+            }
+
+            class C
+            {
+                async Task<string?> M(ICacheStore store)
+                {
+                    return await store.GetAsync<string>("k");
+                }
+            }
+            """;
+        await VerifyAnalyzer.VerifyAnalyzerAsync(Source, new[] { Stub });
+    }
 }

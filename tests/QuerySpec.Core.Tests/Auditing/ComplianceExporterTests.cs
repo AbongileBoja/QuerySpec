@@ -163,5 +163,26 @@ namespace QuerySpec.Core.Tests.Auditing
 
             Assert.Equal(msNew.ToArray(), msOld.ToArray());
         }
+
+        [Fact]
+        public async Task ObsoleteGenerateGDPRExportAsync_WithCancellationToken_DelegatesToRenamedMethod()
+        {
+            var logs = new List<AuditLogEntry> { new AuditLogEntry { UserId = "u1", TenantId = "t1" } };
+            var reader = new Mock<IAuditReader>();
+            reader.Setup(r => r.GetAuditsByUserAsync("u1", null))
+                  .ReturnsAsync(logs);
+            var exporter = new ComplianceExporter(reader.Object);
+
+            using var msNew = new MemoryStream();
+            using var msOld = new MemoryStream();
+            await exporter.GenerateGdprExportAsync("u1", "t1", msNew, CancellationToken.None);
+
+            var obsoleteMethod = typeof(ComplianceExporter).GetMethod(
+                "GenerateGDPRExportAsync",
+                new[] { typeof(string), typeof(string), typeof(Stream), typeof(CancellationToken) })!;
+            await (Task)obsoleteMethod.Invoke(exporter, new object[] { "u1", "t1", msOld, CancellationToken.None })!;
+
+            Assert.Equal(msNew.ToArray(), msOld.ToArray());
+        }
     }
 }

@@ -226,4 +226,25 @@ public class FilterSpecTests
             System.Globalization.CultureInfo.CurrentCulture = originalCulture;
         }
     }
+
+    [Fact]
+    public void ComputeStableHash_NonIFormattableValue_ProducesConsistentHash()
+    {
+        // A custom class that is not IFormattable exercises the FormatValue fallback
+        // at line 160 of FilterSpec: `return value.GetType().Name + ":" + value`.
+        var customValue = new NonFormattable("test");
+        var spec = new FilterSpec { Field = "Key", Operator = FilterOperator.Equal, Value = customValue };
+
+        var hash1 = spec.ComputeStableHash();
+        var hash2 = spec.ComputeStableHash();
+
+        Assert.Equal(hash1, hash2);
+    }
+
+    private sealed class NonFormattable
+    {
+        private readonly string _label;
+        public NonFormattable(string label) => _label = label;
+        public override string ToString() => _label;
+    }
 }
