@@ -148,6 +148,49 @@ this repository at a specific commit, with no intermediate tampering. Verificati
 requires no third-party services and no offline trust roots — GitHub publishes the
 Sigstore transparency log and the attestation alongside the release.
 
+## Public API additions and CompatibilitySuppressions.xml
+
+When a PR adds a new public type or member, `EnablePackageValidation` + `EnableStrictModeForBaselineValidation` will reject the package unless the addition is explicitly recorded in the project's `CompatibilitySuppressions.xml`.
+
+**Don't hand-edit these files.** The postbump hook regenerates them automatically.
+
+### How it works
+
+1. `npm run release` bumps `package.json`, updates `CHANGELOG.md`, then runs the postbump chain:
+   - `postbump-baseline.mjs` — updates `PackageValidationBaselineVersion` to the last published version.
+   - `postbump-apicompat.mjs` — runs `dotnet pack` with `ApiCompatGenerateSuppressionFile=true`, validates the new suppressions against the bump type (see rules below), and `git add`s any modified `CompatibilitySuppressions.xml` files so they ride into the standard-version release commit.
+2. The CI release workflow (`release.yml`) re-runs the same regeneration step before `dotnet pack` and diffs the committed files against the freshly regenerated ones. A mismatch fails the gate with a clear message.
+
+### Suppression rules by bump type
+
+| Bump type | Allowed baseline suppressions | Blocked |
+|---|---|---|
+| **patch** or **minor** | CP0001 (type added), CP0007 (member added) | CP0002/CP0006/CP0008/CP0009/CP0011/CP0031 (removals or changes) |
+| **major** | All codes allowed | nothing blocked |
+
+Inter-TFM suppressions (entries without `IsBaselineSuppression=true`) are always allowed regardless of bump type — they reflect platform-level API differences, not a baseline regression.
+
+### What happens when a breaking change is detected on a minor/patch bump
+
+The postbump script aborts immediately with:
+
+```
+postbump-apicompat: ABORT — breaking-change suppressions detected for a non-major bump.
+```
+
+It lists the affected diagnostics and tells you to either revert the breaking change or bump as major. The release commit is never created.
+
+### What happens if you forget to run `npm run release` and push a stale file
+
+The CI gate catches it and blocks the pack step:
+
+```
+::error::CompatibilitySuppressions.xml is stale for QuerySpec.Core.
+Run 'npm run release' locally to regenerate, commit the updated file, then re-tag.
+```
+
+Re-run `npm run release` locally, push the new commit, delete the old tag, re-tag, and re-push.
+
 ## Unlisting a broken release
 
 If a published version contains something harmful, don't delete — **unlist** it.

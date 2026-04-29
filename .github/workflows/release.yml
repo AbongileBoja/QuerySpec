@@ -173,6 +173,59 @@ jobs:
         path: ./TestResults
         retention-days: 14
 
+    - name: Verify ApiCompat suppression files are up to date
+      run: |
+        set -euo pipefail
+        version="${{ steps.version.outputs.version }}"
+
+        snap_dir="$(mktemp -d)"
+        for project in QuerySpec.Core QuerySpec.EFCore QuerySpec.DependencyInjection; do
+          src="src/${project}/CompatibilitySuppressions.xml"
+          if [[ -f "$src" ]]; then
+            cp "$src" "${snap_dir}/${project}.xml"
+          else
+            touch "${snap_dir}/${project}.xml"
+          fi
+        done
+
+        dotnet pack QuerySpec.sln \
+          --configuration Release \
+          -p:Version="${version}" \
+          -p:ApiCompatGenerateSuppressionFile=true \
+          -p:ApiCompatGenerateSuppressionFileForChangedAssemblies=true \
+          --output /tmp/apicompat-verify \
+          --nologo \
+          > /tmp/apicompat-pack.log 2>&1 || {
+          echo "::error::dotnet pack failed during ApiCompat suppression verification."
+          cat /tmp/apicompat-pack.log
+          exit 1
+        }
+
+        fail=0
+        for project in QuerySpec.Core QuerySpec.EFCore QuerySpec.DependencyInjection; do
+          committed="${snap_dir}/${project}.xml"
+          regenerated="src/${project}/CompatibilitySuppressions.xml"
+
+          if [[ -f "$committed" && -f "$regenerated" ]]; then
+            if ! diff -q "$committed" "$regenerated" > /dev/null 2>&1; then
+              echo "::error::CompatibilitySuppressions.xml is stale for ${project}. Run 'npm run release' locally to regenerate, commit the updated file, then re-tag."
+              echo "--- committed"
+              echo "+++ regenerated"
+              diff -u "$committed" "$regenerated" | head -60 || true
+              fail=1
+            fi
+          elif [[ -f "$regenerated" && ! -s "$committed" ]]; then
+            echo "::error::CompatibilitySuppressions.xml exists for ${project} after regeneration but was absent in the committed tree. Run 'npm run release' locally, commit the generated file, then re-tag."
+            fail=1
+          fi
+          if [[ -s "$committed" ]]; then
+            cp "$committed" "src/${project}/CompatibilitySuppressions.xml"
+          fi
+        done
+
+        if [[ "$fail" == "1" ]]; then exit 1; fi
+        echo "All CompatibilitySuppressions.xml files match the regenerated state."
+
     - name: Pack
       run: |
         set -euo pipefail
