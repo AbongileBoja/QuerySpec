@@ -129,6 +129,40 @@ your PR. Local validation is strongly recommended to avoid round-trips.
 `git commit --no-verify` skips the hook. CI will still reject non-conforming commits on
 PR, so there is no production path that avoids the linter.
 
+## Public-API approval
+
+QuerySpec uses [PublicApiGenerator](https://github.com/PublicApiGenerator/PublicApiGenerator) and [Verify](https://github.com/VerifyTests/Verify) to snapshot the public surface of every shipping assembly. The baselines live in `tests/QuerySpec.PublicApi.Tests/ApprovedApi/`.
+
+### What triggers approval failure
+
+Any change to the public surface of `QuerySpec.Core`, `QuerySpec.EFCore`, `QuerySpec.DependencyInjection`, or `QuerySpec.Analyzers` will cause `dotnet test` on `QuerySpec.PublicApi.Tests` to fail with a diff between the committed `.verified.txt` and the newly produced `.received.txt`.
+
+### Updating the baselines
+
+When an intentional public-API change is made, accept the new snapshot:
+
+```bash
+# From the repo root — run the approval tests once to produce .received.txt files
+dotnet test tests/QuerySpec.PublicApi.Tests/ --framework net10.0
+
+# Review every diff, then promote received → verified
+for f in tests/QuerySpec.PublicApi.Tests/ApprovedApi/*.received.txt; do
+  cp "$f" "${f/DotNet10_0.received/verified}"
+done
+
+# Stage the updated baselines alongside the API change
+git add tests/QuerySpec.PublicApi.Tests/ApprovedApi/
+```
+
+Both a `feat:` (or `fix:`) commit for the API change and the baseline update belong in the same PR so reviewers see the intended diff.
+
+### Double-gate
+
+1. `Microsoft.CodeAnalysis.PublicApiAnalyzers` (RS0016/RS0017) rejects undeclared API additions at **build time** via `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`.
+2. The approval tests in `QuerySpec.PublicApi.Tests` catch **any surface change** (added, removed, or modified members) at **test time**.
+
+Both gates must pass for CI to be green.
+
 ## Coverage ratchet
 
 CI enforces minimum line and branch coverage on every push and PR. Thresholds are defined in `.github/workflows/ci.yml`:

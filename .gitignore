@@ -390,3 +390,6 @@ FodyWeavers.xsd
 # Commitlint / husky dev-tooling artefacts
 npm-debug.log*
 .husky/_
+
+# Verify snapshot test artefacts — only .verified.txt files are committed
+*.received.txt

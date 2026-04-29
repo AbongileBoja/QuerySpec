@@ -1,0 +1,71 @@
+﻿[assembly: System.Reflection.AssemblyMetadata("IsAotCompatible", "True")]
+[assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AbongileBoja/QuerySpec.git")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
+namespace QuerySpec.DependencyInjection
+{
+    public class AuditingBuilder
+    {
+        public AuditingBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+    }
+    public class CachingBuilder
+    {
+        public CachingBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public QuerySpec.DependencyInjection.CachingBuilder UseDistributedRedis(string connectionString) { }
+        public QuerySpec.DependencyInjection.CachingBuilder UseMemoryCache() { }
+        public QuerySpec.DependencyInjection.CachingBuilder UseMultiLevel() { }
+    }
+    public class MonitoringBuilder
+    {
+        public MonitoringBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+    }
+    public class PerformanceBuilder
+    {
+        public PerformanceBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public QuerySpec.DependencyInjection.PerformanceBuilder EnableMetrics() { }
+        public QuerySpec.DependencyInjection.PerformanceBuilder EnableN1Detection() { }
+    }
+    public class QuerySpecBuilder
+    {
+        public QuerySpecBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public QuerySpec.DependencyInjection.QuerySpecBuilder WithAuditing(System.Action<QuerySpec.DependencyInjection.AuditingBuilder> configure) { }
+        public QuerySpec.DependencyInjection.QuerySpecBuilder WithCaching(System.Action<QuerySpec.DependencyInjection.CachingBuilder> configure) { }
+        public QuerySpec.DependencyInjection.QuerySpecBuilder WithMonitoring(System.Action<QuerySpec.DependencyInjection.MonitoringBuilder> configure) { }
+        public QuerySpec.DependencyInjection.QuerySpecBuilder WithPerformance(System.Action<QuerySpec.DependencyInjection.PerformanceBuilder> configure) { }
+        public QuerySpec.DependencyInjection.QuerySpecBuilder WithResilience(System.Action<QuerySpec.DependencyInjection.ResilienceBuilder> configure) { }
+        public QuerySpec.DependencyInjection.QuerySpecBuilder WithSecurity(System.Action<QuerySpec.DependencyInjection.SecurityBuilder> configure) { }
+    }
+    public class ResilienceBuilder
+    {
+        public ResilienceBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public QuerySpec.DependencyInjection.ResilienceBuilder UseBulkhead(int maxConcurrentRequests) { }
+        public QuerySpec.DependencyInjection.ResilienceBuilder UseCircuitBreaker(int failureThreshold, System.TimeSpan openTimeout) { }
+        public QuerySpec.DependencyInjection.ResilienceBuilder UseRateLimiting(int tokensPerSecond, System.TimeSpan? window = default) { }
+        public QuerySpec.DependencyInjection.ResilienceBuilder UseRetryPolicy(int maxRetries, bool exponentialBackoff = true) { }
+    }
+    public class SecurityBuilder
+    {
+        public SecurityBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public QuerySpec.DependencyInjection.SecurityBuilder EnableDataMasking() { }
+        public QuerySpec.DependencyInjection.SecurityBuilder EnableDynamicPermissions() { }
+        public QuerySpec.DependencyInjection.SecurityBuilder EnableFieldEncryption(string encryptionKey) { }
+        public QuerySpec.DependencyInjection.SecurityBuilder EnableRowLevelSecurity() { }
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("AttributePiiClassifier reflects over caller-supplied entity types. Under trimming" +
+            ", [Pii]-annotated members may be removed and the classifier will silently return" +
+            " None. Use UsePiiClassifier with a ConfiguredPiiClassifier in trimmed/AOT scenar" +
+            "ios.")]
+        public QuerySpec.DependencyInjection.SecurityBuilder UseAttributePiiClassifier() { }
+        public QuerySpec.DependencyInjection.SecurityBuilder UsePiiClassifier(QuerySpec.Core.Security.IPiiClassifier classifier) { }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static QuerySpec.DependencyInjection.QuerySpecBuilder AddQuerySpec(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<QuerySpec.DependencyInjection.QuerySpecBuilder> configure) { }
+    }
+}

@@ -1,0 +1,38 @@
+﻿[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AbongileBoja/QuerySpec.git")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETStandard,Version=v2.0", FrameworkDisplayName=".NET Standard 2.0")]
+namespace QuerySpec.Analyzers
+{
+    [Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer("C#", new string[0])]
+    public sealed class AdvancedFilterExpressionAnalyzer : Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
+    {
+        public AdvancedFilterExpressionAnalyzer() { }
+        public override System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public override void Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) { }
+    }
+    [Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer("C#", new string[0])]
+    public sealed class CacheProviderInvocationAnalyzer : Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
+    {
+        public CacheProviderInvocationAnalyzer() { }
+        public override System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public override void Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) { }
+    }
+    public static class DiagnosticDescriptors
+    {
+        public static readonly Microsoft.CodeAnalysis.DiagnosticDescriptor AdvancedFilterExpressionUsage;
+        public static readonly Microsoft.CodeAnalysis.DiagnosticDescriptor CacheProviderInvocation;
+        public static readonly Microsoft.CodeAnalysis.DiagnosticDescriptor GeoLocationMemberAccess;
+    }
+    public static class DiagnosticIds
+    {
+        public const string AdvancedFilterExpressionUsage = "QSPEC0002";
+        public const string CacheProviderInvocation = "QSPEC0003";
+        public const string GeoLocationMemberAccess = "QSPEC0001";
+    }
+    [Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer("C#", new string[0])]
+    public sealed class GeoLocationMemberAccessAnalyzer : Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
+    {
+        public GeoLocationMemberAccessAnalyzer() { }
+        public override System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public override void Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) { }
+    }
+}
