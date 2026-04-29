@@ -157,7 +157,7 @@ When a PR adds a new public type or member, `EnablePackageValidation` + `EnableS
 ### How it works
 
 1. `npm run release` bumps `package.json`, updates `CHANGELOG.md`, then runs the postbump chain:
-   - `postbump-baseline.mjs` — updates `PackageValidationBaselineVersion` to the last published version.
+   - `postbump-baseline.mjs` — updates `PackageValidationBaselineVersion` to the last published version. **Fails the release** if `git tag` cannot be read or if NuGet's flat-container API is unreachable, so a release can't ship with a stale or unverified baseline. Set `QUERYSPEC_SKIP_BASELINE_NETWORK=true` for offline local runs only — never in CI.
    - `postbump-apicompat.mjs` — runs `dotnet pack` with `ApiCompatGenerateSuppressionFile=true`, validates the new suppressions against the bump type (see rules below), and `git add`s any modified `CompatibilitySuppressions.xml` files so they ride into the standard-version release commit.
 2. The CI release workflow (`release.yml`) re-runs the same regeneration step before `dotnet pack` and diffs the committed files against the freshly regenerated ones. A mismatch fails the gate with a clear message.
 

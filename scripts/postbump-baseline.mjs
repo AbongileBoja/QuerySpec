@@ -14,6 +14,11 @@
 //
 // commit-all is enabled in .versionrc.json so the modified Directory.Build.props is
 // included in standard-version's release commit.
+//
+// Failure semantics (fail-closed): network/git failures during a release halt the bump
+// rather than ship a stale baseline. To run offline (e.g. local `npm run release` while
+// disconnected), set QUERYSPEC_SKIP_BASELINE_NETWORK=true to downgrade NuGet failures to
+// a warning. This flag is intentionally NOT honoured in CI — release.yml has no such env.
 
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -49,9 +54,10 @@ try {
     const raw = execSync('git tag -l --sort=-v:refname', { encoding: 'utf8' }).trim();
     tags = raw ? raw.split('\n').filter(Boolean) : [];
 } catch (err) {
-    console.error('postbump-baseline: git tag failed; skipping baseline update.');
+    console.error('postbump-baseline: git tag failed.');
     console.error(err.stderr?.toString() ?? err.message);
-    process.exit(0);
+    console.error('Cannot determine candidate baselines without git history. Aborting release.');
+    process.exit(1);
 }
 
 if (tags.length === 0) {
@@ -73,8 +79,15 @@ try {
     published = new Set(await fetchPublishedVersions());
 } catch (err) {
     console.error(`postbump-baseline: could not query NuGet — ${err.message}`);
-    console.error('Leaving Directory.Build.props unchanged to avoid writing an unverified baseline.');
-    process.exit(0);
+    if (process.env.QUERYSPEC_SKIP_BASELINE_NETWORK === 'true') {
+        console.warn('postbump-baseline: QUERYSPEC_SKIP_BASELINE_NETWORK=true; leaving Directory.Build.props unchanged.');
+        console.warn('This flag must NOT be set in CI — a stale baseline will fail the release pack gate.');
+        process.exit(0);
+    }
+    console.error('Aborting release: cannot verify the baseline points at a published version on NuGet.');
+    console.error('If retrying after a NuGet outage, re-run `npm run release` once the API is reachable.');
+    console.error('For offline local development only, set QUERYSPEC_SKIP_BASELINE_NETWORK=true.');
+    process.exit(1);
 }
 
 const baseline = candidates.find(v => published.has(v));
