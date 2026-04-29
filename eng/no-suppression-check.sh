@@ -37,11 +37,12 @@ else
   fi
 fi
 
-pattern='^\+[^+].*(<NoWarn>|<WarningsNotAsErrors>|<TreatWarningsAsErrors>false|\[UnconditionalSuppressMessage|\[SuppressMessage|#pragma warning disable|continue-on-error: true)'
-
-added="$(git diff --unified=0 "$range" \
-  -- '*.cs' '*.csproj' '*.props' '*.targets' '*.yml' '*.yaml' \
-  | grep -E "$pattern" || true)"
+added="$(git diff --unified=0 \
+    "$range" -- '*.cs' '*.csproj' '*.props' '*.targets' '*.yml' '*.yaml' \
+  | grep -vE '^\+\+\+' \
+  | grep -E '^\+' \
+  | grep -E '<NoWarn>|<WarningsNotAsErrors>|<TreatWarningsAsErrors>false|UnconditionalSuppressMessage|\[SuppressMessage|#pragma warning disable|continue-on-error: true' \
+  || true)"
 
 if [[ -n "$added" ]]; then
   echo "::error::This PR introduces forbidden warning-suppression patterns:" >&2
