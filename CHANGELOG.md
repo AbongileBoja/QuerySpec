@@ -4,6 +4,13 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+### [4.1.1](https://github.com/AbongileBoja/QuerySpec/compare/v4.1.0...v4.1.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* **release:** generate SBOM for QuerySpec.Analyzers package ([#249](https://github.com/AbongileBoja/QuerySpec/issues/249)) ([17a54f2](https://github.com/AbongileBoja/QuerySpec/commit/17a54f2331895b97d13f54e65f6011396c1f9cb9)), closes [#153](https://github.com/AbongileBoja/QuerySpec/issues/153) [#248](https://github.com/AbongileBoja/QuerySpec/issues/248)
+
 ## [4.1.0](https://github.com/AbongileBoja/QuerySpec/compare/v4.0.0...v4.1.0) (2026-04-29)
 
 
