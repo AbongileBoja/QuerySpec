@@ -26,7 +26,6 @@
     <EnablePackageValidation>false</EnablePackageValidation>
     <EnableStrictModeForBaselineValidation>false</EnableStrictModeForBaselineValidation>
     <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
-    <GenerateSBOM>false</GenerateSBOM>
     <IncludeSymbols>false</IncludeSymbols>
     <SymbolPackageFormat></SymbolPackageFormat>
   </PropertyGroup>
