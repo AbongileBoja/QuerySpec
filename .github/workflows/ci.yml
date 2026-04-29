@@ -70,6 +70,7 @@ jobs:
           --no-build --configuration Release \
           --logger "trx;LogFilePrefix=test-results" \
           --collect:"XPlat Code Coverage" \
+          --settings ./coverlet.runsettings \
           --results-directory ./TestResults \
           -- RunConfiguration.CollectSourceInformation=true
 
