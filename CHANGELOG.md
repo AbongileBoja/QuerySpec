@@ -4,6 +4,13 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+### [4.1.3](https://github.com/AbongileBoja/QuerySpec/compare/v4.1.2...v4.1.3) (2026-04-29)
+
+
+### Bug Fixes
+
+* **release:** extract PDBs from snupkg before running sourcelink test ([#253](https://github.com/AbongileBoja/QuerySpec/issues/253)) ([2034149](https://github.com/AbongileBoja/QuerySpec/commit/20341492126ec30ed2811e4e88a9520348c9ad4f))
+
 ### [4.1.2](https://github.com/AbongileBoja/QuerySpec/compare/v4.1.1...v4.1.2) (2026-04-29)
 
 
