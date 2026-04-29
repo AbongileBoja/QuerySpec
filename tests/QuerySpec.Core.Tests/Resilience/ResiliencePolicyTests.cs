@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Time.Testing;
 using QuerySpec.Core.Resilience;
@@ -123,5 +124,13 @@ public class ResiliencePolicyTests
     {
         var ex = new RateLimitedException("custom");
         Assert.Equal("custom", ex.Message);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_NullOperation_ThrowsArgumentNull()
+    {
+        var policy = new ResiliencePolicy();
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            policy.ExecuteAsync<int>(null!, "key", CancellationToken.None));
     }
 }

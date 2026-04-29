@@ -88,6 +88,14 @@ public class RetryPolicyTests
         Assert.Equal(0, attempts);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_NullOperation_ThrowsArgumentNull()
+    {
+        var policy = new RetryPolicy { MaxRetries = 3 };
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            policy.ExecuteAsync<int>(null!, CancellationToken.None));
+    }
+
     /// <summary>
     /// Cancelling during a backoff delay surfaces OperationCanceledException, ending the retry loop.
     /// </summary>

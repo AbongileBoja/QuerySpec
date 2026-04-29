@@ -49,6 +49,20 @@ public class AesEncryptionProviderTests
 
         Assert.NotEqual(encrypted1, encrypted2);
     }
+
+    [Fact]
+    public void Encrypt_NullPlaintext_ThrowsArgumentNull()
+    {
+        var provider = new AesEncryptionProvider(AesEncryptionProvider.GenerateKey());
+        Assert.Throws<ArgumentNullException>(() => provider.Encrypt(null!));
+    }
+
+    [Fact]
+    public void Decrypt_NullCiphertext_ThrowsArgumentNull()
+    {
+        var provider = new AesEncryptionProvider(AesEncryptionProvider.GenerateKey());
+        Assert.Throws<ArgumentNullException>(() => provider.Decrypt(null!));
+    }
 }
 
 #pragma warning restore CS0618

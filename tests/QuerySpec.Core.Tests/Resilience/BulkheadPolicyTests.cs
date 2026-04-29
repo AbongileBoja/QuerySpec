@@ -118,4 +118,12 @@ public class BulkheadPolicyTests
 
         Assert.False(ran);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_NullOperation_ThrowsArgumentNull()
+    {
+        using var policy = new BulkheadPolicy(2);
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            policy.ExecuteAsync<int>(null!, CancellationToken.None));
+    }
 }

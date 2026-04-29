@@ -184,4 +184,25 @@ public class RowLevelSecurityEngineTests
 
         Assert.Same(RLSFilter.DenyAll, filter);
     }
+
+    [Fact]
+    public void RegisterPolicy_NullPolicy_ThrowsArgumentNull()
+    {
+        var engine = new RowLevelSecurityEngine();
+        Assert.Throws<ArgumentNullException>(() => engine.RegisterPolicy(null!));
+    }
+
+    [Fact]
+    public void GenerateFilter_NullContext_ThrowsArgumentNull()
+    {
+        var engine = new RowLevelSecurityEngine();
+        Assert.Throws<ArgumentNullException>(() => engine.GenerateFilter("User", null!));
+    }
+
+    [Fact]
+    public void GetPredicate_NullContext_ThrowsArgumentNull()
+    {
+        var engine = new RowLevelSecurityEngine();
+        Assert.Throws<ArgumentNullException>(() => engine.GetPredicate<object>("User", null!));
+    }
 }
