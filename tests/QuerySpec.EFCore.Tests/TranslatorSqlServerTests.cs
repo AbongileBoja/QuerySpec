@@ -183,8 +183,11 @@ public class TranslatorSqlServerTests
             ValueTo = 60m,
         });
 
-        Assert.Single(result);
-        Assert.Equal(3, result[0].Id);
+        Assert.Equal(4, result.Count);
+        Assert.Single(result, w => w.Name == "alphabet");
+        Assert.Single(result, w => w.Name == "50%_off");
+        Assert.Single(result, w => w.Name == "[Special]");
+        Assert.Single(result, w => w.Name == "Under_score");
     }
 
     /// <summary>Nested AND composes two predicates with SQL AND.</summary>
