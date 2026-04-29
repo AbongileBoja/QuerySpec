@@ -4,6 +4,22 @@ using System.Collections.Generic;
 namespace QuerySpec.Core.Caching;
 
 /// <summary>
+/// Non-generic factory and sentinel for <see cref="CacheResult{T}"/>.
+/// Avoids the CA1000 requirement to qualify type-argument on the generic type.
+/// </summary>
+public static class CacheResult
+{
+    /// <summary>Creates a hit result wrapping <paramref name="value"/>.</summary>
+    /// <typeparam name="T">The cached value type.</typeparam>
+    /// <param name="value">The cached value.</param>
+    public static CacheResult<T> Hit<T>(T value) => CacheResult<T>.Hit(value);
+
+    /// <summary>Returns the miss sentinel for <typeparamref name="T"/>.</summary>
+    /// <typeparam name="T">The cached value type.</typeparam>
+    public static CacheResult<T> Miss<T>() => CacheResult<T>.Miss;
+}
+
+/// <summary>
 /// Result of a cache lookup that distinguishes a hit on <see langword="default"/> from a miss
 /// without paying a heap allocation for a reference-typed <c>Optional&lt;T&gt;</c> wrapper. Modeled as
 /// a <see langword="readonly"/> <see langword="struct"/> for zero-allocation hot paths.

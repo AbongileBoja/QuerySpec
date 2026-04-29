@@ -206,11 +206,12 @@ public class InMemoryAuditLoggerTests
     [Fact]
     public async Task PurgeOldLogsAsync_NoEntriesOldEnough_LeavesChainIntact()
     {
+        var recent = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc);
         var logger = new InMemoryAuditLogger();
         var entries = new List<AuditLogEntry>();
         for (var i = 0; i < 5; i++)
         {
-            var e = new AuditLogEntry { TenantId = "t", UserId = $"u{i}", Operation = "Query" };
+            var e = new AuditLogEntry { TenantId = "t", UserId = $"u{i}", Operation = "Query", Timestamp = recent };
             await logger.LogQueryAsync(e);
             entries.Add(e);
         }

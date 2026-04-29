@@ -315,6 +315,11 @@ namespace QuerySpec.Core.Caching
         public static QuerySpec.Core.Caching.CachePolicy None { get; }
         public static QuerySpec.Core.Caching.CachePolicy Short { get; }
     }
+    public static class CacheResult
+    {
+        public static QuerySpec.Core.Caching.CacheResult<T> Hit<T>(T value) { }
+        public static QuerySpec.Core.Caching.CacheResult<T> Miss<T>() { }
+    }
     public readonly struct CacheResult<T> : System.IEquatable<QuerySpec.Core.Caching.CacheResult<T>>
     {
         public bool HasValue { get; }

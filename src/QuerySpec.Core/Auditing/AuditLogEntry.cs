@@ -20,7 +20,7 @@ public class AuditLogEntry
     /// <summary>Unique identifier for the audit entry.</summary>
     public string Id { get; init; } = Guid.NewGuid().ToString();
     /// <summary>Timestamp when the operation occurred.</summary>
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; }
     /// <summary>Tenant identifier.</summary>
     public string TenantId { get; init; } = string.Empty;
     /// <summary>User identifier.</summary>

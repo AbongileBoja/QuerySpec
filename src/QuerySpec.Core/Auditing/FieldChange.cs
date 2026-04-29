@@ -14,7 +14,7 @@ public class FieldChange
     /// <summary>New value of the field.</summary>
     public object? NewValue { get; set; }
     /// <summary>Timestamp when the change occurred.</summary>
-    public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ChangedAt { get; set; }
     /// <summary>User who made the change.</summary>
     public string ChangedBy { get; set; } = string.Empty;
     /// <summary>Reason for the change.</summary>

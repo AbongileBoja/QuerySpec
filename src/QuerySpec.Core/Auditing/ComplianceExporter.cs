@@ -116,6 +116,7 @@ public interface IComplianceExporter
 /// </summary>
 public class ComplianceExporter : IComplianceExporter
 {
+    private static readonly JsonSerializerOptions IndentedOptions = new() { WriteIndented = true };
     private readonly IAuditReader _auditReader;
     /// <summary>Initializes a new compliance exporter.</summary>
     /// <param name="auditReader">Reader used to fetch the audit entries that back every export. Must not be null.</param>
@@ -200,6 +201,6 @@ public class ComplianceExporter : IComplianceExporter
     public async Task GenerateGdprExportAsync(string userId, string tenantId, Stream outputStream, CancellationToken cancellationToken = default)
     {
         var audits = await GetUserDataAsync(userId, tenantId).ConfigureAwait(false);
-        await JsonSerializer.SerializeAsync(outputStream, audits, new JsonSerializerOptions { WriteIndented = true }, cancellationToken).ConfigureAwait(false);
+        await JsonSerializer.SerializeAsync(outputStream, audits, IndentedOptions, cancellationToken).ConfigureAwait(false);
     }
 }

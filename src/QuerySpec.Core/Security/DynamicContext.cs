@@ -17,7 +17,7 @@ public class DynamicContext
     /// <summary>Specific field being accessed (if applicable).</summary>
     public string? FieldName { get; set; }
     /// <summary>Time of access for temporal permissions.</summary>
-    public DateTime AccessTime { get; set; } = DateTime.UtcNow;
+    public DateTime AccessTime { get; set; }
     /// <summary>Custom data for permission evaluation.</summary>
     public Dictionary<string, object> CustomData { get; set; } = new();
 }

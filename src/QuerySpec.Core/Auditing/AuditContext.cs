@@ -57,9 +57,9 @@ public class AuditContext
     /// <summary>Whether field-level tracking is enabled.</summary>
     public bool EnableFieldLevelTracking { get; set; } = true;
     /// <summary>Whether encryption is enabled for sensitive data.</summary>
-    public bool EnableEncryption { get; set; } = false;
+    public bool EnableEncryption { get; set; }
     /// <summary>Whether masking is enabled for sensitive data.</summary>
-    public bool EnableMasking { get; set; } = false;
+    public bool EnableMasking { get; set; }
 
     /// <summary>List of sensitive field names. Never null.</summary>
     public List<string> SensitiveFields

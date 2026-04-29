@@ -90,7 +90,7 @@ public class RowLevelSecurityEngine
     /// <exception cref="ArgumentException">Thrown when <paramref name="policy"/>.<see cref="RLSPolicy.ResourceType"/> is null, empty, or whitespace.</exception>
     public void RegisterPolicy(RLSPolicy policy)
     {
-        if (policy is null) throw new ArgumentNullException(nameof(policy));
+        ArgumentNullException.ThrowIfNull(policy);
         if (string.IsNullOrWhiteSpace(policy.ResourceType))
             throw new ArgumentException("Policy ResourceType must be specified.", nameof(policy));
         _policies[policy.ResourceType] = policy;
@@ -146,7 +146,7 @@ public class RowLevelSecurityEngine
     {
         if (string.IsNullOrWhiteSpace(resourceType))
             throw new ArgumentException("Resource type must be specified.", nameof(resourceType));
-        if (context is null) throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
 
         if (!_policies.TryGetValue(resourceType, out var policy))
         {
@@ -188,7 +188,7 @@ public class RowLevelSecurityEngine
     {
         if (string.IsNullOrWhiteSpace(resourceType))
             throw new ArgumentException("Resource type must be specified.", nameof(resourceType));
-        if (context is null) throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
 
         if (!_policies.TryGetValue(resourceType, out var policy) || policy.PredicateFactory is null)
         {
@@ -248,7 +248,7 @@ public class RowLevelSecurityEngine
     public static string EscapeSqlLiteral(string? value)
     {
         if (value is null) return "NULL";
-        if (value.IndexOf('\0') >= 0)
+        if (value.Contains('\0'))
             throw new ArgumentException("Null characters are not permitted in SQL literals.", nameof(value));
         var sb = new StringBuilder(value.Length + 2);
         sb.Append('\'');

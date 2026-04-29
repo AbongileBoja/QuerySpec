@@ -15,7 +15,7 @@ public class QueryMetrics
     /// <summary>Type of resource queried.</summary>
     public string ResourceType { get; set; } = string.Empty;
     /// <summary>Timestamp when query was executed.</summary>
-    public DateTime ExecutedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ExecutedAt { get; set; }
     /// <summary>Execution time in milliseconds.</summary>
     public long ExecutionTimeMs { get; set; }
     /// <summary>Number of records returned.</summary>
@@ -139,7 +139,7 @@ public class MetricsCollector
     /// the specified time window. Returns a zero-valued report (with <c>MostExpensiveQuery == null</c>)
     /// when no entries match — never throws on empty input.
     /// </summary>
-    /// <param name="period">Optional time window measured back from <see cref="DateTime.UtcNow"/>. <c>null</c> covers all retained entries.</param>
+    /// <param name="period">Optional time window measured back from the current UTC time. <c>null</c> covers all retained entries.</param>
     /// <returns>An aggregated <see cref="QueryMetricsReport"/>; a zero-valued report when no entries match.</returns>
     public QueryMetricsReport GetReport(TimeSpan? period = null)
     {
