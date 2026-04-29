@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using PublicApiGenerator;
 using QuerySpec.Analyzers;
@@ -15,35 +17,42 @@ namespace QuerySpec.PublicApi.Tests;
 [RequiresDynamicCode("Public API approval tests use reflection to enumerate assembly members.")]
 public sealed class PublicApiApprovalTests
 {
-    private static readonly string SourceFile = GetSourceFile();
+    private static readonly string ApprovedApiDirectory = GetApprovedApiDirectory();
 
-    private static string GetSourceFile([CallerFilePath] string path = "") => path;
+    private static string GetApprovedApiDirectory()
+    {
+        var projectDir = typeof(PublicApiApprovalTests).Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .First(a => a.Key == "Verify.ProjectDirectory")
+            .Value!;
+        return Path.Combine(projectDir, "ApprovedApi");
+    }
 
     [Fact]
     public Task Core_PublicApi_HasNotChanged()
     {
         var api = typeof(FilterSpec).Assembly.GeneratePublicApi();
-        return Verifier.Verify(api, sourceFile: SourceFile).UseDirectory("ApprovedApi");
+        return Verifier.Verify(api).UseDirectory(ApprovedApiDirectory);
     }
 
     [Fact]
     public Task EFCore_PublicApi_HasNotChanged()
     {
         var api = typeof(QuerySpecExpressionTranslator).Assembly.GeneratePublicApi();
-        return Verifier.Verify(api, sourceFile: SourceFile).UseDirectory("ApprovedApi");
+        return Verifier.Verify(api).UseDirectory(ApprovedApiDirectory);
     }
 
     [Fact]
     public Task DependencyInjection_PublicApi_HasNotChanged()
     {
         var api = typeof(QuerySpecBuilder).Assembly.GeneratePublicApi();
-        return Verifier.Verify(api, sourceFile: SourceFile).UseDirectory("ApprovedApi");
+        return Verifier.Verify(api).UseDirectory(ApprovedApiDirectory);
     }
 
     [Fact]
     public Task Analyzers_PublicApi_HasNotChanged()
     {
         var api = typeof(DiagnosticIds).Assembly.GeneratePublicApi();
-        return Verifier.Verify(api, sourceFile: SourceFile).UseDirectory("ApprovedApi");
+        return Verifier.Verify(api).UseDirectory(ApprovedApiDirectory);
     }
 }

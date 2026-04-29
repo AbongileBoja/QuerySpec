@@ -26,6 +26,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Verify.SourceGenerators" Version="2.5.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +48,17 @@
     <ProjectReference Include="..\..\src\QuerySpec.EFCore\QuerySpec.EFCore.csproj" />
     <ProjectReference Include="..\..\src\QuerySpec.DependencyInjection\QuerySpec.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\src\QuerySpec.Analyzers\QuerySpec.Analyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Verify.ProjectDirectory</_Parameter1>
+      <_Parameter2>$(MSBuildProjectDirectory)\</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Verify.TargetFrameworks</_Parameter1>
+      <_Parameter2></_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>
