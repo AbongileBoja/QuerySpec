@@ -57,13 +57,31 @@ jobs:
         echo "warnings=${warnings}" >> "$GITHUB_OUTPUT"
         echo "errors=${errors}" >> "$GITHUB_OUTPUT"
 
+    - name: Pre-pull Testcontainers images (retry on transient registry errors)
+      run: |
+        set -euo pipefail
+        images=(
+          "mcr.microsoft.com/mssql/server:2022-latest"
+          "postgres:16-alpine"
+        )
+        for image in "${images[@]}"; do
+          for attempt in 1 2 3 4 5; do
+            if docker pull "$image"; then
+              echo "Pulled $image on attempt $attempt"
+              break
+            fi
+            if [[ "$attempt" -eq 5 ]]; then
+              echo "::error::Failed to pull $image after 5 attempts"
+              exit 1
+            fi
+            backoff=$((attempt * 10))
+            echo "::warning::Pull attempt $attempt for $image failed; retrying in ${backoff}s"
+            sleep "$backoff"
+          done
+        done
+
     - name: Test with coverage
       id: test
-      # `dotnet test QuerySpec.sln` runs all test projects across all target frameworks
-      # in parallel. `LogFileName=` would point all runners at the same trx file and
-      # the resulting overwrite race makes one of the runners exit non-zero on roughly
-      # one matrix slot per run (despite every test passing). `LogFilePrefix=` gives
-      # each test run a unique trx filename and removes the race.
       run: |
         set -euo pipefail
         dotnet test QuerySpec.sln \
