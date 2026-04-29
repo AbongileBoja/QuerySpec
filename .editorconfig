@@ -135,6 +135,33 @@ dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:s
 dotnet_style_parentheses_in_other_binary_operators = never_if_unnecessary:silent
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
 
+# CA1000: static members on generic types. CacheResult<T>.Hit/Miss are established public API;
+# removing them from the generic type is a v5.0 breaking change. Non-generic CacheResult factory
+# is additive but cannot replace the generic statics without a binary break in the current cycle.
+dotnet_diagnostic.CA1000.severity = suggestion
+
+# CA1708: identifiers differ only by case. The GenerateGDPRExportAsync / GenerateGdprExportAsync
+# pair is intentional — GDPR-all-caps is the deprecated 2.x spelling, kept for source compat.
+# Downgrade until the obsolete overloads are removed in v5.0.
+dotnet_diagnostic.CA1708.severity = suggestion
+
+# CA1720: identifier contains type name. CachePolicy.Short and CachePolicy.Long are established
+# public API; renaming is a v5.0 breaking change. Document intent here; fix in v5.0 cleanup.
+dotnet_diagnostic.CA1720.severity = suggestion
+
+# CA1707: underscores in member names. FilterOperator.Contains_CaseInsensitive is intentionally
+# kept with its legacy underscore spelling as a deprecated enum member. Fix in v5.0 when removed.
+dotnet_diagnostic.CA1707.severity = suggestion
+
+# CA1069: duplicate enum values. FilterOperator.ContainsCaseInsensitive = Contains_CaseInsensitive = 52
+# is the canonical + deprecated alias pair. Intentional; fix in v5.0 when the alias is removed.
+dotnet_diagnostic.CA1069.severity = suggestion
+
+# CA1716: parameter name conflicts with reserved keyword. IAuditReader.GetComplianceReportAsync
+# uses parameter name "to" (conflicts with VB.NET keyword). Renaming is a source-breaking change
+# for callers using named arguments; deferred to v5.0 with the full parameter-rename sweep.
+dotnet_diagnostic.CA1716.severity = suggestion
+
 [*.{csproj,props,targets}]
 indent_size = 2
 

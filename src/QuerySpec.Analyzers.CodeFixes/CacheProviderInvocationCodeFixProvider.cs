@@ -81,15 +81,15 @@ public sealed class CacheProviderInvocationCodeFixProvider : CodeFixProvider
         var calledName = memberAccess.Name.Identifier.ValueText;
         SyntaxNode? newRoot = calledName switch
         {
-            "SetAsync" => RewriteSetAsync(root, invocation, memberAccess),
-            "GetAsync" => RewriteGetAsync(root, invocation, memberAccess),
+            "SetAsync" => RewriteSet(root, invocation, memberAccess),
+            "GetAsync" => RewriteGet(root, invocation, memberAccess),
             _ => null,
         };
 
         return newRoot is null ? document : document.WithSyntaxRoot(newRoot);
     }
 
-    private static SyntaxNode RewriteSetAsync(
+    private static SyntaxNode RewriteSet(
         SyntaxNode root,
         InvocationExpressionSyntax invocation,
         MemberAccessExpressionSyntax memberAccess)
@@ -100,7 +100,7 @@ public sealed class CacheProviderInvocationCodeFixProvider : CodeFixProvider
         return root.ReplaceNode(invocation, replacement);
     }
 
-    private static SyntaxNode RewriteGetAsync(
+    private static SyntaxNode RewriteGet(
         SyntaxNode root,
         InvocationExpressionSyntax invocation,
         MemberAccessExpressionSyntax memberAccess)

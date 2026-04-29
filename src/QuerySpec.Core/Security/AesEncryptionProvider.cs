@@ -59,7 +59,7 @@ public class AesEncryptionProvider : IEncryptionProvider
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="plaintext"/> is null.</exception>
     public string Encrypt(string plaintext)
     {
-        if (plaintext is null) throw new ArgumentNullException(nameof(plaintext));
+        ArgumentNullException.ThrowIfNull(plaintext);
 
         var iv = new byte[IvSize];
         RandomNumberGenerator.Fill(iv);
@@ -91,7 +91,7 @@ public class AesEncryptionProvider : IEncryptionProvider
     /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown when the payload fails to decrypt (wrong key or corrupt input).</exception>
     public string Decrypt(string ciphertext)
     {
-        if (ciphertext is null) throw new ArgumentNullException(nameof(ciphertext));
+        ArgumentNullException.ThrowIfNull(ciphertext);
 
         var buffer = Convert.FromBase64String(ciphertext);
         if (buffer.Length < IvSize)

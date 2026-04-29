@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,7 +64,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
         }
         catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
         {
-            _logger.LogWarning(ex, "Distributed cache GET failed for key {Key}; treating as miss.", key);
+            DistributedCacheProviderLog.GetFailed(_logger, ex, key);
             _stats.IncrementMisses();
             return CacheResult<T>.Miss;
         }
@@ -84,7 +83,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Corrupt cache entry for key {Key}; evicting.", key);
+            DistributedCacheProviderLog.CorruptEntryEvicting(_logger, ex, key);
             try
             {
                 await _cache.RemoveAsync(key, cancellationToken).ConfigureAwait(false);
@@ -95,7 +94,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
             }
             catch (Exception removeEx) when (removeEx is not OutOfMemoryException and not StackOverflowException)
             {
-                _logger.LogWarning(removeEx, "Failed to evict corrupt cache entry for key {Key}.", key);
+                DistributedCacheProviderLog.EvictFailed(_logger, removeEx, key);
             }
             _stats.IncrementMisses();
             return CacheResult<T>.Miss;
@@ -150,7 +149,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Distributed cache SET failed for key {Key}.", key);
+            DistributedCacheProviderLog.SetFailed(_logger, ex, key);
             throw;
         }
     }
@@ -174,7 +173,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Distributed cache REMOVE failed for key {Key}.", key);
+            DistributedCacheProviderLog.RemoveFailed(_logger, ex, key);
             throw;
         }
     }
@@ -199,7 +198,7 @@ public class DistributedCacheProvider : ICacheProvider, ICacheStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Distributed cache EXISTS check failed for key {Key}.", key);
+            DistributedCacheProviderLog.ExistsFailed(_logger, ex, key);
             return false;
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using QuerySpec.Core.Advanced;
@@ -113,5 +114,12 @@ public class ApplyFilterCachedTests
 
         Assert.Throws<System.ArgumentException>(() =>
             QuerySpecExpressionTranslator.ApplyFilterCached(Source(), filter).ToList());
+    }
+
+    [Fact]
+    public void GetOrBuildCachedPredicate_NullFilter_ThrowsArgumentNull()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            QuerySpecExpressionTranslator.GetOrBuildCachedPredicate<Widget>(null!));
     }
 }

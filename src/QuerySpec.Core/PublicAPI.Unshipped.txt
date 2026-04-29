@@ -1,1 +1,4 @@
 #nullable enable
+QuerySpec.Core.Caching.CacheResult
+static QuerySpec.Core.Caching.CacheResult.Hit<T>(T value) -> QuerySpec.Core.Caching.CacheResult<T>
+static QuerySpec.Core.Caching.CacheResult.Miss<T>() -> QuerySpec.Core.Caching.CacheResult<T>

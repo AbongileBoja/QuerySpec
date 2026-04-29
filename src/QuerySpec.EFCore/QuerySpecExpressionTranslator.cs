@@ -161,7 +161,7 @@ public static class QuerySpecExpressionTranslator
     public static Expression<Func<T, bool>> GetOrBuildCachedPredicate<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(
         FilterSpec filter) where T : class
     {
-        if (filter is null) throw new ArgumentNullException(nameof(filter));
+        ArgumentNullException.ThrowIfNull(filter);
 
         var hash = filter.ComputeStableHash();
         var key = (typeof(T), hash);
@@ -325,7 +325,7 @@ public static class QuerySpecExpressionTranslator
 
     #region Comparison Operators
 
-    private static Expression BuildEqual(Expression property, object? value, Type propertyType, bool isNullable)
+    private static BinaryExpression BuildEqual(Expression property, object? value, Type propertyType, bool isNullable)
     {
         var converted = NormalizeValue(value, propertyType);
         return Expression.Equal(property, Expression.Constant(converted, propertyType));
@@ -486,7 +486,7 @@ public static class QuerySpecExpressionTranslator
     #region Range Operators
 
     [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
-    private static Expression BuildBetween(Expression property, object? valueFrom, object? valueTo, Type propertyType, Type underlyingType, bool isNullable)
+    private static BinaryExpression BuildBetween(Expression property, object? valueFrom, object? valueTo, Type propertyType, Type underlyingType, bool isNullable)
     {
         var from = NormalizeValue(valueFrom, propertyType);
         var to = NormalizeValue(valueTo, propertyType);
@@ -535,7 +535,7 @@ public static class QuerySpecExpressionTranslator
     }
 
     [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
-    private static Expression BuildIsEmpty(Expression property, bool isNullable)
+    private static BinaryExpression BuildIsEmpty(Expression property, bool isNullable)
     {
         if (isNullable)
         {
@@ -555,7 +555,7 @@ public static class QuerySpecExpressionTranslator
     #region Temporal Operators
 
     [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
-    private static Expression BuildDateInRange(Expression property, DateTime from, DateTime to, bool isNullable)
+    private static BinaryExpression BuildDateInRange(Expression property, DateTime from, DateTime to, bool isNullable)
     {
         var fromExpr = Expression.Constant(from, typeof(DateTime));
         var toExpr = Expression.Constant(to, typeof(DateTime));
@@ -655,7 +655,7 @@ public static class QuerySpecExpressionTranslator
                     if (underlying == typeof(DateTime) && DateTime.TryParse(s, out var dt)) return dt;
                     if (underlying == typeof(bool) && bool.TryParse(s, out var b)) return b;
                     if (IsNumericType(underlying) && double.TryParse(s, out var dbl))
-                        return Convert.ChangeType(dbl, underlying);
+                        return Convert.ChangeType(dbl, underlying, System.Globalization.CultureInfo.InvariantCulture);
                     return s;
                 case JsonValueKind.Number:
                     if (targetType == typeof(int) || targetType == typeof(int?)) return je.GetInt32();

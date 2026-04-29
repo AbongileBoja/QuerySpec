@@ -9,7 +9,7 @@ namespace QuerySpec.Core.Resilience;
 /// refill and consumption are atomic.
 /// </summary>
 /// <remarks>
-/// Uses <see cref="TimeProvider.GetTimestamp"/> (monotonic) rather than <see cref="DateTime.UtcNow"/>
+/// Uses <see cref="TimeProvider.GetTimestamp"/> (monotonic) rather than wall-clock <c>DateTime.UtcNow</c>
 /// so that wall-clock adjustments (NTP, DST) cannot cause negative elapsed times or token surges.
 /// Lock-based rather than lock-free: benchmarks showed that a CAS-on-reference design allocated
 /// a state object per successful update and regressed under same-key contention (CAS retries

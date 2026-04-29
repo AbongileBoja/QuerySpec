@@ -98,4 +98,12 @@ public class CircuitBreakerTests
 
         Assert.False(ran);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_NullOperation_ThrowsArgumentNull()
+    {
+        var breaker = new CircuitBreaker();
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            breaker.ExecuteAsync<int>(null!, CancellationToken.None));
+    }
 }

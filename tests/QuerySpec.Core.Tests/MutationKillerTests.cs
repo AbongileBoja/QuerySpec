@@ -614,6 +614,7 @@ public class MutationKillerTests
             TenantId = "t",
             UserId = "alice",
             Operation = "Q",
+            Timestamp = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
             AccessedSensitiveFields = new List<string> { "SSN", "Email" }
         };
         await logger.LogQueryAsync(e);

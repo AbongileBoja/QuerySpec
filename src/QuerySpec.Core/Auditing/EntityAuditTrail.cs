@@ -16,7 +16,7 @@ public class EntityAuditTrail
     /// <summary>List of field changes.</summary>
     public List<FieldChange> Changes { get; set; } = new();
     /// <summary>Timestamp when the entity was created.</summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// Gets all changes since specified time.

@@ -83,7 +83,7 @@ public readonly record struct GeoCoordinate
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the parsed components are out of range.</exception>
     public static GeoCoordinate Parse(string s)
     {
-        if (s is null) throw new ArgumentNullException(nameof(s));
+        ArgumentNullException.ThrowIfNull(s);
         if (!TryParseCore(s, out var lat, out var lon))
             throw new FormatException($"'{s}' is not a valid ISO 6709 coordinate.");
         return new GeoCoordinate(lat, lon);

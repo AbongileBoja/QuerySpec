@@ -196,7 +196,6 @@ public class MemoryCacheProvider : ICacheProvider, ICacheStore, IDisposable
 
     private void EnsureNotDisposed()
     {
-        if (Volatile.Read(ref _disposed) != 0)
-            throw new ObjectDisposedException(nameof(MemoryCacheProvider));
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
     }
 }

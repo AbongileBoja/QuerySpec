@@ -1,0 +1,5 @@
+P:System.DateTime.UtcNow;Use System.DateTimeOffset.UtcNow or inject TimeProvider and call GetUtcNow() for testable, unambiguous time.
+P:System.DateTime.Now;Use System.DateTimeOffset.UtcNow or inject TimeProvider and call GetLocalNow() for testable, unambiguous time.
+P:System.DateTimeOffset.UtcNow;Inject TimeProvider and call GetUtcNow() for testable, deterministic time in library code.
+M:System.Threading.Tasks.Task.Wait;Use await instead of blocking on a Task.
+M:System.Threading.Tasks.Task`1.Result;Use await instead of blocking on Task<T>.Result.
