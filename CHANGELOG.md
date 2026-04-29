@@ -4,6 +4,39 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [4.1.0](https://github.com/AbongileBoja/QuerySpec/compare/v4.0.0...v4.1.0) (2026-04-29)
+
+
+### Features
+
+* **ci:** fail CI on CodeQL high-severity alerts ([#244](https://github.com/AbongileBoja/QuerySpec/issues/244)) ([b50d2f3](https://github.com/AbongileBoja/QuerySpec/commit/b50d2f3bd34357745dfb4981fb963daf55c44a8f)), closes [#200](https://github.com/AbongileBoja/QuerySpec/issues/200)
+* **ci:** ratchet coverage gate with line+branch enforcement ([77f8120](https://github.com/AbongileBoja/QuerySpec/commit/77f81208c5bf0f6d464fd93594cd403e34a65deb)), closes [#177](https://github.com/AbongileBoja/QuerySpec/issues/177)
+* **core:** declare IsTrimmable/IsAotCompatible and annotate reflection-using surface ([#243](https://github.com/AbongileBoja/QuerySpec/issues/243)) ([560493d](https://github.com/AbongileBoja/QuerySpec/commit/560493d061e1a59e6d2828129c612f6e649e0bb6)), closes [#170](https://github.com/AbongileBoja/QuerySpec/issues/170)
+* **release:** enable strict ApiCompat baseline validation and prune unused suppressions ([#229](https://github.com/AbongileBoja/QuerySpec/issues/229)) ([e4b453c](https://github.com/AbongileBoja/QuerySpec/commit/e4b453cd5bd86f98e7c811e56b0a3e6662f61a9a)), closes [#167](https://github.com/AbongileBoja/QuerySpec/issues/167)
+* **release:** polish NuGet package metadata to first-party standard ([#206](https://github.com/AbongileBoja/QuerySpec/issues/206)) ([5cd8bbb](https://github.com/AbongileBoja/QuerySpec/commit/5cd8bbb7d2227d2cd0f55fb79d8f1de01b7e6d55)), closes [#186](https://github.com/AbongileBoja/QuerySpec/issues/186) [#205](https://github.com/AbongileBoja/QuerySpec/issues/205)
+* **release:** verify SBOM in nupkg and broaden reproducibility to all shipped assemblies ([ea14962](https://github.com/AbongileBoja/QuerySpec/commit/ea14962c0762d031246f107ba2b7bbf1749bd21e)), closes [#187](https://github.com/AbongileBoja/QuerySpec/issues/187)
+* **security:** add gitleaks secret-scanning workflow ([#220](https://github.com/AbongileBoja/QuerySpec/issues/220)) ([db8e876](https://github.com/AbongileBoja/QuerySpec/commit/db8e876c6a6e4853b511a5fbfd1489cb6ad5c614)), closes [#165](https://github.com/AbongileBoja/QuerySpec/issues/165)
+* **security:** add step-security/harden-runner in audit mode ([#215](https://github.com/AbongileBoja/QuerySpec/issues/215)) ([35c96a6](https://github.com/AbongileBoja/QuerySpec/commit/35c96a6ee94ce1bb89616b874e006e551bc23800)), closes [#164](https://github.com/AbongileBoja/QuerySpec/issues/164)
+* **security:** emit SLSA build provenance for released NuGet packages ([#204](https://github.com/AbongileBoja/QuerySpec/issues/204)) ([e9e93ee](https://github.com/AbongileBoja/QuerySpec/commit/e9e93ee4743d1c7a8a5f18a0e608d84df85b83a8)), closes [#163](https://github.com/AbongileBoja/QuerySpec/issues/163)
+* **tests:** add public-API approval baselines via PublicApiGenerator + Verify ([#245](https://github.com/AbongileBoja/QuerySpec/issues/245)) ([454fa23](https://github.com/AbongileBoja/QuerySpec/commit/454fa23db832e09a7be195ad9384a1d154cc4260)), closes [#182](https://github.com/AbongileBoja/QuerySpec/issues/182)
+* **tests:** add SQL Server and PostgreSQL provider matrix via Testcontainers ([#247](https://github.com/AbongileBoja/QuerySpec/issues/247)) ([bc93698](https://github.com/AbongileBoja/QuerySpec/commit/bc93698884941a029b543580a5b8a0e91edf1aad)), closes [#178](https://github.com/AbongileBoja/QuerySpec/issues/178)
+
+
+### Bug Fixes
+
+* **benchmarks:** guard against vacuous gate pass and exclude flaky SimpleEqual ([7211698](https://github.com/AbongileBoja/QuerySpec/commit/7211698493cf0670bb8046de7438297f35b0da1e)), closes [#179](https://github.com/AbongileBoja/QuerySpec/issues/179) [#179](https://github.com/AbongileBoja/QuerySpec/issues/179) [#198](https://github.com/AbongileBoja/QuerySpec/issues/198) [#199](https://github.com/AbongileBoja/QuerySpec/issues/199) [#197](https://github.com/AbongileBoja/QuerySpec/issues/197) [#198](https://github.com/AbongileBoja/QuerySpec/issues/198) [#199](https://github.com/AbongileBoja/QuerySpec/issues/199)
+* **ci:** exempt dependabot from body/footer line-length rules ([#241](https://github.com/AbongileBoja/QuerySpec/issues/241)) ([1f10ae1](https://github.com/AbongileBoja/QuerySpec/commit/1f10ae11b4c41f77b39be68e5936feae5d13a50a)), closes [#211](https://github.com/AbongileBoja/QuerySpec/issues/211) [#214](https://github.com/AbongileBoja/QuerySpec/issues/214) [#212](https://github.com/AbongileBoja/QuerySpec/issues/212) [#209](https://github.com/AbongileBoja/QuerySpec/issues/209) [#240](https://github.com/AbongileBoja/QuerySpec/issues/240)
+* **ci:** parse real CodeQL alert counts in evidence gate ([90cf713](https://github.com/AbongileBoja/QuerySpec/commit/90cf7132612bb744ccfcbcf5ec983c6ecae75b4e)), closes [#200](https://github.com/AbongileBoja/QuerySpec/issues/200) [#189](https://github.com/AbongileBoja/QuerySpec/issues/189)
+* **ci:** remove git push from mutation jobs; reports via artifacts ([#232](https://github.com/AbongileBoja/QuerySpec/issues/232)) ([fd2f23a](https://github.com/AbongileBoja/QuerySpec/commit/fd2f23a285f009ff166eff0f4d060a7040b52026)), closes [#190](https://github.com/AbongileBoja/QuerySpec/issues/190)
+* **ci:** switch dependabot to chore(deps) prefix and add deps-dev scope ([#239](https://github.com/AbongileBoja/QuerySpec/issues/239)) ([b97e3d8](https://github.com/AbongileBoja/QuerySpec/commit/b97e3d8dbb9c16208c8668a9fbc341d7111b8851))
+* **release:** enforce PublicAPI tracking and populate Shipped.txt for v4.0.0 surface ([46cba49](https://github.com/AbongileBoja/QuerySpec/commit/46cba4932c7391f67da64ad55f5a8681cb0e595b)), closes [#166](https://github.com/AbongileBoja/QuerySpec/issues/166)
+* **security:** use fixed-time compare for audit chain-link verification ([#233](https://github.com/AbongileBoja/QuerySpec/issues/233)) ([6e15761](https://github.com/AbongileBoja/QuerySpec/commit/6e157611b9a3da84f62b5f829eaf2e9647fa2f70)), closes [#188](https://github.com/AbongileBoja/QuerySpec/issues/188)
+
+
+### Documentation
+
+* **security:** add SECURITY.md vulnerability-disclosure policy ([#207](https://github.com/AbongileBoja/QuerySpec/issues/207)) ([afdff2e](https://github.com/AbongileBoja/QuerySpec/commit/afdff2e3f4cee71059a5a6f52b5e009a7f4103a1)), closes [#161](https://github.com/AbongileBoja/QuerySpec/issues/161)
+
 ## [4.0.0](https://github.com/AbongileBoja/QuerySpec/compare/v3.0.1-rc1...v4.0.0) (2026-04-27)
 
 
