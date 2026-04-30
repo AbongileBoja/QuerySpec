@@ -8,7 +8,7 @@ namespace QuerySpec.Core.Resilience;
 /// Circuit breaker pattern implementation.
 /// Prevents cascading failures with state machine: Closed -> Open -> HalfOpen -> Closed.
 /// </summary>
-public class CircuitBreaker
+public sealed class CircuitBreaker
 {
     private CircuitState _state = CircuitState.Closed;
     private DateTimeOffset _lastFailureTime = DateTimeOffset.MinValue;

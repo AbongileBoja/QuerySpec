@@ -21,7 +21,7 @@ namespace QuerySpec.Core.Monitoring;
 /// <para>Execution times are retained as rolling aggregates (count, sum, max) rather than a
 /// list, so each entry has O(1) memory regardless of call count.</para>
 /// </remarks>
-public class N1DetectionEngine
+public sealed class N1DetectionEngine
 {
     /// <summary>Maximum number of unique call-stack patterns retained at any time.</summary>
     public const int MaxTrackedPatterns = 1024;

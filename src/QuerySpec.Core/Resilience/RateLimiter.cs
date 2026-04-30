@@ -17,7 +17,7 @@ namespace QuerySpec.Core.Resilience;
 /// shape — callers are already being throttled on that key — so the managed lock is the right
 /// primitive.
 /// </remarks>
-public class RateLimiter
+public sealed class RateLimiter
 {
     private sealed class Bucket
     {

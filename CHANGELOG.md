@@ -4,6 +4,12 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### BREAKING CHANGES
+
+* **core:** seal 15 public concrete classes — `AesEncryptionProvider`, `AesGcmEncryptionProvider`, `BulkheadPolicy`, `CircuitBreaker`, `ComplianceExporter`, `CustomOperatorRegistry`, `DistributedCacheProvider`, `InMemoryAuditLogger`, `MetricsCollector`, `MultiLevelCache`, `N1DetectionEngine`, `RateLimiter`, `ResiliencePolicy`, `RetryPolicy`, `RowLevelSecurityEngine`. Any consumer that subclasses these types will fail to compile. The `protected virtual Dispose(bool)` hook on `BulkheadPolicy` and `InMemoryAuditLogger` is removed; both use a direct `Dispose()` now. ([#159](https://github.com/AbongileBoja/QuerySpec/issues/159))
+
 ## [4.3.0](https://github.com/AbongileBoja/QuerySpec/compare/v4.2.0...v4.3.0) (2026-04-29)
 
 

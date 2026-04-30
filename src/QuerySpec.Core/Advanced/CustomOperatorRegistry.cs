@@ -26,7 +26,7 @@ public interface ICustomOperator
 /// <summary>
 /// Manages custom operators for extensibility.
 /// </summary>
-public class CustomOperatorRegistry
+public sealed class CustomOperatorRegistry
 {
     private readonly ConcurrentDictionary<string, ICustomOperator> _operators = new();
 

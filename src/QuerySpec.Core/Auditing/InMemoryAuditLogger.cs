@@ -12,7 +12,7 @@ namespace QuerySpec.Core.Auditing;
 /// <see cref="IDisposable"/> so the kernel-backed lock is released when the DI container
 /// disposes the singleton (or when callers <c>using</c> the type directly).
 /// </summary>
-public class InMemoryAuditLogger : IAuditLogger, IDisposable
+public sealed class InMemoryAuditLogger : IAuditLogger, IDisposable
 {
     private readonly List<AuditLogEntry> _logs = new();
     private readonly ReaderWriterLockSlim _lockSlim = new();
@@ -39,20 +39,10 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     /// </summary>
     public void Dispose()
     {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>Dispose pattern hook for subclasses.</summary>
-    /// <param name="disposing"><c>true</c> when called from <see cref="Dispose()"/>, <c>false</c> from a finalizer.</param>
-    protected virtual void Dispose(bool disposing)
-    {
         if (_disposed) return;
-        if (disposing)
-        {
-            _lockSlim.Dispose();
-        }
+        _lockSlim.Dispose();
         _disposed = true;
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

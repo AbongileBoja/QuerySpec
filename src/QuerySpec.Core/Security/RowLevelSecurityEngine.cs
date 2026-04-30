@@ -59,7 +59,7 @@ public enum RLSDefaultBehavior
 /// genuinely public.
 /// </para>
 /// </remarks>
-public class RowLevelSecurityEngine
+public sealed class RowLevelSecurityEngine
 {
     private static readonly Regex IdentifierPattern = new(
         @"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?$",

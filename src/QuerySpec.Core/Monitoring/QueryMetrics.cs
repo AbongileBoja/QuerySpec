@@ -69,7 +69,7 @@ public class QueryMetricsReport
 /// (FIFO eviction at <see cref="DefaultMaxRetainedQueries"/>) so long-running hosts cannot
 /// leak memory through the metrics pipeline.
 /// </summary>
-public class MetricsCollector
+public sealed class MetricsCollector
 {
     /// <summary>
     /// Default maximum number of <see cref="QueryMetrics"/> entries retained before FIFO
