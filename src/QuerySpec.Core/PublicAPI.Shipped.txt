@@ -95,7 +95,7 @@ QuerySpec.Core.Advanced.FilterSpec.TemporalStart.get -> System.DateTime?
 QuerySpec.Core.Advanced.FilterSpec.TemporalStart.init -> void
 QuerySpec.Core.Advanced.FilterSpec.UseRegex.get -> bool
 QuerySpec.Core.Advanced.FilterSpec.UseRegex.init -> void
-QuerySpec.Core.Advanced.FilterSpec.Validate() -> System.Collections.Generic.IEnumerable<string!>!
+QuerySpec.Core.Advanced.FilterSpec.Validate() -> System.Collections.Generic.IReadOnlyList<string!>!
 QuerySpec.Core.Advanced.FilterSpec.Value.get -> object?
 QuerySpec.Core.Advanced.FilterSpec.Value.init -> void
 QuerySpec.Core.Advanced.FilterSpec.ValueTo.get -> object?

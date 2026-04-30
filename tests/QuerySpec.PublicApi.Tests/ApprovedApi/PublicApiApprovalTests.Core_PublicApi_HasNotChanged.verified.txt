@@ -91,7 +91,7 @@
         public long ComputeStableHash() { }
         public bool Equals(QuerySpec.Core.Advanced.FilterSpec? other) { }
         public override int GetHashCode() { }
-        public System.Collections.Generic.IEnumerable<string> Validate() { }
+        public System.Collections.Generic.IReadOnlyList<string> Validate() { }
     }
     public readonly struct GeoCoordinate : System.IEquatable<QuerySpec.Core.Advanced.GeoCoordinate>
     {

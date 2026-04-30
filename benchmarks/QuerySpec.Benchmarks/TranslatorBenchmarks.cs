@@ -184,6 +184,19 @@ public class TranslatorBenchmarks
     public int NullableGreaterThan_Cached()
         => QuerySpecExpressionTranslator.ApplyFilterCached(_nullableSource, _nullableGreaterThan).Count();
 
+    /// <summary>
+    /// Validates a valid <see cref="FilterSpec"/> and builds the predicate expression on the
+    /// uncached path, but does not enumerate a datasource. Isolates the per-call cost of
+    /// <c>Validate()</c> + expression-tree construction without 1 000-row iteration noise.
+    /// This is the primary benchmark for issue #173.
+    /// </summary>
+    [Benchmark]
+    public System.Linq.Expressions.Expression<System.Func<Widget, bool>> UncachedFilter_ValidPath()
+    {
+        QuerySpecExpressionTranslator.ClearPredicateCache();
+        return QuerySpecExpressionTranslator.GetOrBuildCachedPredicate<Widget>(_simpleEqual);
+    }
+
     /// <summary>Simple entity used for translator benchmarks.</summary>
     public sealed class Widget
     {
