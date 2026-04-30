@@ -57,9 +57,7 @@ public sealed class GeoLocationMemberAccessCodeFixProvider : CodeFixProvider
         MemberAccessExpressionSyntax memberAccess,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        if (root is null) return document;
-
+        var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
         var receiver = memberAccess.Expression;
         var memberName = memberAccess.Name;
 

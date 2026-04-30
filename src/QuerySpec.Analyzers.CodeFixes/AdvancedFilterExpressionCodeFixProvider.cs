@@ -57,9 +57,7 @@ public sealed class AdvancedFilterExpressionCodeFixProvider : CodeFixProvider
         ObjectCreationExpressionSyntax creation,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        if (root is null) return document;
-
+        var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
         var newTypeName = SyntaxFactory.IdentifierName("FilterSpec")
             .WithTriviaFrom(creation.Type);
 

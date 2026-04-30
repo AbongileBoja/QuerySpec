@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -70,23 +69,15 @@ public sealed class CacheProviderInvocationCodeFixProvider : CodeFixProvider
         InvocationExpressionSyntax invocation,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        if (root is null) return document;
-
-        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
-        {
-            return document;
-        }
-
+        var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
+        var memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
         var calledName = memberAccess.Name.Identifier.ValueText;
-        SyntaxNode? newRoot = calledName switch
-        {
-            "SetAsync" => RewriteSet(root, invocation, memberAccess),
-            "GetAsync" => RewriteGet(root, invocation, memberAccess),
-            _ => null,
-        };
 
-        return newRoot is null ? document : document.WithSyntaxRoot(newRoot);
+        var newRoot = string.Equals(calledName, "SetAsync", System.StringComparison.Ordinal)
+            ? RewriteSet(root, invocation, memberAccess)
+            : RewriteGet(root, invocation, memberAccess);
+
+        return document.WithSyntaxRoot(newRoot);
     }
 
     private static SyntaxNode RewriteSet(
@@ -148,11 +139,7 @@ public sealed class CacheProviderInvocationCodeFixProvider : CodeFixProvider
             return generic.WithIdentifier(SyntaxFactory.Identifier(newName));
         }
 
-        if (original is IdentifierNameSyntax identifier)
-        {
-            return identifier.WithIdentifier(SyntaxFactory.Identifier(newName));
-        }
-
-        return SyntaxFactory.IdentifierName(newName).WithTriviaFrom(original);
+        var identifier = (IdentifierNameSyntax)original;
+        return identifier.WithIdentifier(SyntaxFactory.Identifier(newName));
     }
 }

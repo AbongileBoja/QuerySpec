@@ -31,8 +31,6 @@ public sealed class CacheProviderInvocationAnalyzer : DiagnosticAnalyzer
     /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
-        if (context is null) return;
-
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
@@ -125,17 +123,7 @@ public sealed class CacheProviderInvocationAnalyzer : DiagnosticAnalyzer
     {
         yield return method;
 
-        foreach (var implemented in method.ExplicitInterfaceImplementations)
-        {
-            yield return implemented;
-        }
-
         var containing = method.ContainingType;
-        if (containing is null)
-        {
-            yield break;
-        }
-
         foreach (var iface in containing.AllInterfaces)
         {
             foreach (var member in iface.GetMembers(method.Name))
@@ -157,11 +145,6 @@ public sealed class CacheProviderInvocationAnalyzer : DiagnosticAnalyzer
     private static bool IsCacheProviderMember(IMethodSymbol method, INamedTypeSymbol cacheProviderType)
     {
         var containing = method.ContainingType;
-        if (containing is null)
-        {
-            return false;
-        }
-
         if (SymbolEqualityComparer.Default.Equals(containing.OriginalDefinition, cacheProviderType))
         {
             return true;
@@ -170,14 +153,6 @@ public sealed class CacheProviderInvocationAnalyzer : DiagnosticAnalyzer
         if (method.IsExtensionMethod)
         {
             return false;
-        }
-
-        foreach (var implemented in method.ExplicitInterfaceImplementations)
-        {
-            if (SymbolEqualityComparer.Default.Equals(implemented.ContainingType.OriginalDefinition, cacheProviderType))
-            {
-                return true;
-            }
         }
 
         var methodDefinition = method.OriginalDefinition;
