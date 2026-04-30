@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
 using QuerySpec.Core.Advanced;
 
 namespace QuerySpec.EFCore;
@@ -29,10 +30,12 @@ public static class QuerySpecExpressionTranslator
 
     /// <summary>
     /// Maximum number of entries retained in the internal (Type, property-name) → PropertyInfo
-    /// cache. When exceeded the cache is cleared in bulk; this is a simple bounded policy
-    /// appropriate for a lookup cache where entries are cheap to recompute via reflection.
+    /// cache before generation-based LRU eviction drops the bottom 25% by last-access epoch.
     /// </summary>
     internal const int PropertyCacheCapacity = 4096;
+
+    private static readonly GenerationCache<(Type, string), PropertyInfo> PropertyCache
+        = new(PropertyCacheCapacity);
 
     private static readonly MethodInfo StringToStringMethod = typeof(object).GetMethod("ToString", Type.EmptyTypes)!;
 
@@ -59,36 +62,43 @@ public static class QuerySpecExpressionTranslator
 
     private static readonly ConcurrentDictionary<Type, MethodInfo> EnumerableContainsClosedCache = new();
 
-    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo> PropertyCache = new();
 
     /// <summary>
     /// Maximum number of distinct closed <c>Nullable&lt;T&gt;</c> types whose
-    /// <c>HasValue</c> / <c>Value</c> <see cref="PropertyInfo"/> pairs are cached.
-    /// Bounded to match <see cref="PropertyCacheCapacity"/>; in practice the set is tiny
-    /// (one entry per distinct nullable value type in the entity graph).
+    /// <c>HasValue</c> / <c>Value</c> <see cref="PropertyInfo"/> pairs are cached before
+    /// generation-based LRU eviction drops the bottom 25% by last-access epoch.
     /// </summary>
     internal const int NullablePropertyInfoCacheCapacity = 4096;
 
-    private static readonly ConcurrentDictionary<Type, (PropertyInfo HasValue, PropertyInfo Value)> NullablePropertyInfoCache = new();
+    private static readonly GenerationCache<Type, (PropertyInfo HasValue, PropertyInfo Value)> NullablePropertyInfoCache
+        = new(NullablePropertyInfoCacheCapacity);
 
     [RequiresUnreferencedCode(TranslateRequiresUnreferencedCodeMessage)]
     private static (PropertyInfo HasValue, PropertyInfo Value) GetNullablePropertyInfos(Type nullableType)
-    {
-        if (NullablePropertyInfoCache.Count >= NullablePropertyInfoCacheCapacity)
-            NullablePropertyInfoCache.Clear();
-
-        return NullablePropertyInfoCache.GetOrAdd(nullableType, static t =>
+        => NullablePropertyInfoCache.GetOrAdd(nullableType, static t =>
             (t.GetProperty("HasValue")!, t.GetProperty("Value")!));
-    }
 
     /// <summary>
-    /// Maximum number of distinct compiled filter predicates retained in the cache before
-    /// bulk eviction. Entries are cheap to rebuild; capacity bounds worst-case memory at
-    /// roughly a few MB even with complex trees.
+    /// Maximum number of distinct compiled filter predicates retained per entity-type partition
+    /// before generation-based LRU eviction drops the bottom 25% by last-access epoch.
+    /// Each entity type has its own isolated partition; one hot entity type cannot evict
+    /// predicates compiled for another type.
     /// </summary>
     internal const int PredicateCacheCapacity = 1024;
 
-    private static readonly ConcurrentDictionary<(Type, long), LambdaExpression> PredicateCache = new();
+    private static readonly ConcurrentBag<Action> PredicateCacheClearActions = new();
+
+    private static class PerTypePredicateCache<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> where T : class
+    {
+        internal static readonly GenerationCache<long, LambdaExpression> Cache = CreateAndRegister();
+
+        private static GenerationCache<long, LambdaExpression> CreateAndRegister()
+        {
+            var cache = new GenerationCache<long, LambdaExpression>(PredicateCacheCapacity);
+            PredicateCacheClearActions.Add(cache.Clear);
+            return cache;
+        }
+    }
 
     /// <summary>
     /// Translates an immutable <see cref="FilterSpec"/> to an EF Core <see cref="IQueryable{T}"/>.
@@ -164,9 +174,9 @@ public static class QuerySpecExpressionTranslator
         ArgumentNullException.ThrowIfNull(filter);
 
         var hash = filter.ComputeStableHash();
-        var key = (typeof(T), hash);
+        var cache = PerTypePredicateCache<T>.Cache;
 
-        if (PredicateCache.TryGetValue(key, out var cached))
+        if (cache.TryGetValue(hash, out var cached))
             return (Expression<Func<T, bool>>)cached;
 
         var errors = filter.Validate();
@@ -174,19 +184,19 @@ public static class QuerySpecExpressionTranslator
             throw new ArgumentException($"Invalid filter: {string.Join(", ", errors)}");
 
         var predicate = BuildPredicate<T>(filter, 0);
-
-        if (PredicateCache.Count >= PredicateCacheCapacity)
-            PredicateCache.Clear();
-
-        PredicateCache.TryAdd(key, predicate);
+        cache.Set(hash, predicate);
         return predicate;
     }
 
     /// <summary>
-    /// Clears the compiled-predicate cache. Intended for tests and diagnostic scenarios;
-    /// production code should not need to call this.
+    /// Clears the compiled-predicate cache for all entity types. Intended for tests and
+    /// diagnostic scenarios; production code should not need to call this.
     /// </summary>
-    public static void ClearPredicateCache() => PredicateCache.Clear();
+    public static void ClearPredicateCache()
+    {
+        foreach (var clear in PredicateCacheClearActions)
+            clear();
+    }
 
     /// <summary>
     /// Applies aggregation to a queryable. Currently unimplemented; throws when an aggregation
@@ -312,11 +322,8 @@ public static class QuerySpecExpressionTranslator
         Expression current = param;
         foreach (var part in parts)
         {
-            if (PropertyCache.Count >= PropertyCacheCapacity)
-                PropertyCache.Clear();
-
             var prop = PropertyCache.GetOrAdd((current.Type, part),
-                key => key.Item1.GetProperty(key.Item2, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance)
+                static key => key.Item1.GetProperty(key.Item2, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance)
                     ?? throw new ArgumentException($"Property '{key.Item2}' not found on type '{key.Item1.Name}'"));
             current = Expression.Property(current, prop);
         }
@@ -739,20 +746,21 @@ public static class QuerySpecExpressionTranslator
     {
         /// <summary>
         /// Maximum number of compiled <see cref="System.Text.RegularExpressions.Regex"/> instances retained in the
-        /// cache before bulk eviction. Patterns are typically supplied by clients via filter payloads,
-        /// so an unbounded cache is a heap-DoS vector. Bulk-clear matches the policy used for
-        /// <c>PropertyCache</c> and <c>PredicateCache</c>: simple, bounded, and cheap on rebuild.
+        /// cache. Patterns are typically supplied by clients via filter payloads, so an unbounded cache
+        /// is a heap-DoS vector. Generation-based eviction drops the bottom 25% by last-access epoch
+        /// when capacity is exceeded, preserving hot patterns and preventing thundering-herd re-compilation.
         /// </summary>
         internal const int RegexCacheCapacity = 512;
 
-        private static readonly ConcurrentDictionary<string, System.Text.RegularExpressions.Regex> RegexCache =
-            new(StringComparer.Ordinal);
+        private static readonly GenerationCache<string, System.Text.RegularExpressions.Regex> RegexCache =
+            new(RegexCacheCapacity);
 
         private static readonly TimeSpan MatchTimeout = TimeSpan.FromMilliseconds(500);
 
         /// <summary>
         /// Clears the compiled-regex cache. Intended for tests and diagnostic scenarios; production
-        /// code does not need to call this — the cache self-bounds at <see cref="RegexCacheCapacity"/>.
+        /// code does not need to call this — the cache self-bounds at <see cref="RegexCacheCapacity"/>
+        /// via generation-based eviction.
         /// </summary>
         public static void ClearRegexCache() => RegexCache.Clear();
 
@@ -777,9 +785,6 @@ public static class QuerySpecExpressionTranslator
             System.Text.RegularExpressions.Regex regex;
             try
             {
-                if (RegexCache.Count >= RegexCacheCapacity)
-                    RegexCache.Clear();
-
                 regex = RegexCache.GetOrAdd(pattern, static p => new System.Text.RegularExpressions.Regex(
                     p,
                     System.Text.RegularExpressions.RegexOptions.Compiled

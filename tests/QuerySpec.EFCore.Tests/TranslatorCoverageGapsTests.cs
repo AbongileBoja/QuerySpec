@@ -12,8 +12,7 @@ namespace QuerySpec.EFCore.Tests;
 /// <summary>
 /// Focused coverage for translator branches the test-engineer audit (#69) flagged at 0% from
 /// the EFCore test project: <c>NormalizeValue</c> JSON coercion paths, <c>ExtractArrayValues</c>
-/// non-JSON enumerables, nullable comparison/temporal paths, and the predicate cache bulk-eviction
-/// branch.
+/// non-JSON enumerables, nullable comparison/temporal paths, and the predicate cache eviction branch.
 /// </summary>
 [RequiresUnreferencedCode("Test exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
 [RequiresDynamicCode("Test exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
@@ -301,18 +300,19 @@ public class TranslatorCoverageGapsTests
         Assert.Equal(1, result[0].Id);
     }
 
-    // ── predicate cache bulk eviction ───────────────────────────────────────
+    // ── predicate cache generation eviction ────────────────────────────────
 
     /// <summary>
-    /// PredicateCacheCapacity (1024) distinct filter shapes must trigger the bulk-clear branch.
-    /// After the eviction, subsequent filter builds must still produce correct predicates.
+    /// PredicateCacheCapacity (1024) distinct filter shapes must trigger the generation-based
+    /// eviction sweep (drops bottom 25% by epoch). After eviction, subsequent filter builds
+    /// must still produce correct predicates.
     /// </summary>
     [Fact]
     public void PredicateCache_BulkEviction_DoesNotCorruptResults()
     {
         QuerySpecExpressionTranslator.ClearPredicateCache();
 
-        // Generate 1100 distinct filter shapes (>capacity of 1024) so the bulk-clear fires.
+        // Generate 1100 distinct filter shapes (>capacity of 1024) so the eviction sweep fires.
         for (var i = 0; i < 1100; i++)
         {
             var filter = new FilterSpec
