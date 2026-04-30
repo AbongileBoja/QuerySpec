@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using QuerySpec.Core.Advanced;
 using Xunit;
@@ -246,5 +247,49 @@ public class FilterSpecTests
         private readonly string _label;
         public NonFormattable(string label) => _label = label;
         public override string ToString() => _label;
+    }
+
+    [Fact]
+    public void Validate_ValidInput_ReturnsEmptyArraySingleton()
+    {
+        var spec = new FilterSpec { Field = "Status", Operator = FilterOperator.Equal, Value = "Active" };
+        var result = spec.Validate();
+        Assert.IsType<string[]>(result);
+        Assert.Same(Array.Empty<string>(), result);
+    }
+
+    [Fact]
+    public void Validate_ReturnsIReadOnlyList()
+    {
+        var spec = new FilterSpec { Field = "Status", Operator = FilterOperator.Equal, Value = "Active" };
+        IReadOnlyList<string> result = spec.Validate();
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void Validate_ErrorPath_MessagesUnchanged()
+    {
+        var spec = new FilterSpec
+        {
+            Field = "1bad",
+            TemporalStart = new DateTime(2026, 12, 1, 0, 0, 0, DateTimeKind.Utc),
+            TemporalEnd = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            GeoLocation = new GeoCoordinate(10, 20),
+            GeoRadius = 0m,
+        };
+        var errors = spec.Validate();
+        Assert.Equal(3, errors.Count);
+        Assert.Contains("Invalid field name: 1bad", errors);
+        Assert.Contains("TemporalStart must be before TemporalEnd", errors);
+        Assert.Contains("GeoRadius must be positive", errors);
+    }
+
+    [Fact]
+    public void Validate_ValidInput_RepeatCallsReturnSameInstance()
+    {
+        var spec = new FilterSpec { Field = "Name", Operator = FilterOperator.Equal, Value = "x" };
+        var r1 = spec.Validate();
+        var r2 = spec.Validate();
+        Assert.Same(r1, r2);
     }
 }

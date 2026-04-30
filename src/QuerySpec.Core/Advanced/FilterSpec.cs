@@ -66,33 +66,36 @@ public sealed record FilterSpec
     /// <summary>
     /// Validates the filter tree. Recurses into <see cref="Filters"/>.
     /// </summary>
-    /// <returns>An enumeration of error messages; empty when the filter is valid.</returns>
-    public IEnumerable<string> Validate()
+    /// <returns>
+    /// <see cref="Array.Empty{T}"/> when the filter is valid (no allocation);
+    /// otherwise a list of error messages describing what is invalid.
+    /// </returns>
+    public IReadOnlyList<string> Validate()
     {
-        var errors = new List<string>();
-        ValidateInto(errors);
-        return errors;
+        List<string>? errors = null;
+        ValidateInto(ref errors);
+        return errors ?? (IReadOnlyList<string>)Array.Empty<string>();
     }
 
-    private void ValidateInto(List<string> errors)
+    private void ValidateInto(ref List<string>? errors)
     {
         if (string.IsNullOrWhiteSpace(Field))
         {
-            errors.Add("Field is required");
+            (errors ??= new List<string>()).Add("Field is required");
         }
         else if (!FieldNamePattern.IsMatch(Field))
         {
-            errors.Add($"Invalid field name: {Field}");
+            (errors ??= new List<string>()).Add($"Invalid field name: {Field}");
         }
 
         if (TemporalStart.HasValue && TemporalEnd.HasValue && TemporalStart > TemporalEnd)
-            errors.Add("TemporalStart must be before TemporalEnd");
+            (errors ??= new List<string>()).Add("TemporalStart must be before TemporalEnd");
 
         if (GeoLocation.HasValue && GeoRadius.HasValue && GeoRadius <= 0)
-            errors.Add("GeoRadius must be positive");
+            (errors ??= new List<string>()).Add("GeoRadius must be positive");
 
         foreach (var child in Filters)
-            child.ValidateInto(errors);
+            child.ValidateInto(ref errors);
     }
 
     /// <summary>

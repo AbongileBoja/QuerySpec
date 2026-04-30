@@ -123,7 +123,7 @@ public static class QuerySpecExpressionTranslator
         var buildEnabled = QuerySpecMetrics.FilterBuildDuration.Enabled;
         var sw = buildEnabled ? Stopwatch.StartNew() : null;
 
-        var errors = filter.Validate().ToList();
+        var errors = filter.Validate();
         if (errors.Count > 0)
             throw new ArgumentException($"Invalid filter: {string.Join(", ", errors)}");
 
@@ -212,7 +212,7 @@ public static class QuerySpecExpressionTranslator
         var buildEnabled = QuerySpecMetrics.FilterBuildDuration.Enabled;
         var sw = buildEnabled ? Stopwatch.StartNew() : null;
 
-        var errors = filter.Validate().ToList();
+        var errors = filter.Validate();
         if (errors.Count > 0)
             throw new ArgumentException($"Invalid filter: {string.Join(", ", errors)}");
 
