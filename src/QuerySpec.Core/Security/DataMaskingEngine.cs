@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
@@ -33,7 +35,9 @@ namespace QuerySpec.Core.Security;
 /// </remarks>
 public sealed class DataMaskingEngine
 {
-    private const int HashOutputBytes = 32;
+    private const int HashOutputBytes = HMACSHA256.HashSizeInBytes;
+    private const int MaxTenantKeyCacheSize = 1024;
+    private const int StackAllocThresholdBytes = 256;
 
     private const DynamicallyAccessedMemberTypes ClassifierMembers =
         DynamicallyAccessedMemberTypes.PublicProperties
@@ -41,10 +45,13 @@ public sealed class DataMaskingEngine
         | DynamicallyAccessedMemberTypes.PublicFields
         | DynamicallyAccessedMemberTypes.NonPublicFields;
 
-    private readonly Dictionary<string, MaskingStrategy> _fieldMasks = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, Regex> _piiPatterns = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, MaskingStrategy> _fieldMasksBuilder = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Regex> _piiPatternsBuilder = new(StringComparer.Ordinal);
+    private FrozenDictionary<string, MaskingStrategy> _fieldMasks = FrozenDictionary<string, MaskingStrategy>.Empty;
+    private FrozenDictionary<string, Regex> _piiPatterns = FrozenDictionary<string, Regex>.Empty;
     private readonly byte[]? _hashKey;
     private readonly IPiiClassifier? _classifier;
+    private readonly ConcurrentDictionary<string, byte[]>? _tenantKeyCache;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DataMaskingEngine"/> without a hash key.
@@ -86,15 +93,17 @@ public sealed class DataMaskingEngine
 
         _hashKey = hashKey is null ? null : (byte[])hashKey.Clone();
         _classifier = classifier;
+        _tenantKeyCache = hashKey is null ? null : new ConcurrentDictionary<string, byte[]>(StringComparer.Ordinal);
         InitializeDefaultPiiPatterns();
     }
 
     private void InitializeDefaultPiiPatterns()
     {
-        _piiPatterns["Email"] = new Regex(@"^[^\@]+@[^\@]+$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-        _piiPatterns["SSN"] = new Regex(@"^\d{3}-\d{2}-\d{4}$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-        _piiPatterns["Phone"] = new Regex(@"^\+?1?\d{9,15}$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-        _piiPatterns["CreditCard"] = new Regex(@"^\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+        _piiPatternsBuilder["Email"] = new Regex(@"^[^\@]+@[^\@]+$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+        _piiPatternsBuilder["SSN"] = new Regex(@"^\d{3}-\d{2}-\d{4}$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+        _piiPatternsBuilder["Phone"] = new Regex(@"^\+?1?\d{9,15}$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+        _piiPatternsBuilder["CreditCard"] = new Regex(@"^\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+        _piiPatterns = _piiPatternsBuilder.ToFrozenDictionary(StringComparer.Ordinal);
     }
 
     /// <summary>
@@ -117,7 +126,8 @@ public sealed class DataMaskingEngine
                 "Pass a per-application secret (>= 16 bytes) to the DataMaskingEngine(byte[]) constructor.");
         }
 
-        _fieldMasks[fieldName] = strategy;
+        _fieldMasksBuilder[fieldName] = strategy;
+        _fieldMasks = _fieldMasksBuilder.ToFrozenDictionary(StringComparer.Ordinal);
     }
 
     /// <summary>
@@ -215,21 +225,55 @@ public sealed class DataMaskingEngine
 
         var key = string.IsNullOrEmpty(tenantId)
             ? _hashKey
-            : DeriveTenantKey(_hashKey, tenantId);
+            : GetOrDeriveTenantKey(tenantId);
 
         Span<byte> hash = stackalloc byte[HashOutputBytes];
-        using var hmac = new HMACSHA256(key);
-        var written = hmac.TryComputeHash(Encoding.UTF8.GetBytes(value), hash, out var bytesWritten);
-        if (!written || bytesWritten != HashOutputBytes)
-            throw new CryptographicException("Unexpected HMAC output length.");
+
+        var byteCount = Encoding.UTF8.GetByteCount(value);
+        if (byteCount <= StackAllocThresholdBytes)
+        {
+            Span<byte> valueBytes = stackalloc byte[byteCount];
+            Encoding.UTF8.GetBytes(value, valueBytes);
+            HMACSHA256.HashData(key, valueBytes, hash);
+        }
+        else
+        {
+            var valueBytes = Encoding.UTF8.GetBytes(value);
+            HMACSHA256.HashData(key, valueBytes, hash);
+        }
 
         return Convert.ToBase64String(hash);
     }
 
+    private byte[] GetOrDeriveTenantKey(string tenantId)
+    {
+        if (_tenantKeyCache!.TryGetValue(tenantId, out var cached))
+            return cached;
+
+        var derived = DeriveTenantKey(_hashKey!, tenantId);
+
+        if (_tenantKeyCache.Count >= MaxTenantKeyCacheSize)
+            _tenantKeyCache.Clear();
+
+        return _tenantKeyCache.GetOrAdd(tenantId, derived);
+    }
+
     private static byte[] DeriveTenantKey(byte[] rootKey, string tenantId)
     {
-        using var hmac = new HMACSHA256(rootKey);
-        return hmac.ComputeHash(Encoding.UTF8.GetBytes(tenantId));
+        Span<byte> derived = stackalloc byte[HashOutputBytes];
+        var byteCount = Encoding.UTF8.GetByteCount(tenantId);
+        if (byteCount <= StackAllocThresholdBytes)
+        {
+            Span<byte> tenantBytes = stackalloc byte[byteCount];
+            Encoding.UTF8.GetBytes(tenantId, tenantBytes);
+            HMACSHA256.HashData(rootKey, tenantBytes, derived);
+        }
+        else
+        {
+            var tenantBytes = Encoding.UTF8.GetBytes(tenantId);
+            HMACSHA256.HashData(rootKey, tenantBytes, derived);
+        }
+        return derived.ToArray();
     }
 
     /// <summary>
