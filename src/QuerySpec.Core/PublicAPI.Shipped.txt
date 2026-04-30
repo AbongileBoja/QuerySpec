@@ -682,6 +682,4 @@ static QuerySpec.Core.Security.RowLevelSecurityEngine.EscapeSqlLiteral(string? v
 static QuerySpec.Core.Security.RowLevelSecurityEngine.ValidateIdentifier(string! identifier) -> string!
 static readonly QuerySpec.Core.Security.RLSFilter.AllowAll -> QuerySpec.Core.Security.RLSFilter!
 static readonly QuerySpec.Core.Security.RLSFilter.DenyAll -> QuerySpec.Core.Security.RLSFilter!
-virtual QuerySpec.Core.Auditing.InMemoryAuditLogger.Dispose(bool disposing) -> void
-virtual QuerySpec.Core.Resilience.BulkheadPolicy.Dispose(bool disposing) -> void
 ~override QuerySpec.Core.Advanced.GeoCoordinate.Equals(object obj) -> bool
