@@ -68,27 +68,37 @@ public interface IAuditReader
     Task<IEnumerable<AuditLogEntry>> GetAuditsByRequestAsync(string requestId, CancellationToken cancellationToken)
         => GetAuditsByRequestAsync(requestId);
 
-    /// <summary>Gets all audits for a specific user, optionally filtered by date.</summary>
+    /// <summary>Gets all audits for a specific user.</summary>
     /// <param name="userId">User identifier.</param>
-    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
     /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
-    Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since = null);
-    /// <summary>Gets all audits for a specific user, optionally filtered by date, with cancellation support.</summary>
+    Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId);
+    /// <summary>Gets all audits for a specific user filtered by date.</summary>
     /// <param name="userId">User identifier.</param>
-    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
+    Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since)
+        => GetAuditsByUserAsync(userId);
+    /// <summary>Gets all audits for a specific user filtered by date, with cancellation support.</summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since, CancellationToken cancellationToken)
         => GetAuditsByUserAsync(userId, since);
 
-    /// <summary>Gets all audits for a specific tenant, optionally filtered by date.</summary>
+    /// <summary>Gets all audits for a specific tenant.</summary>
     /// <param name="tenantId">Tenant identifier.</param>
-    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
     /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
-    Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since = null);
-    /// <summary>Gets all audits for a specific tenant, optionally filtered by date, with cancellation support.</summary>
+    Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId);
+    /// <summary>Gets all audits for a specific tenant filtered by date.</summary>
     /// <param name="tenantId">Tenant identifier.</param>
-    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
+    Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since)
+        => GetAuditsByTenantAsync(tenantId);
+    /// <summary>Gets all audits for a specific tenant filtered by date, with cancellation support.</summary>
+    /// <param name="tenantId">Tenant identifier.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
     /// <param name="cancellationToken">Token observed by implementations that perform I/O.</param>
     /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
     Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since, CancellationToken cancellationToken)

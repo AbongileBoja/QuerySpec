@@ -139,12 +139,26 @@ public sealed class DataMaskingEngine
     /// </summary>
     /// <param name="fieldName">Field name registered via <see cref="RegisterFieldMask"/>.</param>
     /// <param name="value">Value to mask. Null produces the literal string <c>"null"</c>.</param>
+    /// <returns>The masked value, or the original string representation if no strategy is registered.</returns>
+    public string Mask(string fieldName, object? value)
+        => MaskCore(fieldName, value, tenantId: null, classifierCategory: PiiCategory.None);
+
+    /// <summary>
+    /// Masks a field value using the strategy registered for <paramref name="fieldName"/>, scoped
+    /// to a tenant. The same value masks differently across tenants when
+    /// <see cref="MaskingStrategy.HashMask"/> is in use. Returns the original string when no
+    /// strategy is registered — this overload has no type context and so cannot consult the
+    /// configured classifier. Prefer <see cref="Mask(System.Type?, string, object?, string?)"/>
+    /// when calling from a code path that knows the entity type.
+    /// </summary>
+    /// <param name="fieldName">Field name registered via <see cref="RegisterFieldMask"/>.</param>
+    /// <param name="value">Value to mask. Null produces the literal string <c>"null"</c>.</param>
     /// <param name="tenantId">
-    /// Optional tenant scope. When supplied, <see cref="MaskingStrategy.HashMask"/> derives a
-    /// tenant-specific key so the same value masks differently across tenants.
+    /// Tenant scope. When non-empty, <see cref="MaskingStrategy.HashMask"/> derives a
+    /// tenant-specific key. Pass <c>null</c> for a tenant-agnostic mask.
     /// </param>
     /// <returns>The masked value, or the original string representation if no strategy is registered.</returns>
-    public string Mask(string fieldName, object? value, string? tenantId = null)
+    public string Mask(string fieldName, object? value, string? tenantId)
         => MaskCore(fieldName, value, tenantId, classifierCategory: PiiCategory.None);
 
     /// <summary>
@@ -158,7 +172,30 @@ public sealed class DataMaskingEngine
     /// <param name="declaringType">The type that owns <paramref name="fieldName"/>. Used to consult the classifier.</param>
     /// <param name="fieldName">Field name. Explicit registrations take precedence over classifier defaults.</param>
     /// <param name="value">Value to mask. Null produces the literal string <c>"null"</c>.</param>
-    /// <param name="tenantId">Optional tenant scope for <see cref="MaskingStrategy.HashMask"/>.</param>
+    /// <returns>
+    /// The masked value. When no field mask is registered and the classifier returns
+    /// <see cref="PiiCategory.None"/>, the original string representation is returned.
+    /// </returns>
+    public string Mask(
+        [DynamicallyAccessedMembers(ClassifierMembers)] Type? declaringType,
+        string fieldName,
+        object? value)
+        => MaskCore(fieldName, value, tenantId: null, Classify(declaringType, fieldName));
+
+    /// <summary>
+    /// Masks a field value with full classifier consultation, scoped to a tenant. The same value
+    /// masks differently across tenants when <see cref="MaskingStrategy.HashMask"/> is in use.
+    /// When no explicit field mask is registered, the configured <see cref="IPiiClassifier"/> is
+    /// consulted via <paramref name="declaringType"/> and a category-default strategy is applied
+    /// for any non-<see cref="PiiCategory.None"/> result.
+    /// </summary>
+    /// <param name="declaringType">The type that owns <paramref name="fieldName"/>. Used to consult the classifier.</param>
+    /// <param name="fieldName">Field name. Explicit registrations take precedence over classifier defaults.</param>
+    /// <param name="value">Value to mask. Null produces the literal string <c>"null"</c>.</param>
+    /// <param name="tenantId">
+    /// Tenant scope. When non-empty, <see cref="MaskingStrategy.HashMask"/> derives a
+    /// tenant-specific key. Pass <c>null</c> for a tenant-agnostic mask.
+    /// </param>
     /// <returns>
     /// The masked value. When no field mask is registered and the classifier returns
     /// <see cref="PiiCategory.None"/>, the original string representation is returned.
@@ -167,7 +204,7 @@ public sealed class DataMaskingEngine
         [DynamicallyAccessedMembers(ClassifierMembers)] Type? declaringType,
         string fieldName,
         object? value,
-        string? tenantId = null)
+        string? tenantId)
         => MaskCore(fieldName, value, tenantId, Classify(declaringType, fieldName));
 
     private string MaskCore(string fieldName, object? value, string? tenantId, PiiCategory classifierCategory)

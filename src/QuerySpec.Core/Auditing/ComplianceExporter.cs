@@ -131,7 +131,7 @@ public class ComplianceExporter : IComplianceExporter
     /// <returns>Audit entries belonging to <paramref name="userId"/> within <paramref name="tenantId"/>.</returns>
     public async Task<IEnumerable<AuditLogEntry>> GetUserDataAsync(string userId, string tenantId)
     {
-        var audits = await _auditReader.GetAuditsByUserAsync(userId).ConfigureAwait(false);
+        var audits = await _auditReader.GetAuditsByUserAsync(userId, since: null).ConfigureAwait(false);
         return audits.Where(a => a.TenantId == tenantId);
     }
 

@@ -133,14 +133,23 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     }
 
     /// <summary>
-    /// Gets all audits for a specific user, optionally filtered by date. Returns a materialised
-    /// snapshot taken under the read lock so subsequent enumeration is safe even while writers
-    /// are appending.
+    /// Gets all audits for a specific user. Returns a materialised snapshot taken under the read
+    /// lock so subsequent enumeration is safe even while writers are appending.
     /// </summary>
     /// <param name="userId">User identifier.</param>
-    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
     /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
-    public Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since = null)
+    public Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId)
+        => GetAuditsByUserAsync(userId, since: null);
+
+    /// <summary>
+    /// Gets all audits for a specific user filtered by date. Returns a materialised snapshot
+    /// taken under the read lock so subsequent enumeration is safe even while writers are
+    /// appending.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
+    public Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since)
     {
         _lockSlim.EnterReadLock();
         try
@@ -157,14 +166,23 @@ public class InMemoryAuditLogger : IAuditLogger, IDisposable
     }
 
     /// <summary>
-    /// Gets all audits for a specific tenant, optionally filtered by date. Returns a materialised
-    /// snapshot taken under the read lock so subsequent enumeration is safe even while writers
-    /// are appending.
+    /// Gets all audits for a specific tenant. Returns a materialised snapshot taken under the
+    /// read lock so subsequent enumeration is safe even while writers are appending.
     /// </summary>
     /// <param name="tenantId">Tenant identifier.</param>
-    /// <param name="since">Optional inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
     /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
-    public Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since = null)
+    public Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId)
+        => GetAuditsByTenantAsync(tenantId, since: null);
+
+    /// <summary>
+    /// Gets all audits for a specific tenant filtered by date. Returns a materialised snapshot
+    /// taken under the read lock so subsequent enumeration is safe even while writers are
+    /// appending.
+    /// </summary>
+    /// <param name="tenantId">Tenant identifier.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
+    public Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since)
     {
         _lockSlim.EnterReadLock();
         try
