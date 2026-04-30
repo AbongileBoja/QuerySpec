@@ -8,6 +8,10 @@ using QuerySpec.Core.Security;
 
 namespace QuerySpec.Core.Tests.Diagnostics;
 
+[CollectionDefinition("QuerySpecMetrics", DisableParallelization = true)]
+public sealed class QuerySpecMetricsCollection;
+
+[Collection("QuerySpecMetrics")]
 public class QuerySpecMetricsTests : IDisposable
 {
     private readonly MeterListener _listener;
@@ -15,11 +19,13 @@ public class QuerySpecMetricsTests : IDisposable
 
     public QuerySpecMetricsTests()
     {
-        _listener = new MeterListener();
-        _listener.InstrumentPublished = (instrument, listener) =>
+        _listener = new MeterListener
         {
-            if (instrument.Meter.Name == QuerySpecMetrics.MeterName)
-                listener.EnableMeasurementEvents(instrument);
+            InstrumentPublished = (instrument, listener) =>
+            {
+                if (instrument.Meter.Name == QuerySpecMetrics.MeterName)
+                    listener.EnableMeasurementEvents(instrument);
+            }
         };
         _listener.SetMeasurementEventCallback<long>((instrument, value, tags, _) =>
             _measurements.Add((instrument.Name, value, new List<KeyValuePair<string, object?>>(tags.ToArray()))));
