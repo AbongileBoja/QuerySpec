@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -74,10 +75,18 @@ public interface IAuditReader
     Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId);
     /// <summary>Gets all audits for a specific user filtered by date.</summary>
     /// <param name="userId">User identifier.</param>
-    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>; pass <c>null</c> to skip filtering.</param>
     /// <returns>A materialised snapshot of audit entries for <paramref name="userId"/>.</returns>
-    Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since)
-        => GetAuditsByUserAsync(userId);
+    /// <remarks>
+    /// The default implementation calls <see cref="GetAuditsByUserAsync(string)"/> and post-filters by
+    /// <paramref name="since"/>. Implementations that can push the predicate to the storage layer should
+    /// override this overload for efficiency.
+    /// </remarks>
+    async Task<IEnumerable<AuditLogEntry>> GetAuditsByUserAsync(string userId, DateTime? since)
+    {
+        var all = await GetAuditsByUserAsync(userId).ConfigureAwait(false);
+        return since.HasValue ? all.Where(e => e.Timestamp >= since.Value) : all;
+    }
     /// <summary>Gets all audits for a specific user filtered by date, with cancellation support.</summary>
     /// <param name="userId">User identifier.</param>
     /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
@@ -92,10 +101,18 @@ public interface IAuditReader
     Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId);
     /// <summary>Gets all audits for a specific tenant filtered by date.</summary>
     /// <param name="tenantId">Tenant identifier.</param>
-    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
+    /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>; pass <c>null</c> to skip filtering.</param>
     /// <returns>A materialised snapshot of audit entries for <paramref name="tenantId"/>.</returns>
-    Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since)
-        => GetAuditsByTenantAsync(tenantId);
+    /// <remarks>
+    /// The default implementation calls <see cref="GetAuditsByTenantAsync(string)"/> and post-filters by
+    /// <paramref name="since"/>. Implementations that can push the predicate to the storage layer should
+    /// override this overload for efficiency.
+    /// </remarks>
+    async Task<IEnumerable<AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, DateTime? since)
+    {
+        var all = await GetAuditsByTenantAsync(tenantId).ConfigureAwait(false);
+        return since.HasValue ? all.Where(e => e.Timestamp >= since.Value) : all;
+    }
     /// <summary>Gets all audits for a specific tenant filtered by date, with cancellation support.</summary>
     /// <param name="tenantId">Tenant identifier.</param>
     /// <param name="since">Inclusive lower bound on <see cref="AuditLogEntry.Timestamp"/>.</param>
