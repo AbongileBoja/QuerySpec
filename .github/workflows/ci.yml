@@ -25,9 +25,22 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.github.com:443
+          api.nuget.org:443
+          auth.docker.io:443
+          builds.dotnet.microsoft.com:443
+          codeload.github.com:443
+          dotnetbuilds.azureedge.net:443
+          dotnetcli.azureedge.net:443
+          github.com:443
+          mcr.microsoft.com:443
+          objects.githubusercontent.com:443
+          production.cloudflare.docker.com:443
+          registry-1.docker.io:443
 
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
@@ -346,9 +359,16 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.nuget.org:443
+          builds.dotnet.microsoft.com:443
+          dotnetbuilds.azureedge.net:443
+          dotnetcli.azureedge.net:443
+          github.com:443
+          objects.githubusercontent.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -401,9 +421,19 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.github.com:443
+          api.nuget.org:443
+          builds.dotnet.microsoft.com:443
+          codeload.github.com:443
+          dotnetbuilds.azureedge.net:443
+          dotnetcli.azureedge.net:443
+          github.com:443
+          objects.githubusercontent.com:443
+          uploads.github.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -508,9 +538,13 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.github.com:443
+          github.com:443
+          objects.githubusercontent.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -551,9 +585,16 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.nuget.org:443
+          builds.dotnet.microsoft.com:443
+          dotnetbuilds.azureedge.net:443
+          dotnetcli.azureedge.net:443
+          github.com:443
+          objects.githubusercontent.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -624,9 +665,14 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          github.com:443
+          nodejs.org:443
+          objects.githubusercontent.com:443
+          registry.npmjs.org:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         fetch-depth: 0
@@ -687,9 +733,16 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.nuget.org:443
+          builds.dotnet.microsoft.com:443
+          dotnetbuilds.azureedge.net:443
+          dotnetcli.azureedge.net:443
+          github.com:443
+          objects.githubusercontent.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -807,9 +860,12 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          github.com:443
+          objects.githubusercontent.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         fetch-depth: 0
@@ -855,9 +911,16 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.nuget.org:443
+          builds.dotnet.microsoft.com:443
+          dotnetbuilds.azureedge.net:443
+          dotnetcli.azureedge.net:443
+          github.com:443
+          objects.githubusercontent.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -936,9 +999,16 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.nuget.org:443
+          builds.dotnet.microsoft.com:443
+          dotnetbuilds.azureedge.net:443
+          dotnetcli.azureedge.net:443
+          github.com:443
+          objects.githubusercontent.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
     - name: Record start time
       run: echo "STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -1058,9 +1128,13 @@ jobs:
     - name: Harden runner
       uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40  # v2.19.0
       with:
-        egress-policy: audit
+        egress-policy: block
         disable-sudo: true
         disable-file-monitoring: false
+        allowed-endpoints: >
+          api.github.com:443
+          github.com:443
+          objects.githubusercontent.com:443
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
     - name: Download all per-gate evidence
