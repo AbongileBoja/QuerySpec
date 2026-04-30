@@ -700,7 +700,7 @@ jobs:
     - name: First build
       run: |
         set -euo pipefail
-        common="-p:ContinuousIntegrationBuild=true -p:Deterministic=true -p:SignAssembly=false -p:DelaySign=false"
+        common="-p:ContinuousIntegrationBuild=true -p:Deterministic=true -p:QUERYSPEC_SKIP_SIGN=true"
         for proj in \
           src/QuerySpec.Analyzers/QuerySpec.Analyzers.csproj \
           src/QuerySpec.Analyzers.CodeFixes/QuerySpec.Analyzers.CodeFixes.csproj \
@@ -729,7 +729,7 @@ jobs:
         do
           rm -rf "$proj/bin" "$proj/obj"
         done
-        common="-p:ContinuousIntegrationBuild=true -p:Deterministic=true -p:SignAssembly=false -p:DelaySign=false"
+        common="-p:ContinuousIntegrationBuild=true -p:Deterministic=true -p:QUERYSPEC_SKIP_SIGN=true"
         for proj in \
           src/QuerySpec.Analyzers/QuerySpec.Analyzers.csproj \
           src/QuerySpec.Analyzers.CodeFixes/QuerySpec.Analyzers.CodeFixes.csproj \

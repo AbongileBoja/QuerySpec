@@ -28,31 +28,42 @@ public sealed class PublicApiApprovalTests
         return Path.Combine(projectDir, "ApprovedApi");
     }
 
+    /// <summary>
+    /// Skip assembly-level attributes from the approval surface. They legitimately vary by
+    /// build configuration (signed vs unsigned <c>InternalsVisibleTo</c> form, target framework,
+    /// repository URL, AOT/trim flags) and are not part of the consumer's contract. Public types
+    /// and members are.
+    /// </summary>
+    private static readonly ApiGeneratorOptions ApiOptions = new()
+    {
+        IncludeAssemblyAttributes = false,
+    };
+
     [Fact]
     public Task Core_PublicApi_HasNotChanged()
     {
-        var api = typeof(FilterSpec).Assembly.GeneratePublicApi();
+        var api = typeof(FilterSpec).Assembly.GeneratePublicApi(ApiOptions);
         return Verifier.Verify(api).UseDirectory(ApprovedApiDirectory);
     }
 
     [Fact]
     public Task EFCore_PublicApi_HasNotChanged()
     {
-        var api = typeof(QuerySpecExpressionTranslator).Assembly.GeneratePublicApi();
+        var api = typeof(QuerySpecExpressionTranslator).Assembly.GeneratePublicApi(ApiOptions);
         return Verifier.Verify(api).UseDirectory(ApprovedApiDirectory);
     }
 
     [Fact]
     public Task DependencyInjection_PublicApi_HasNotChanged()
     {
-        var api = typeof(QuerySpecBuilder).Assembly.GeneratePublicApi();
+        var api = typeof(QuerySpecBuilder).Assembly.GeneratePublicApi(ApiOptions);
         return Verifier.Verify(api).UseDirectory(ApprovedApiDirectory);
     }
 
     [Fact]
     public Task Analyzers_PublicApi_HasNotChanged()
     {
-        var api = typeof(DiagnosticIds).Assembly.GeneratePublicApi();
+        var api = typeof(DiagnosticIds).Assembly.GeneratePublicApi(ApiOptions);
         return Verifier.Verify(api).UseDirectory(ApprovedApiDirectory);
     }
 }

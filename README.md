@@ -81,6 +81,33 @@ Each `With*` call is independent. Skip the ones you don't need.
 - **Resilience** — retry with backoff, circuit breaker, rate limiting.
 - **Monitoring** — metrics, health checks, OpenTelemetry hooks.
 
+## Observability
+
+QuerySpec publishes a `System.Diagnostics.Metrics` meter named **`QuerySpec`**. Subscribe in OpenTelemetry:
+
+```csharp
+services.AddOpenTelemetry()
+    .WithMetrics(m => m.AddMeter("QuerySpec"));
+```
+
+Or live via dotnet-counters:
+
+```
+dotnet-counters monitor --counters QuerySpec
+```
+
+### Instruments
+
+| Instrument | Type | Unit | Tags | Description |
+|---|---|---|---|---|
+| `queryspec.filter.applications` | Counter&lt;long&gt; | — | `cached`, `entity_type` | Total `ApplyFilter` / `ApplyFilterCached` invocations |
+| `queryspec.cache.hits` | Counter&lt;long&gt; | — | `cache_name` | Cache hits across all caches |
+| `queryspec.cache.misses` | Counter&lt;long&gt; | — | `cache_name` | Cache misses across all caches |
+| `queryspec.filter.build.duration` | Histogram&lt;double&gt; | ms | — | Time spent building / compiling predicates |
+| `queryspec.rls.evaluation.duration` | Histogram&lt;double&gt; | ms | `resource_type` | Time spent evaluating RLS predicates |
+
+All instruments are emitted only when a listener is attached, so the overhead when no subscriber is active is a single `Enabled` check per call.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

@@ -19,6 +19,7 @@
     <SignAssembly Condition="'$(QUERYSPEC_SKIP_SIGN)' != 'true'">true</SignAssembly>
     <AssemblyOriginatorKeyFile Condition="'$(QUERYSPEC_SKIP_SIGN)' != 'true'">$(MSBuildThisFileDirectory)QuerySpec.public.snk</AssemblyOriginatorKeyFile>
     <DelaySign Condition="'$(QUERYSPEC_SKIP_SIGN)' != 'true'">true</DelaySign>
+    <DefineConstants Condition="'$(QUERYSPEC_SKIP_SIGN)' == 'true'">$(DefineConstants);QUERYSPEC_SKIP_SIGN</DefineConstants>
  
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
