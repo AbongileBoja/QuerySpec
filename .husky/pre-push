@@ -1,0 +1,75 @@
+#!/usr/bin/env sh
+# Refuses to push a v* release tag unless its commit is the current tip of
+# origin/develop or origin/main. Prevents shipping an orphaned tag — the
+# scenario where `npm run release` creates the tag, the developer then amends
+# the release commit (e.g. to fix a postbump-baseline that skipped silently),
+# and the tag is left pointing at the pre-amend commit while develop advances.
+#
+# Husky passes <remote> <url> as args; the ref pairs come on stdin in the
+# format "<local_ref> <local_sha> <remote_ref> <remote_sha>".
+
+set -eu
+
+remote="${1:-origin}"
+git fetch --quiet "$remote" main develop 2>/dev/null || true
+
+while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
+    case "$local_ref" in
+        refs/tags/v[0-9]*)
+            tag_name="${local_ref#refs/tags/}"
+            tag_commit="$(git rev-parse "${local_sha}^{commit}")"
+
+            tip_match=""
+            for branch in "$remote/develop" "$remote/main"; do
+                if ! git rev-parse --verify --quiet "$branch" >/dev/null 2>&1; then
+                    continue
+                fi
+                if [ "$(git rev-parse "$branch")" = "$tag_commit" ]; then
+                    tip_match="$branch"
+                    break
+                fi
+            done
+
+            if [ -z "$tip_match" ]; then
+                echo "" >&2
+                echo "pre-push: refusing to push tag $tag_name." >&2
+                echo "  Tag points at commit:    $tag_commit" >&2
+                if git rev-parse --verify --quiet "$remote/develop" >/dev/null 2>&1; then
+                    echo "  $remote/develop tip:     $(git rev-parse "$remote/develop")" >&2
+                fi
+                if git rev-parse --verify --quiet "$remote/main" >/dev/null 2>&1; then
+                    echo "  $remote/main tip:        $(git rev-parse "$remote/main")" >&2
+                fi
+                echo "" >&2
+                echo "  Release tags must point at the current tip of develop or main." >&2
+                echo "  Likely cause: the release commit was amended (e.g. to fix a baseline" >&2
+                echo "  that postbump-baseline.mjs failed to write) after standard-version" >&2
+                echo "  created the tag." >&2
+                echo "" >&2
+                echo "  Fix: re-anchor the tag, then push." >&2
+                echo "    git tag -d $tag_name" >&2
+                echo "    git tag -a $tag_name $remote/develop -m 'chore(release): ${tag_name#v}'" >&2
+                echo "    git push $remote develop" >&2
+                echo "    git push $remote $tag_name" >&2
+                echo "" >&2
+                exit 1
+            fi
+
+            commit_msg="$(git log -1 --format=%s "$tag_commit")"
+            case "$commit_msg" in
+                "chore(release):"*) ;;
+                *)
+                    echo "" >&2
+                    echo "pre-push: refusing to push tag $tag_name." >&2
+                    echo "  Tag commit message: $commit_msg" >&2
+                    echo "  Release tags must point at a 'chore(release): ...' commit produced by standard-version." >&2
+                    echo "  Run 'npm run release' to produce a proper release commit and tag." >&2
+                    echo "" >&2
+                    exit 1
+                    ;;
+            esac
+            ;;
+    esac
+done
+
+exit 0

@@ -39,23 +39,44 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Tag must be reachable from main or develop
+    - name: Tag must point at the current tip of main or develop
       run: |
         set -euo pipefail
         tag="${GITHUB_REF_NAME}"
         git fetch origin main develop --quiet 2>/dev/null || true
-        reachable=""
+        tag_commit="$(git rev-parse "${tag}^{commit}")"
+
+        match=""
         for branch in origin/main origin/develop; do
-          if git merge-base --is-ancestor "$tag" "$branch" 2>/dev/null; then
-            reachable="$branch"
+          if ! git rev-parse --verify --quiet "$branch" >/dev/null 2>&1; then
+            continue
+          fi
+          if [[ "$(git rev-parse "$branch")" == "$tag_commit" ]]; then
+            match="$branch"
             break
           fi
         done
-        if [[ -z "$reachable" ]]; then
-          echo "::error::Tag $tag is not reachable from main or develop. Tag only commits already merged to a release branch." >&2
+
+        if [[ -z "$match" ]]; then
+          echo "::error::Tag $tag → $tag_commit is not the current tip of main or develop." >&2
+          for branch in origin/main origin/develop; do
+            if git rev-parse --verify --quiet "$branch" >/dev/null 2>&1; then
+              echo "::error::  $branch tip: $(git rev-parse "$branch")" >&2
+            fi
+          done
+          echo "::error::Tag only commits that are the current tip of a release branch." >&2
+          echo "::error::If the release commit was amended after tagging, re-anchor: 'git tag -f $tag origin/develop && git push --force origin $tag'." >&2
           exit 1
         fi
-        echo "Tag $tag reachable from $reachable."
+
+        commit_msg="$(git log -1 --format=%s "$tag_commit")"
+        if [[ "$commit_msg" != chore\(release\):* ]]; then
+          echo "::error::Tag $tag points at commit $tag_commit whose message is '$commit_msg'." >&2
+          echo "::error::Release tags must point at a 'chore(release): ...' commit produced by standard-version." >&2
+          exit 1
+        fi
+
+        echo "Tag $tag points at the current tip of $match ($tag_commit)."
 
   pack:
     name: Build, test, pack
