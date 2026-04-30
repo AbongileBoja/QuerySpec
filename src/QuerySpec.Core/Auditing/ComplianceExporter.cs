@@ -108,7 +108,7 @@ public interface IComplianceExporter
 /// <summary>
 /// Handles compliance exports (GDPR, HIPAA, etc.) injected as a service.
 /// </summary>
-public class ComplianceExporter : IComplianceExporter
+public sealed class ComplianceExporter : IComplianceExporter
 {
     private static readonly JsonSerializerOptions IndentedOptions = new() { WriteIndented = true };
     private readonly IAuditReader _auditReader;

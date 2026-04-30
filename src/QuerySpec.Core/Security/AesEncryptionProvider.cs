@@ -19,7 +19,7 @@ namespace QuerySpec.Core.Security;
 /// <see cref="AesGcmEncryptionProvider"/> for any new ciphertext.
 /// </remarks>
 [Obsolete("CBC without authentication is malleable. Use AesGcmEncryptionProvider for new ciphertexts; this class remains only to decrypt legacy data.")]
-public class AesEncryptionProvider : IEncryptionProvider
+public sealed class AesEncryptionProvider : IEncryptionProvider
 {
     private readonly byte[] _key;
 

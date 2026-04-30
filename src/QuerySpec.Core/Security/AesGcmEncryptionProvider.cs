@@ -25,7 +25,7 @@ namespace QuerySpec.Core.Security;
 /// <see cref="CryptographicException"/>, not corrupt plaintext.
 /// </para>
 /// </remarks>
-public class AesGcmEncryptionProvider : IAuthenticatedEncryptionProvider, IEncryptionProvider
+public sealed class AesGcmEncryptionProvider : IAuthenticatedEncryptionProvider, IEncryptionProvider
 {
     private const int NonceSize = 12;
     private const int TagSize = 16;

@@ -17,7 +17,7 @@ namespace QuerySpec.Core.Caching;
 /// a cache outage does not take down the caller. Deserialization exceptions indicate a
 /// poison entry: the entry is evicted so the next read will miss and repopulate.
 /// </remarks>
-public class DistributedCacheProvider : ICacheProvider, ICacheStore
+public sealed class DistributedCacheProvider : ICacheProvider, ICacheStore
 {
     private readonly IDistributedCache _cache;
     private readonly ILogger<DistributedCacheProvider> _logger;

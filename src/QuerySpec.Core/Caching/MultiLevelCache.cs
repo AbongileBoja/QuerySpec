@@ -9,7 +9,7 @@ namespace QuerySpec.Core.Caching;
 /// Multi-level cache with memory (L1) + distributed (L2) tier.
 /// Provides best of both worlds: speed and scalability.
 /// </summary>
-public class MultiLevelCache : ICacheProvider, ICacheStore
+public sealed class MultiLevelCache : ICacheProvider, ICacheStore
 {
     private readonly MemoryCacheProvider _l1;
     private readonly DistributedCacheProvider _l2;

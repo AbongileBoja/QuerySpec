@@ -7,7 +7,7 @@ namespace QuerySpec.Core.Resilience;
 /// <summary>
 /// Resilience policy combinator for chaining multiple resilience patterns.
 /// </summary>
-public class ResiliencePolicy
+public sealed class ResiliencePolicy
 {
     /// <summary>Circuit breaker policy.</summary>
     public CircuitBreaker? CircuitBreaker { get; set; }

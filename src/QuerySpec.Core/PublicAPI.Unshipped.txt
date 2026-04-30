@@ -5,6 +5,8 @@ static QuerySpec.Core.Caching.CacheResult.Miss<T>() -> QuerySpec.Core.Caching.Ca
 QuerySpec.Core.Caching.CacheStats.CacheStats(string! cacheName) -> void
 QuerySpec.Core.Diagnostics.QuerySpecMetrics
 const QuerySpec.Core.Diagnostics.QuerySpecMetrics.MeterName = "QuerySpec" -> string!
+*REMOVED*QuerySpec.Core.Auditing.InMemoryAuditLogger.Dispose(bool disposing) -> void
+*REMOVED*QuerySpec.Core.Resilience.BulkheadPolicy.Dispose(bool disposing) -> void
 *REMOVED*QuerySpec.Core.Auditing.IAuditReader.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
 *REMOVED*QuerySpec.Core.Auditing.IAuditReader.GetAuditsByUserAsync(string! userId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
 *REMOVED*QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!

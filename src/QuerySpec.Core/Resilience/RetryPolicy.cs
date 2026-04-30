@@ -7,7 +7,7 @@ namespace QuerySpec.Core.Resilience;
 /// <summary>
 /// Retry policy with exponential backoff for transient failures.
 /// </summary>
-public class RetryPolicy
+public sealed class RetryPolicy
 {
     /// <summary>Maximum number of retry attempts.</summary>
     public int MaxRetries { get; set; } = 3;

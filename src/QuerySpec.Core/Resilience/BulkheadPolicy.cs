@@ -9,7 +9,7 @@ namespace QuerySpec.Core.Resilience;
 /// <see cref="IDisposable"/> because the backing <see cref="SemaphoreSlim"/> owns a
 /// kernel-allocated wait handle that must be released on teardown.
 /// </summary>
-public class BulkheadPolicy : IDisposable
+public sealed class BulkheadPolicy : IDisposable
 {
     private readonly SemaphoreSlim _semaphore;
     private bool _disposed;
@@ -68,20 +68,10 @@ public class BulkheadPolicy : IDisposable
     /// <summary>Releases the backing <see cref="SemaphoreSlim"/>. Idempotent.</summary>
     public void Dispose()
     {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>Dispose pattern hook for subclasses.</summary>
-    /// <param name="disposing"><c>true</c> when called from <see cref="Dispose()"/>, <c>false</c> from a finalizer.</param>
-    protected virtual void Dispose(bool disposing)
-    {
         if (_disposed) return;
-        if (disposing)
-        {
-            _semaphore.Dispose();
-        }
+        _semaphore.Dispose();
         _disposed = true;
+        GC.SuppressFinalize(this);
     }
 }
 

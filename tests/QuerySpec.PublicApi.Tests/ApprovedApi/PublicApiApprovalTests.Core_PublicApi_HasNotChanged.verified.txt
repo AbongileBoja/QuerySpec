@@ -22,7 +22,7 @@
         public QuerySpec.Core.Advanced.AggregationOperator Operator { get; set; }
         public int? Percentile { get; set; }
     }
-    public class CustomOperatorRegistry
+    public sealed class CustomOperatorRegistry
     {
         public CustomOperatorRegistry() { }
         public QuerySpec.Core.Advanced.ICustomOperator? Get(string name) { }
@@ -163,7 +163,7 @@ namespace QuerySpec.Core.Auditing
         public bool VerifyIntegrity(string? expectedPreviousHash) { }
         public static int VerifyChain(System.Collections.Generic.IReadOnlyList<QuerySpec.Core.Auditing.AuditLogEntry> entries) { }
     }
-    public class ComplianceExporter : QuerySpec.Core.Auditing.IComplianceExporter
+    public sealed class ComplianceExporter : QuerySpec.Core.Auditing.IComplianceExporter
     {
         public ComplianceExporter(QuerySpec.Core.Auditing.IAuditReader auditReader) { }
         [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("GenerateGdprExportAsync uses System.Text.Json reflection-based serialisation, whi" +
@@ -269,13 +269,12 @@ namespace QuerySpec.Core.Auditing
         System.Threading.Tasks.Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, System.DateTime since);
         System.Threading.Tasks.Task<bool> UserHasAccessedFieldAsync(string userId, string fieldName, System.DateTime since, System.Threading.CancellationToken cancellationToken);
     }
-    public class InMemoryAuditLogger : QuerySpec.Core.Auditing.IAuditLogger, QuerySpec.Core.Auditing.IAuditMaintenance, QuerySpec.Core.Auditing.IAuditReader, QuerySpec.Core.Auditing.IAuditWriter, System.IDisposable
+    public sealed class InMemoryAuditLogger : QuerySpec.Core.Auditing.IAuditLogger, QuerySpec.Core.Auditing.IAuditMaintenance, QuerySpec.Core.Auditing.IAuditReader, QuerySpec.Core.Auditing.IAuditWriter, System.IDisposable
     {
         public InMemoryAuditLogger() { }
         public InMemoryAuditLogger(System.TimeProvider timeProvider) { }
         public int Count { get; }
         public void Dispose() { }
-        protected virtual void Dispose(bool disposing) { }
         public System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?> GetAuditAsync(string id) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByRequestAsync(string requestId) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId) { }
@@ -349,7 +348,7 @@ namespace QuerySpec.Core.Caching
         public QuerySpec.Core.Caching.CacheStats Snapshot() { }
         public override string ToString() { }
     }
-    public class DistributedCacheProvider : QuerySpec.Core.Caching.ICacheProvider, QuerySpec.Core.Caching.ICacheStore
+    public sealed class DistributedCacheProvider : QuerySpec.Core.Caching.ICacheProvider, QuerySpec.Core.Caching.ICacheStore
     {
         public DistributedCacheProvider(Microsoft.Extensions.Caching.Distributed.IDistributedCache cache, Microsoft.Extensions.Logging.ILogger<QuerySpec.Core.Caching.DistributedCacheProvider>? logger = null) { }
         public System.Threading.Tasks.ValueTask<bool> ExistsAsync(string key, System.Threading.CancellationToken cancellationToken = default) { }
@@ -420,7 +419,7 @@ namespace QuerySpec.Core.Caching
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
         public System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>> TryGetAsync<T>(string key, System.Threading.CancellationToken cancellationToken = default) { }
     }
-    public class MultiLevelCache : QuerySpec.Core.Caching.ICacheProvider, QuerySpec.Core.Caching.ICacheStore
+    public sealed class MultiLevelCache : QuerySpec.Core.Caching.ICacheProvider, QuerySpec.Core.Caching.ICacheStore
     {
         public MultiLevelCache(QuerySpec.Core.Caching.MemoryCacheProvider l1, QuerySpec.Core.Caching.DistributedCacheProvider l2) { }
         public System.Threading.Tasks.ValueTask<bool> ExistsAsync(string key, System.Threading.CancellationToken cancellationToken = default) { }
@@ -464,7 +463,7 @@ namespace QuerySpec.Core.Monitoring
         System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus> CheckDatabaseAsync();
         System.Threading.Tasks.Task<QuerySpec.Core.Monitoring.HealthStatus> CheckSecurityAsync();
     }
-    public class MetricsCollector
+    public sealed class MetricsCollector
     {
         public const int DefaultMaxRetainedQueries = 10000;
         public MetricsCollector() { }
@@ -473,7 +472,7 @@ namespace QuerySpec.Core.Monitoring
         public QuerySpec.Core.Monitoring.QueryMetricsReport GetReport(System.TimeSpan? period = default) { }
         public void Record(QuerySpec.Core.Monitoring.QueryMetrics metrics) { }
     }
-    public class N1DetectionEngine
+    public sealed class N1DetectionEngine
     {
         public const int MaxTrackedPatterns = 1024;
         public N1DetectionEngine() { }
@@ -539,16 +538,15 @@ namespace QuerySpec.Core.Resilience
         public BulkheadException(string message) { }
         public BulkheadException(string message, System.Exception innerException) { }
     }
-    public class BulkheadPolicy : System.IDisposable
+    public sealed class BulkheadPolicy : System.IDisposable
     {
         public BulkheadPolicy(int maxConcurrentRequests) { }
         public int MaxConcurrentRequests { get; }
         public void Dispose() { }
-        protected virtual void Dispose(bool disposing) { }
         public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation) { }
         public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, System.Threading.CancellationToken cancellationToken) { }
     }
-    public class CircuitBreaker
+    public sealed class CircuitBreaker
     {
         public CircuitBreaker(System.TimeProvider? timeProvider = null) { }
         public int FailureThreshold { get; set; }
@@ -581,7 +579,7 @@ namespace QuerySpec.Core.Resilience
         public RateLimitedException(string message) { }
         public RateLimitedException(string message, System.Exception innerException) { }
     }
-    public class RateLimiter
+    public sealed class RateLimiter
     {
         public RateLimiter(System.TimeProvider? timeProvider = null) { }
         public int BurstSize { get; set; }
@@ -589,7 +587,7 @@ namespace QuerySpec.Core.Resilience
         public System.TimeSpan? GetRetryAfter(string key, int tokensRequired = 1) { }
         public bool TryAcquire(string key, int tokensRequired = 1) { }
     }
-    public class ResiliencePolicy
+    public sealed class ResiliencePolicy
     {
         public ResiliencePolicy() { }
         public QuerySpec.Core.Resilience.BulkheadPolicy? Bulkhead { get; set; }
@@ -599,7 +597,7 @@ namespace QuerySpec.Core.Resilience
         public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, string key = "default") { }
         public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, string key, System.Threading.CancellationToken cancellationToken) { }
     }
-    public class RetryPolicy
+    public sealed class RetryPolicy
     {
         public RetryPolicy() { }
         public double BackoffMultiplier { get; set; }
@@ -615,14 +613,14 @@ namespace QuerySpec.Core.Security
 {
     [System.Obsolete("CBC without authentication is malleable. Use AesGcmEncryptionProvider for new cip" +
         "hertexts; this class remains only to decrypt legacy data.")]
-    public class AesEncryptionProvider : QuerySpec.Core.Security.IEncryptionProvider
+    public sealed class AesEncryptionProvider : QuerySpec.Core.Security.IEncryptionProvider
     {
         public AesEncryptionProvider(string keyBase64) { }
         public string Decrypt(string ciphertext) { }
         public string Encrypt(string plaintext) { }
         public static string GenerateKey() { }
     }
-    public class AesGcmEncryptionProvider : QuerySpec.Core.Security.IAuthenticatedEncryptionProvider, QuerySpec.Core.Security.IEncryptionProvider
+    public sealed class AesGcmEncryptionProvider : QuerySpec.Core.Security.IAuthenticatedEncryptionProvider, QuerySpec.Core.Security.IEncryptionProvider
     {
         public AesGcmEncryptionProvider(byte[] key) { }
         public AesGcmEncryptionProvider(string keyBase64) { }
@@ -786,7 +784,7 @@ namespace QuerySpec.Core.Security
         public string ResourceType { get; set; }
         public QuerySpec.Core.Security.RLSPolicy SetPredicate<T>(System.Func<QuerySpec.Core.Security.RLSContext, System.Linq.Expressions.Expression<System.Func<T, bool>>> factory) { }
     }
-    public class RowLevelSecurityEngine
+    public sealed class RowLevelSecurityEngine
     {
         public RowLevelSecurityEngine(QuerySpec.Core.Security.RLSDefaultBehavior defaultBehavior = 0) { }
         public QuerySpec.Core.Security.RLSFilter GenerateFilter(string resourceType, QuerySpec.Core.Security.RLSContext context) { }
