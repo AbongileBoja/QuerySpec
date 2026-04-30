@@ -24,9 +24,9 @@ await exporter.GenerateGdprExportAsync(userId, tenantId, stream, cancellationTok
 
 The old-name CancellationToken overload is a default-interface-method that delegates forward to the new-name CancellationToken overload, so callers and implementers can move at their own pace.
 
-## v5.0 plan
+## v5.0 status
 
-In v5.0, `GenerateGdprExportAsync(..., CancellationToken)` becomes the abstract member; this obsolete overload becomes a default-interface-method bridge. See [#255](https://github.com/AbongileBoja/QuerySpec/issues/255).
+As of v5.0, `GenerateGdprExportAsync(..., CancellationToken)` is the abstract interface member. This obsolete overload is a default-interface-method bridge that forwards to the new-name abstract — its runtime behaviour is unchanged. The bridge is retained for source compatibility with v4.x callers; it remains marked obsolete and will be removed in a future major release. See [QSPEC0011](QSPEC0011.md) for the v5.0 binary-break implications.
 
 ## Suppression
 

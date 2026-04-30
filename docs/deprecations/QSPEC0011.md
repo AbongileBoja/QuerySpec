@@ -30,11 +30,19 @@ public class MyExporter : IComplianceExporter
 }
 ```
 
-Implementations that override the new-name overload satisfy the interface contract. The old-name member remains abstract on the interface in the v4.x line, so existing implementations continue to compile; consumers see a warning that points at this document.
+Implementations that override the new-name overload satisfy the interface contract.
 
-## v5.0 plan
+In v4.x, the old-name member was abstract on the interface; existing implementations continued to compile and consumers saw a warning that pointed at this document.
 
-In v5.0, `GenerateGdprExportAsync(..., CancellationToken)` will become the abstract interface member and the obsolete acronym-form members will be demoted to default-interface-method bridges. See the v5.0 tracker for migration details: [#255](https://github.com/AbongileBoja/QuerySpec/issues/255).
+## v5.0 binary break
+
+As of v5.0, `GenerateGdprExportAsync(..., CancellationToken)` is the abstract interface member. The obsolete acronym-form members (`GenerateGDPRExportAsync` no-CT and CT) are now default-interface-methods that delegate forward to the new-name abstract.
+
+Implications for v4.x consumers upgrading to v5.0:
+
+- Customer code that implements `IComplianceExporter` by overriding only `GenerateGDPRExportAsync` no longer satisfies the interface contract. Such implementations must override `GenerateGdprExportAsync(..., CancellationToken)` instead.
+- Recompilation against the v5.0 reference assembly will surface this as a missing-implementation error on the abstract `GenerateGdprExportAsync(..., CancellationToken)` member.
+- v4.x-built binaries that implemented only the acronym-form member will throw `TypeLoadException` when loaded against the v5.0 interface, because the abstract slot is now `GenerateGdprExportAsync`.
 
 ## Suppression
 
