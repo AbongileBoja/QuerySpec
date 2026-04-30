@@ -9,6 +9,14 @@ using Xunit;
 namespace QuerySpec.EFCore.Tests;
 
 /// <summary>
+/// Tests in this collection share the global <c>QuerySpecExpressionTranslator</c> static cache state
+/// and call <c>ClearPredicateCache()</c>; running them in parallel produces non-deterministic
+/// reference-equality failures.
+/// </summary>
+[CollectionDefinition("PredicateCache", DisableParallelization = true)]
+public sealed class PredicateCacheCollection;
+
+/// <summary>
 /// Verifies the generation-based eviction behaviour of <see cref="QuerySpecExpressionTranslator"/>'s
 /// internal predicate and property caches:
 /// <list type="bullet">
@@ -19,6 +27,7 @@ namespace QuerySpec.EFCore.Tests;
 /// </summary>
 [RequiresUnreferencedCode("Test exercises QuerySpecExpressionTranslator, which requires reflection metadata for entity property resolution.")]
 [RequiresDynamicCode("Test exercises QuerySpecExpressionTranslator, which compiles expression trees at runtime.")]
+[Collection("PredicateCache")]
 public class GenerationCacheEvictionTests
 {
     private sealed class TypeA
