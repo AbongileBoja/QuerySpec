@@ -4,11 +4,70 @@ All notable changes to QuerySpec are documented here. Generated from Conventiona
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [5.0.0](https://github.com/AbongileBoja/QuerySpec/compare/v4.3.0...v5.0.0) (2026-04-30)
 
-### BREAKING CHANGES
 
-* **core:** seal 15 public concrete classes — `AesEncryptionProvider`, `AesGcmEncryptionProvider`, `BulkheadPolicy`, `CircuitBreaker`, `ComplianceExporter`, `CustomOperatorRegistry`, `DistributedCacheProvider`, `InMemoryAuditLogger`, `MetricsCollector`, `MultiLevelCache`, `N1DetectionEngine`, `RateLimiter`, `ResiliencePolicy`, `RetryPolicy`, `RowLevelSecurityEngine`. Any consumer that subclasses these types will fail to compile. The `protected virtual Dispose(bool)` hook on `BulkheadPolicy` and `InMemoryAuditLogger` is removed; both use a direct `Dispose()` now. ([#159](https://github.com/AbongileBoja/QuerySpec/issues/159))
+### ⚠ BREAKING CHANGES
+
+* **core:** Any consumer that subclasses AesEncryptionProvider,
+AesGcmEncryptionProvider, BulkheadPolicy, CircuitBreaker,
+ComplianceExporter, CustomOperatorRegistry, DistributedCacheProvider,
+InMemoryAuditLogger, MetricsCollector, MultiLevelCache,
+N1DetectionEngine, RateLimiter, ResiliencePolicy, RetryPolicy, or
+RowLevelSecurityEngine will receive a compile error (CS0509). The
+protected virtual Dispose(bool) hook on BulkheadPolicy and
+InMemoryAuditLogger is removed; callers that overrode it must switch
+to composing a new IDisposable wrapper instead.
+* **auditing:** IComplianceExporter.GenerateGdprExportAsync(string, string,
+Stream, CancellationToken) is now the abstract interface member; the
+GenerateGDPRExportAsync overloads are demoted to default-interface-methods.
+Customer code that implements IComplianceExporter by overriding only the
+acronym-form member no longer satisfies the interface contract and must
+override GenerateGdprExportAsync(..., CancellationToken) instead. v4.x-built
+binaries that implemented only the acronym-form member will throw
+TypeLoadException when loaded against the v5.0 interface.
+* **core:** removes the optional-parameter overloads of
+DataMaskingEngine.Mask, CircuitBreaker.ExecuteAsync<T>,
+IAuditReader.GetAuditsByUserAsync, IAuditReader.GetAuditsByTenantAsync,
+InMemoryAuditLogger.GetAuditsByUserAsync and
+InMemoryAuditLogger.GetAuditsByTenantAsync. Callers that relied on
+default-argument bindings must update to the explicit overloads.
+
+### Features
+
+* **auditing:** flip IComplianceExporter abstract member to GenerateGdprExportAsync ([#276](https://github.com/AbongileBoja/QuerySpec/issues/276)) ([8728535](https://github.com/AbongileBoja/QuerySpec/commit/872853535caf622c65bc5bfc09872017ce2d3d53)), closes [#255](https://github.com/AbongileBoja/QuerySpec/issues/255)
+* **ci:** flip ci.yml harden-runner to egress-policy block ([#281](https://github.com/AbongileBoja/QuerySpec/issues/281)) ([d64039f](https://github.com/AbongileBoja/QuerySpec/commit/d64039f9ff6e535a5f7c1ad3cc2c5bf9c98707bd)), closes [#164](https://github.com/AbongileBoja/QuerySpec/issues/164) [#216](https://github.com/AbongileBoja/QuerySpec/issues/216) [#216](https://github.com/AbongileBoja/QuerySpec/issues/216)
+* **core:** resolve RS0026/RS0027 optional-parameter overload violations ([cdc2126](https://github.com/AbongileBoja/QuerySpec/commit/cdc2126a9c6f1969443ffae8e9574356d86a2a8a)), closes [#192](https://github.com/AbongileBoja/QuerySpec/issues/192)
+* **core:** seal 15 public concrete classes ([#277](https://github.com/AbongileBoja/QuerySpec/issues/277)) ([f63220f](https://github.com/AbongileBoja/QuerySpec/commit/f63220fcb68b74aeb4de5540fc1fcfb4b6fe11f7)), closes [#159](https://github.com/AbongileBoja/QuerySpec/issues/159) [#159](https://github.com/AbongileBoja/QuerySpec/issues/159)
+* **observability:** emit System.Diagnostics.Metrics counters under Meter QuerySpec ([#273](https://github.com/AbongileBoja/QuerySpec/issues/273)) ([91c1420](https://github.com/AbongileBoja/QuerySpec/commit/91c14207a2bc745de881b6d59e77a682cf23a0e8)), closes [#172](https://github.com/AbongileBoja/QuerySpec/issues/172)
+* **tests,ci,efcore:** coverage ratchet 93/83 → 95/87 and fix BuildIn nullable semantics ([#268](https://github.com/AbongileBoja/QuerySpec/issues/268)) ([2e453a3](https://github.com/AbongileBoja/QuerySpec/commit/2e453a370c58dff12631f5cf00cfe46cb49c5b3c)), closes [#195](https://github.com/AbongileBoja/QuerySpec/issues/195) [#269](https://github.com/AbongileBoja/QuerySpec/issues/269)
+* **tests,ci:** coverage ratchet step 1 - 90/81 → 93/83 ([#265](https://github.com/AbongileBoja/QuerySpec/issues/265)) ([85809cb](https://github.com/AbongileBoja/QuerySpec/commit/85809cb6c6ee8b38ffd95c264d3c996c00b9babf)), closes [#194](https://github.com/AbongileBoja/QuerySpec/issues/194)
+
+
+### Bug Fixes
+
+* **auditing:** IAuditReader DIM applies since filter instead of dropping it ([#280](https://github.com/AbongileBoja/QuerySpec/issues/280)) ([a754ce1](https://github.com/AbongileBoja/QuerySpec/commit/a754ce14d9b2f59aeac383534331be5b0143c6a3)), closes [#275](https://github.com/AbongileBoja/QuerySpec/issues/275)
+* **ci:** pre-pull Testcontainers images with exponential-backoff retry ([#267](https://github.com/AbongileBoja/QuerySpec/issues/267)) ([8974fb0](https://github.com/AbongileBoja/QuerySpec/commit/8974fb082d2ad35cb398ea80ef83484e67250610)), closes [#258](https://github.com/AbongileBoja/QuerySpec/issues/258) [#264](https://github.com/AbongileBoja/QuerySpec/issues/264) [#265](https://github.com/AbongileBoja/QuerySpec/issues/265)
+* **release:** postbump-baseline halts on NuGet/git failure instead of silent exit 0 ([#264](https://github.com/AbongileBoja/QuerySpec/issues/264)) ([174c589](https://github.com/AbongileBoja/QuerySpec/commit/174c589acb660518a7fcd25a9376e58173a95737)), closes [#262](https://github.com/AbongileBoja/QuerySpec/issues/262)
+
+
+### Performance
+
+* **benchmarks:** add RowLevelSecurityEngine coverage ([#278](https://github.com/AbongileBoja/QuerySpec/issues/278)) ([8bf8811](https://github.com/AbongileBoja/QuerySpec/commit/8bf8811d95e93e7d4621cd253244c05035bd3b6f)), closes [#176](https://github.com/AbongileBoja/QuerySpec/issues/176)
+* **core:** allocation-free Validate on valid-input path ([#270](https://github.com/AbongileBoja/QuerySpec/issues/270)) ([615954e](https://github.com/AbongileBoja/QuerySpec/commit/615954e05a99919d87b718e2843e81bf7a397473)), closes [#173](https://github.com/AbongileBoja/QuerySpec/issues/173) [#173](https://github.com/AbongileBoja/QuerySpec/issues/173)
+* **efcore:** generation-based eviction for PredicateCache/PropertyCache ([#272](https://github.com/AbongileBoja/QuerySpec/issues/272)) ([845ae3e](https://github.com/AbongileBoja/QuerySpec/commit/845ae3e8187b48640185dc06887b53b82c928fdc)), closes [#175](https://github.com/AbongileBoja/QuerySpec/issues/175) [#270](https://github.com/AbongileBoja/QuerySpec/issues/270) [#271](https://github.com/AbongileBoja/QuerySpec/issues/271)
+* **security:** use HMACSHA256.HashData static + cache tenant-derived keys ([#271](https://github.com/AbongileBoja/QuerySpec/issues/271)) ([3ffefbb](https://github.com/AbongileBoja/QuerySpec/commit/3ffefbb76956411e513a136db1e57705fd875f5d)), closes [#174](https://github.com/AbongileBoja/QuerySpec/issues/174)
+
+
+### Tests
+
+* **efcore:** close coverage gaps in metrics, Xor logic, class null-guard, temporal, regex timeout ([#283](https://github.com/AbongileBoja/QuerySpec/issues/283)) ([86c576b](https://github.com/AbongileBoja/QuerySpec/commit/86c576b872dc95f4eb3f286ec39f5a0983f738ec)), closes [#282](https://github.com/AbongileBoja/QuerySpec/issues/282)
+* **tests:** close coverage gaps in QuerySpec.Analyzers and CodeFixes ([#285](https://github.com/AbongileBoja/QuerySpec/issues/285)) ([a5de26d](https://github.com/AbongileBoja/QuerySpec/commit/a5de26dae13eab0b2d0a51af5983b95b3eaff479)), closes [#284](https://github.com/AbongileBoja/QuerySpec/issues/284)
+
+
+### Documentation
+
+* refresh NuGet metadata, tags, and README badges ([53f1c9b](https://github.com/AbongileBoja/QuerySpec/commit/53f1c9b580dabdf35e32b5c6fb0f4e626721dbf7))
 
 ## [4.3.0](https://github.com/AbongileBoja/QuerySpec/compare/v4.2.0...v4.3.0) (2026-04-29)
 
