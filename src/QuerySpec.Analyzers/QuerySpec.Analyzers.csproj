@@ -6,8 +6,8 @@
 
     <PackageId>QuerySpec.Analyzers</PackageId>
     <Title>QuerySpec Analyzers</Title>
-    <Description>Roslyn analyzers and code fixes for the QuerySpec migration window. Ships QSPEC0001 (GeoLocation -&gt; GeoCoordinate), QSPEC0002 (AdvancedFilterExpression -&gt; FilterSpec), and QSPEC0003 (ICacheProvider -&gt; ICacheStore) diagnostics with one-click code fixes and Fix-All-In-Document/Project/Solution support.</Description>
-    <PackageTags>queryspec;analyzers;roslyn;codefix;migration;dotnet</PackageTags>
+    <Description>Roslyn analyzers and one-click code fixes for the QuerySpec migration window. Ships QSPEC0001 (GeoLocation → GeoCoordinate), QSPEC0002 (AdvancedFilterExpression → FilterSpec), and QSPEC0003 (ICacheProvider → ICacheStore) diagnostics with Fix-All-In-Document / Project / Solution support, so renames roll out across an entire solution in one keystroke. Install alongside QuerySpec.Core.</Description>
+    <PackageTags>queryspec;analyzers;roslyn;roslyn-analyzers;code-analysis;codefix;code-fix;fix-all;migration;refactoring;dotnet;net8;net9;net10</PackageTags>
 
     <IsPackable>true</IsPackable>
     <DevelopmentDependency>true</DevelopmentDependency>

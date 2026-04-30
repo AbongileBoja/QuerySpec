@@ -1,18 +1,37 @@
 # QuerySpec
 
-Build query specifications — filters, sorts, projections — as plain data, then translate them to LINQ against Entity Framework Core. Useful when filter input comes from somewhere other than code: an HTTP request, a saved view, a rules engine, a config file. Instead of writing expression trees by hand (or giving up and interpolating strings), you describe the query as data and let QuerySpec turn it into SQL.
+[![QuerySpec.Core on NuGet](https://img.shields.io/nuget/v/QuerySpec.Core.svg?label=QuerySpec.Core&logo=nuget)](https://www.nuget.org/packages/QuerySpec.Core)
+[![QuerySpec.EFCore on NuGet](https://img.shields.io/nuget/v/QuerySpec.EFCore.svg?label=QuerySpec.EFCore&logo=nuget)](https://www.nuget.org/packages/QuerySpec.EFCore)
+[![Downloads](https://img.shields.io/nuget/dt/QuerySpec.Core.svg?label=downloads&logo=nuget)](https://www.nuget.org/packages/QuerySpec.Core)
+[![.NET 8 · 9 · 10](https://img.shields.io/badge/.NET-8.0%20%7C%209.0%20%7C%2010.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/platform/support/policy/dotnet-core)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/AbongileBoja/QuerySpec/ci.yml?branch=main&label=ci&logo=github)](https://github.com/AbongileBoja/QuerySpec/actions/workflows/ci.yml)
+[![AOT compatible](https://img.shields.io/badge/AOT-compatible-success?logo=dotnet)](https://learn.microsoft.com/dotnet/core/deploying/native-aot/)
 
-On top of that, the Core package ships the cross-cutting pieces most data-access layers end up reinventing: auditing, data masking and row-level security, caching, resilience (retry / circuit breaker / rate limiting), and monitoring.
+**Specifications as data. SQL when you need it. The cross-cutting concerns already wired.**
+
+QuerySpec lets you describe a query — filters, sorts, projections — as plain data, then translate it to LINQ against Entity Framework Core. Useful when filter input comes from somewhere other than code: an HTTP request, a saved view, a rules engine, a config file. Instead of writing expression trees by hand (or giving up and interpolating strings), you describe the query as data and let QuerySpec turn it into the SQL you'd have written yourself.
+
+On top of that, `QuerySpec.Core` ships the cross-cutting pieces most data-access layers end up reinventing: **auditing, data masking, row-level security, caching, resilience (retry / circuit breaker / rate limiting), and observability**. Trim- and AOT-ready. Strong-named. Multi-targets `net8.0`, `net9.0`, `net10.0` — pick the runtime you ship on; QuerySpec compiles natively against it.
+
+## Why QuerySpec
+
+- **Accept filters from clients without opening an SQL-injection surface.** Specifications are data. Validation happens before translation.
+- **Stop hand-rolling cross-cutting concerns per query.** Auditing, masking, RLS, caching, retry, and metrics plug in once.
+- **Performance from day one.** Compiled-expression cache means repeat translations of the same shape don't re-walk the tree.
+- **Production-grade hygiene.** Strong-named, SourceLink + symbols (`.snupkg`), SBOM included, SLSA build provenance, deterministic builds, EditorConfig-aware analyzers in CI.
+- **Provider-tested.** EF Core In-Memory, SQLite, SQL Server, and PostgreSQL run in CI via Testcontainers.
 
 ## Packages
 
-| Package | What it does |
-|---|---|
-| `QuerySpec.Core` | Filter/sort specifications and the pluggable auditing, security, caching, resilience, and monitoring layers. No EF dependency. |
-| `QuerySpec.EFCore` | Translates `AdvancedFilterExpression` into LINQ expression trees for `IQueryable<T>`. Compiled-expression cache included. |
-| `QuerySpec.DependencyInjection` | `AddQuerySpec(...)` builder for Microsoft.Extensions.DependencyInjection. Pulls in `StackExchange.Redis` for distributed caching. |
+| Package | NuGet | Purpose |
+|---|---|---|
+| **`QuerySpec.Core`** | [![NuGet](https://img.shields.io/nuget/v/QuerySpec.Core.svg)](https://www.nuget.org/packages/QuerySpec.Core) | Filter/sort specifications + pluggable auditing, security, caching, resilience, monitoring. No EF dependency. |
+| **`QuerySpec.EFCore`** | [![NuGet](https://img.shields.io/nuget/v/QuerySpec.EFCore.svg)](https://www.nuget.org/packages/QuerySpec.EFCore) | Translates specifications into LINQ expression trees over `IQueryable<T>`. Compiled-expression cache included. |
+| **`QuerySpec.DependencyInjection`** | [![NuGet](https://img.shields.io/nuget/v/QuerySpec.DependencyInjection.svg)](https://www.nuget.org/packages/QuerySpec.DependencyInjection) | Fluent `AddQuerySpec(...)` builder for `Microsoft.Extensions.DependencyInjection`. Redis caching via StackExchange.Redis. |
+| **`QuerySpec.Analyzers`** | [![NuGet](https://img.shields.io/nuget/v/QuerySpec.Analyzers.svg)](https://www.nuget.org/packages/QuerySpec.Analyzers) | Roslyn analyzers + one-click code fixes for migration diagnostics (QSPEC0001 – QSPEC0003). |
 
-Targets `net8.0`, `net9.0`, `net10.0`.
+Runtime packages multi-target **`net8.0` (LTS), `net9.0`, and `net10.0` (LTS)** — your project picks the matching `lib/` folder. (`QuerySpec.Analyzers` ships as `netstandard2.0` per Roslyn convention; it works against any of the supported runtimes.)
 
 ## Install
 
@@ -22,7 +41,7 @@ dotnet add package QuerySpec.EFCore
 dotnet add package QuerySpec.DependencyInjection
 ```
 
-Most apps want all three. Core alone is fine if you're not using EF Core or DI.
+Most apps want all three. `QuerySpec.Core` alone is fine if you're not using EF Core or DI.
 
 ## Supported frameworks
 

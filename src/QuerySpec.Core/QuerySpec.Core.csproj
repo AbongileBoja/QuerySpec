@@ -4,8 +4,8 @@
     <!-- Package-specific metadata -->
     <PackageId>QuerySpec.Core</PackageId>
     <Title>QuerySpec Core</Title>
-    <Description>Core abstractions for QuerySpec: build serializable query specifications (filters, sorts, projections) and apply cross-cutting concerns — auditing, data masking and row-level security, caching, resilience (retry, circuit breaker, rate limiting), and monitoring — without hand-rolling them per query. Pair with QuerySpec.EFCore to translate specifications to LINQ against EF Core.</Description>
-    <PackageTags>queryspec;specification;filter;linq;dotnet</PackageTags>
+    <Description>Build serializable query specifications — filters, sorts, projections — as plain data, then apply them anywhere. QuerySpec.Core ships the cross-cutting concerns most data-access layers reinvent: auditing with integrity hashing, data masking and row-level security, in-memory and distributed caching, resilience (retry, circuit breaker, rate limiting, bulkhead), and System.Diagnostics.Metrics observability. Trim- and AOT-ready. Multi-targets .NET 8 (LTS), .NET 9, and .NET 10 (LTS). Pair with QuerySpec.EFCore to translate specifications to LINQ against Entity Framework Core.</Description>
+    <PackageTags>queryspec;specification;specification-pattern;filter;filtering;sorting;query;query-builder;dynamic-query;criteria;search;pagination;linq;repository-pattern;data-access;audit;auditing;caching;cache;resilience;retry;circuit-breaker;rate-limiting;bulkhead;monitoring;observability;metrics;opentelemetry;data-masking;row-level-security;rls;encryption;dotnet;net8;net9;net10;aot;trimming</PackageTags>
     <!-- Signing is governed by Directory.Build.props. Do not override here. -->
   </PropertyGroup>
 

@@ -4,8 +4,8 @@
     <!-- Package-specific metadata -->
     <PackageId>QuerySpec.DependencyInjection</PackageId>
     <Title>QuerySpec Dependency Injection</Title>
-    <Description>Wires QuerySpec into Microsoft.Extensions.DependencyInjection with a fluent AddQuerySpec(...) builder for auditing, security, caching (in-memory or Redis via StackExchange.Redis), resilience, monitoring, performance, and plugins. Start here if you use ASP.NET Core or any Generic Host app — it saves you from registering each concern by hand.</Description>
-    <PackageTags>queryspec;dependency-injection;aspnetcore;specification;dotnet</PackageTags>
+    <Description>Wire QuerySpec into Microsoft.Extensions.DependencyInjection with a fluent AddQuerySpec(...) builder. Opt in to auditing, security (data masking, encryption, row-level security), caching (in-memory or Redis via StackExchange.Redis), resilience (retry, circuit breaker, rate limiting), monitoring, and plugins — register only what you need, in one place. Start here for ASP.NET Core or any Generic Host app. Multi-targets .NET 8 (LTS), .NET 9, and .NET 10 (LTS).</Description>
+    <PackageTags>queryspec;specification;specification-pattern;dependency-injection;di;ioc;microsoft-extensions;hosting;generic-host;aspnetcore;aspnet;webapi;minimal-api;redis;stackexchange-redis;distributed-cache;caching;resilience;auditing;monitoring;observability;data-access;dotnet;net8;net9;net10;aot;trimming</PackageTags>
     <!-- Signing is governed by Directory.Build.props. Do not override here. -->
   </PropertyGroup>
 

@@ -4,8 +4,8 @@
     <!-- Package-specific metadata -->
     <PackageId>QuerySpec.EFCore</PackageId>
     <Title>QuerySpec for EF Core</Title>
-    <Description>Translates QuerySpec filter specifications into LINQ expression trees that Entity Framework Core turns into SQL. Supports 50+ operators (comparison, string, collection, temporal, null/membership) plus nested AND/OR groups, with a compiled expression cache to keep translation cheap on hot paths. Use this when you need to accept filter/sort input from clients or config without writing expression trees by hand.</Description>
-    <PackageTags>queryspec;specification;efcore;entity-framework-core;linq</PackageTags>
+    <Description>Translate QuerySpec filter specifications into LINQ expression trees that Entity Framework Core turns into SQL. 50+ operators (comparison, string, collection, temporal, null/membership, regex, geospatial), nested AND/OR/XOR groups, and a compiled-expression cache that keeps translation cheap on hot paths. Use this when filter or sort input comes from an HTTP request, a saved view, a rules engine, or a config file — instead of writing expression trees by hand or interpolating SQL strings. Tested against the EF Core In-Memory, SQLite, SQL Server, and PostgreSQL providers. Multi-targets .NET 8 (LTS), .NET 9, and .NET 10 (LTS).</Description>
+    <PackageTags>queryspec;specification;specification-pattern;efcore;ef-core;entity-framework;entity-framework-core;linq;linq-to-sql;iqueryable;expression-tree;dynamic-linq;dynamic-query;query;query-builder;filter;filtering;sorting;pagination;search;criteria;data-access;repository-pattern;sql;sqlserver;postgresql;sqlite;dotnet;net8;net9;net10;aot;trimming</PackageTags>
     <!-- Signing is governed by Directory.Build.props. Do not override here. -->
   </PropertyGroup>
 
