@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,6 +9,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using QuerySpec.Core.Advanced;
+using QuerySpec.Core.Diagnostics;
 
 namespace QuerySpec.EFCore;
 
@@ -117,11 +119,24 @@ public static class QuerySpecExpressionTranslator
         if (filter is null)
             return query;
 
-        var errors = filter.Validate();
-        if (errors.Any())
+        var entityType = typeof(T).Name;
+        var buildEnabled = QuerySpecMetrics.FilterBuildDuration.Enabled;
+        var sw = buildEnabled ? Stopwatch.StartNew() : null;
+
+        var errors = filter.Validate().ToList();
+        if (errors.Count > 0)
             throw new ArgumentException($"Invalid filter: {string.Join(", ", errors)}");
 
         var predicate = BuildPredicate<T>(filter, 0);
+
+        sw?.Stop();
+        if (buildEnabled)
+            QuerySpecMetrics.FilterBuildDuration.Record(sw!.Elapsed.TotalMilliseconds);
+        if (QuerySpecMetrics.FilterApplications.Enabled)
+            QuerySpecMetrics.FilterApplications.Add(1,
+                new KeyValuePair<string, object?>("cached", false),
+                new KeyValuePair<string, object?>("entity_type", entityType));
+
         return query.Where(predicate);
     }
 
@@ -154,6 +169,12 @@ public static class QuerySpecExpressionTranslator
             return query;
 
         var predicate = GetOrBuildCachedPredicate<T>(filter);
+
+        if (QuerySpecMetrics.FilterApplications.Enabled)
+            QuerySpecMetrics.FilterApplications.Add(1,
+                new KeyValuePair<string, object?>("cached", true),
+                new KeyValuePair<string, object?>("entity_type", typeof(T).Name));
+
         return query.Where(predicate);
     }
 
@@ -177,14 +198,31 @@ public static class QuerySpecExpressionTranslator
         var cache = PerTypePredicateCache<T>.Cache;
 
         if (cache.TryGetValue(hash, out var cached))
+        {
+            if (QuerySpecMetrics.CacheHits.Enabled)
+                QuerySpecMetrics.CacheHits.Add(1,
+                    new KeyValuePair<string, object?>("cache_name", "predicate"));
             return (Expression<Func<T, bool>>)cached;
+        }
 
-        var errors = filter.Validate();
-        if (errors.Any())
+        if (QuerySpecMetrics.CacheMisses.Enabled)
+            QuerySpecMetrics.CacheMisses.Add(1,
+                new KeyValuePair<string, object?>("cache_name", "predicate"));
+
+        var buildEnabled = QuerySpecMetrics.FilterBuildDuration.Enabled;
+        var sw = buildEnabled ? Stopwatch.StartNew() : null;
+
+        var errors = filter.Validate().ToList();
+        if (errors.Count > 0)
             throw new ArgumentException($"Invalid filter: {string.Join(", ", errors)}");
 
         var predicate = BuildPredicate<T>(filter, 0);
         cache.Set(hash, predicate);
+
+        sw?.Stop();
+        if (buildEnabled)
+            QuerySpecMetrics.FilterBuildDuration.Record(sw!.Elapsed.TotalMilliseconds);
+
         return predicate;
     }
 

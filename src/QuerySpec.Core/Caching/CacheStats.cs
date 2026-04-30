@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Threading;
+using QuerySpec.Core.Diagnostics;
 
 namespace QuerySpec.Core.Caching;
 
@@ -10,10 +12,21 @@ namespace QuerySpec.Core.Caching;
 /// </summary>
 public class CacheStats
 {
+    private readonly KeyValuePair<string, object?> _cacheNameTag;
     private long _hits;
     private long _misses;
     private long _sets;
     private long _removes;
+
+    /// <summary>Initialises a new instance with <c>cache_name = "default"</c> as the metric tag.</summary>
+    public CacheStats() : this("default") { }
+
+    /// <summary>Initialises a new instance with the supplied cache name used as a <c>cache_name</c> metric tag.</summary>
+    /// <param name="cacheName">Identifies this cache in metric tag <c>cache_name</c>.</param>
+    public CacheStats(string cacheName)
+    {
+        _cacheNameTag = new KeyValuePair<string, object?>("cache_name", cacheName);
+    }
 
     /// <summary>Number of cache hits.</summary>
     public long Hits
@@ -52,10 +65,21 @@ public class CacheStats
         }
     }
 
-    /// <summary>Atomically increments the hit counter.</summary>
-    public void IncrementHits() => Interlocked.Increment(ref _hits);
-    /// <summary>Atomically increments the miss counter.</summary>
-    public void IncrementMisses() => Interlocked.Increment(ref _misses);
+    /// <summary>Atomically increments the hit counter and emits a <c>queryspec.cache.hits</c> measurement.</summary>
+    public void IncrementHits()
+    {
+        Interlocked.Increment(ref _hits);
+        if (QuerySpecMetrics.CacheHits.Enabled)
+            QuerySpecMetrics.CacheHits.Add(1, _cacheNameTag);
+    }
+
+    /// <summary>Atomically increments the miss counter and emits a <c>queryspec.cache.misses</c> measurement.</summary>
+    public void IncrementMisses()
+    {
+        Interlocked.Increment(ref _misses);
+        if (QuerySpecMetrics.CacheMisses.Enabled)
+            QuerySpecMetrics.CacheMisses.Add(1, _cacheNameTag);
+    }
     /// <summary>Atomically increments the set counter.</summary>
     public void IncrementSets() => Interlocked.Increment(ref _sets);
     /// <summary>Atomically increments the remove counter.</summary>

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
+using QuerySpec.Core.Diagnostics;
 
 namespace QuerySpec.Core.Security;
 
@@ -161,7 +163,14 @@ public class RowLevelSecurityEngine
             };
         }
 
-        return policy.FilterGenerator(context) ?? RLSFilter.DenyAll;
+        var rlsEnabled = QuerySpecMetrics.RlsEvaluationDuration.Enabled;
+        var sw = rlsEnabled ? Stopwatch.StartNew() : null;
+        var result = policy.FilterGenerator(context) ?? RLSFilter.DenyAll;
+        sw?.Stop();
+        if (rlsEnabled)
+            QuerySpecMetrics.RlsEvaluationDuration.Record(sw!.Elapsed.TotalMilliseconds,
+                new KeyValuePair<string, object?>("resource_type", resourceType));
+        return result;
     }
 
     /// <summary>
@@ -204,7 +213,16 @@ public class RowLevelSecurityEngine
         }
 
         if (policy.PredicateFactory is Func<RLSContext, Expression<Func<T, bool>>> factory)
-            return factory(context);
+        {
+            var rlsEnabled = QuerySpecMetrics.RlsEvaluationDuration.Enabled;
+            var sw = rlsEnabled ? Stopwatch.StartNew() : null;
+            var result = factory(context);
+            sw?.Stop();
+            if (rlsEnabled)
+                QuerySpecMetrics.RlsEvaluationDuration.Record(sw!.Elapsed.TotalMilliseconds,
+                    new KeyValuePair<string, object?>("resource_type", resourceType));
+            return result;
+        }
 
         throw new InvalidOperationException(
             $"PredicateFactory for resource '{resourceType}' is not compatible with entity type '{typeof(T).FullName}'.");

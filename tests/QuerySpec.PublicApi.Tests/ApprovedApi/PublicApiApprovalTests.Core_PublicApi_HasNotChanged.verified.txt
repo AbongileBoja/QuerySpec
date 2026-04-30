@@ -1,6 +1,7 @@
 ﻿[assembly: System.Reflection.AssemblyMetadata("IsAotCompatible", "True")]
 [assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
 [assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/AbongileBoja/QuerySpec.git")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("QuerySpec.EFCore")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"QuerySpec.Core.Tests, PublicKey=0024000004800000140100000602000000240000525341310008000001000100D915FCF575EC3FFF6560CD4D2090C44489428DB73F14E639FD23D7B05DF3670BE3C8B1D0443196D2A1C6BE5CE10A0784A799D6002014C8A667151C0063170754D3D71C2124E3960CA1C77EA352FE698C25DFB50D76D9E9F3D41FCEB71BA59763A26ECA04C1FA3AA1F9045DA9CD706333958B96763D0C836EA64A6E709CD470FFE5C144E0DF0BD317D59AB1B80856CF1B6019108B5545FA66BB25749BE658A6E5CE4822520E633CACAEC5E88441DEEE52CDC069016AFE4BE9C8730CF479E2901DEEBB38D987DDE9DB875435352F3D1473F98708E0C2F691F1E42A52AF9EC3840AFF379711B1D2373DCBD0C4B239B93CD408EF35C2FB30ED2FB10A1CE52E7615EA")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"QuerySpec.EFCore.Tests, PublicKey=0024000004800000140100000602000000240000525341310008000001000100D915FCF575EC3FFF6560CD4D2090C44489428DB73F14E639FD23D7B05DF3670BE3C8B1D0443196D2A1C6BE5CE10A0784A799D6002014C8A667151C0063170754D3D71C2124E3960CA1C77EA352FE698C25DFB50D76D9E9F3D41FCEB71BA59763A26ECA04C1FA3AA1F9045DA9CD706333958B96763D0C836EA64A6E709CD470FFE5C144E0DF0BD317D59AB1B80856CF1B6019108B5545FA66BB25749BE658A6E5CE4822520E633CACAEC5E88441DEEE52CDC069016AFE4BE9C8730CF479E2901DEEBB38D987DDE9DB875435352F3D1473F98708E0C2F691F1E42A52AF9EC3840AFF379711B1D2373DCBD0C4B239B93CD408EF35C2FB30ED2FB10A1CE52E7615EA")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
@@ -337,6 +338,7 @@ namespace QuerySpec.Core.Caching
     public class CacheStats
     {
         public CacheStats() { }
+        public CacheStats(string cacheName) { }
         public double HitRate { get; }
         public long Hits { get; set; }
         public long Misses { get; set; }
@@ -438,6 +440,13 @@ namespace QuerySpec.Core.Caching
             "Text.Json source generation (JsonSerializerContext) for AOT scenarios.")]
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(@"Cache store reads and writes deserialise/serialise T. Distributed implementations (DistributedCacheProvider, MultiLevelCache) use System.Text.Json reflection-based serialisation, which may emit incomplete payloads under trimming when members of T are removed. In-process implementations (MemoryCacheProvider) are trim-safe; suppress the warning at the call site only when you can prove the underlying provider does not serialise.")]
         public System.Threading.Tasks.ValueTask<QuerySpec.Core.Caching.CacheResult<T>> TryGetAsync<T>(string key, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+}
+namespace QuerySpec.Core.Diagnostics
+{
+    public static class QuerySpecMetrics
+    {
+        public const string MeterName = "QuerySpec";
     }
 }
 namespace QuerySpec.Core.Monitoring
