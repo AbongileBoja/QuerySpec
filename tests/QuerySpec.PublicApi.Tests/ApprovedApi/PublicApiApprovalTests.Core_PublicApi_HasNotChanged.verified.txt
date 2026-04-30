@@ -224,9 +224,11 @@ namespace QuerySpec.Core.Auditing
         System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?> GetAuditAsync(string id, System.Threading.CancellationToken cancellationToken);
         System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByRequestAsync(string requestId);
         System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByRequestAsync(string requestId, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since);
         System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since);
         System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since, System.Threading.CancellationToken cancellationToken);
         System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetComplianceReportAsync(System.DateTime from, System.DateTime to);
         System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetComplianceReportAsync(System.DateTime from, System.DateTime to, System.Threading.CancellationToken cancellationToken);
@@ -276,8 +278,10 @@ namespace QuerySpec.Core.Auditing
         protected virtual void Dispose(bool disposing) { }
         public System.Threading.Tasks.Task<QuerySpec.Core.Auditing.AuditLogEntry?> GetAuditAsync(string id) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByRequestAsync(string requestId) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since = default) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByTenantAsync(string tenantId, System.DateTime? since) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetAuditsByUserAsync(string userId, System.DateTime? since) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry>> GetComplianceReportAsync(System.DateTime from, System.DateTime to) { }
         public System.Threading.Tasks.Task LogChangeAsync(QuerySpec.Core.Auditing.FieldChange change) { }
         public System.Threading.Tasks.Task LogQueryAsync(QuerySpec.Core.Auditing.AuditLogEntry entry) { }
@@ -551,8 +555,7 @@ namespace QuerySpec.Core.Resilience
         public System.TimeSpan HalfOpenTestInterval { get; set; }
         public System.TimeSpan OpenTimeout { get; set; }
         public QuerySpec.Core.Resilience.CircuitState State { get; }
-        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation) { }
-        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<T> ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>> operation, System.Threading.CancellationToken cancellationToken = default) { }
         public void Reset() { }
     }
     public class CircuitBreakerOpenException : System.Exception
@@ -662,8 +665,10 @@ namespace QuerySpec.Core.Security
             "te fields with [Pii(...)] and use IsPii(Type, string) backed by IPiiClassifier i" +
             "nstead. Promoted to a build error in 2.0.1; scheduled for removal in 3.0.0.", true)]
         public bool IsPii(string fieldName, object? value) { }
-        public string Mask(string fieldName, object? value, string? tenantId = null) { }
-        public string Mask([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName, object? value, string? tenantId = null) { }
+        public string Mask(string fieldName, object? value) { }
+        public string Mask([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName, object? value) { }
+        public string Mask(string fieldName, object? value, string? tenantId) { }
+        public string Mask([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties | System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties)] System.Type? declaringType, string fieldName, object? value, string? tenantId) { }
         public void RegisterFieldMask(string fieldName, QuerySpec.Core.Security.MaskingStrategy strategy) { }
     }
     public class DynamicContext

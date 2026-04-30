@@ -5,3 +5,24 @@ static QuerySpec.Core.Caching.CacheResult.Miss<T>() -> QuerySpec.Core.Caching.Ca
 QuerySpec.Core.Caching.CacheStats.CacheStats(string! cacheName) -> void
 QuerySpec.Core.Diagnostics.QuerySpecMetrics
 const QuerySpec.Core.Diagnostics.QuerySpecMetrics.MeterName = "QuerySpec" -> string!
+*REMOVED*QuerySpec.Core.Auditing.IAuditReader.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+*REMOVED*QuerySpec.Core.Auditing.IAuditReader.GetAuditsByUserAsync(string! userId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+*REMOVED*QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+*REMOVED*QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByUserAsync(string! userId, System.DateTime? since = null) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+*REMOVED*QuerySpec.Core.Resilience.CircuitBreaker.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation) -> System.Threading.Tasks.Task<T>!
+*REMOVED*QuerySpec.Core.Resilience.CircuitBreaker.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<T>!
+*REMOVED*QuerySpec.Core.Security.DataMaskingEngine.Mask(System.Type? declaringType, string! fieldName, object? value, string? tenantId = null) -> string!
+*REMOVED*QuerySpec.Core.Security.DataMaskingEngine.Mask(string! fieldName, object? value, string? tenantId = null) -> string!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByTenantAsync(string! tenantId) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByUserAsync(string! userId) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.IAuditReader.GetAuditsByUserAsync(string! userId, System.DateTime? since) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByTenantAsync(string! tenantId) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByTenantAsync(string! tenantId, System.DateTime? since) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByUserAsync(string! userId) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Auditing.InMemoryAuditLogger.GetAuditsByUserAsync(string! userId, System.DateTime? since) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<QuerySpec.Core.Auditing.AuditLogEntry!>!>!
+QuerySpec.Core.Resilience.CircuitBreaker.ExecuteAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T>!
+QuerySpec.Core.Security.DataMaskingEngine.Mask(System.Type? declaringType, string! fieldName, object? value) -> string!
+QuerySpec.Core.Security.DataMaskingEngine.Mask(System.Type? declaringType, string! fieldName, object? value, string? tenantId) -> string!
+QuerySpec.Core.Security.DataMaskingEngine.Mask(string! fieldName, object? value) -> string!
+QuerySpec.Core.Security.DataMaskingEngine.Mask(string! fieldName, object? value, string? tenantId) -> string!

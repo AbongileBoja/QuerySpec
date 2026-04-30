@@ -57,28 +57,16 @@ public class CircuitBreaker
     }
 
     /// <summary>
-    /// Executes operation with circuit breaker protection. Equivalent to
-    /// <see cref="ExecuteAsync{T}(Func{Task{T}}, CancellationToken)"/> with <see cref="CancellationToken.None"/>.
-    /// </summary>
-    /// <typeparam name="T">Result type the operation produces.</typeparam>
-    /// <param name="operation">The operation to execute. Must not be null.</param>
-    /// <returns>The operation's result on success.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
-    /// <exception cref="CircuitBreakerOpenException">Thrown when the circuit is currently open.</exception>
-    public Task<T> ExecuteAsync<T>(Func<Task<T>> operation)
-        => ExecuteAsync(operation, CancellationToken.None);
-
-    /// <summary>
     /// Executes operation with circuit breaker protection and cancellation support.
     /// </summary>
     /// <typeparam name="T">Result type the operation produces.</typeparam>
     /// <param name="operation">The operation to execute. Must not be null.</param>
-    /// <param name="cancellationToken">Token observed before circuit-state evaluation and before invoking <paramref name="operation"/>.</param>
+    /// <param name="cancellationToken">Token observed before circuit-state evaluation and before invoking <paramref name="operation"/>. Defaults to <see cref="CancellationToken.None"/>.</param>
     /// <returns>The operation's result on success.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     /// <exception cref="CircuitBreakerOpenException">Thrown when the circuit is currently open.</exception>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is signalled.</exception>
-    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
+    public async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(operation);
         cancellationToken.ThrowIfCancellationRequested();

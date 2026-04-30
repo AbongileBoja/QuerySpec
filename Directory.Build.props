@@ -27,7 +27,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors>$(WarningsAsErrors);CS1573;CS1572;CS1574;CS1734</WarningsAsErrors>
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);RS0026;RS0027</WarningsNotAsErrors>
 
     <IsTrimmable Condition="'$(IsPackable)' != 'false' and !$(TargetFramework.StartsWith('netstandard'))">true</IsTrimmable>
     <IsAotCompatible Condition="'$(IsPackable)' != 'false' and !$(TargetFramework.StartsWith('netstandard'))">true</IsAotCompatible>
